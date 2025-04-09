@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,18 +20,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreateScheme from "./CreateScheme";
-import EditScheme from "./EditScheme";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Search
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CreateScheme from "./CreateScheme";
 
 const SchemeList = () => {
+  const token = useApiToken();
   const {
     data: schemes,
     isLoading,
@@ -54,7 +51,6 @@ const SchemeList = () => {
   } = useQuery({
     queryKey: ["schemes"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-scheme-list`,
         {
@@ -130,7 +126,7 @@ const SchemeList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditScheme schemeId={schemeId} />
+            <CreateScheme isEdit="true" schemeId={schemeId} />
           </div>
         );
       },
@@ -181,14 +177,6 @@ const SchemeList = () => {
 
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input

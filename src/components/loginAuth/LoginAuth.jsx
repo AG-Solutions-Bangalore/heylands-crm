@@ -1,6 +1,3 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,20 +8,25 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import BASE_URL from "@/config/BaseUrl";
-import { Loader } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 import { ContextPanel } from "@/lib/ContextPanel";
+import { loginSuccess } from "@/redux/slice/authSlice";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { useContext, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginAuth() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("superadmins");
+  const [password, setPassword] = useState("123456");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { fetchPagePermission, fetchPermissions } = useContext(ContextPanel);
+  const dispatch = useDispatch();
 
   const loadingMessages = [
     "Setting things up for you...",
@@ -75,18 +77,21 @@ export default function LoginAuth() {
 
         const { UserInfo, userN, company_detils } = res.data;
 
-        console.log("Saving user details to local storage...");
-        localStorage.setItem("token", UserInfo.token);
-        localStorage.setItem("allUsers", JSON.stringify(userN));
-        localStorage.setItem("id", UserInfo.user.id);
-        localStorage.setItem("name", UserInfo.user.name);
-        localStorage.setItem("userType", UserInfo.user.user_type);
-        localStorage.setItem("user_position", UserInfo.user.user_position);
-        localStorage.setItem("companyID", UserInfo.user.company_id);
-        localStorage.setItem("companyName", company_detils?.company_name);
-        localStorage.setItem("branchId", UserInfo.user.branch_id);
-        localStorage.setItem("email", UserInfo.user.email);
-        localStorage.setItem("token-expire-time", UserInfo.token_expires_at);
+        const userData = {
+          token: UserInfo.token,
+          allUsers: JSON.stringify(userN),
+          id: UserInfo.user.id,
+          name: UserInfo.user?.name,
+          user_type: UserInfo.user?.user_type,
+          user_position: UserInfo.user?.user_position,
+          company_id: UserInfo.user?.company_id,
+
+          company_name: company_detils?.company_name,
+          email: UserInfo.user.email,
+          token_expires_at: UserInfo.token_expires_at,
+        };
+
+        dispatch(loginSuccess(userData));
 
         await fetchPermissions();
         await fetchPagePermission();

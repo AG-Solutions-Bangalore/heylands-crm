@@ -62,9 +62,7 @@ const UserPage = () => {
     applyFilters();
   }, [applyFilters, searchTerm, filters]);
 
-  const handleOpenDashboard = (userId) => {
-    window.open(`/management-dashboard/${userId}`, "_blank");
-  };
+
 
   return (
     <Page>
