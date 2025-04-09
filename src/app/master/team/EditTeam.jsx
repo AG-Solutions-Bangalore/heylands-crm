@@ -30,6 +30,7 @@ import BASE_URL from "@/config/BaseUrl";
 import { Edit, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import useApiToken from "@/components/common/useApiToken";
 
 const EditTeam = ({ teamId }) => {
   const [open, setOpen] = useState(false);
@@ -38,6 +39,7 @@ const EditTeam = ({ teamId }) => {
   const [isFetching, setIsFetching] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const token = useApiToken();
   const [formData, setFormData] = useState({
     mobile: "",
     email: "",
@@ -48,7 +50,6 @@ const EditTeam = ({ teamId }) => {
   const fetchTeamData = async () => {
     setIsFetching(true);
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-team-by-id/${teamId}`,
         {
@@ -66,7 +67,7 @@ const EditTeam = ({ teamId }) => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch bank data",
+        description: "Failed to fetch team  data",
         variant: "destructive",
       });
     } finally {
@@ -107,8 +108,7 @@ const EditTeam = ({ teamId }) => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
+     const response = await axios.put(
         `${BASE_URL}/api/panel-update-team/${teamId}`,
         formData,
         {
@@ -181,7 +181,9 @@ const EditTeam = ({ teamId }) => {
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Team - <span className="text-2xl">{formData.name}</span></DialogTitle>
+          <DialogTitle>
+            Edit Team - <span className="text-2xl">{formData.name}</span>
+          </DialogTitle>
         </DialogHeader>
 
         {isFetching ? (

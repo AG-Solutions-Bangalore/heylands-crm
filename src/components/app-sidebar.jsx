@@ -25,16 +25,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavMainUser } from "./nav-main-user";
+import { useSelector } from "react-redux";
 
 const isItemAllowed = (item, pageControl, userId) => {
-  const itemUrl = item.url?.replace(/^\//, "");
-  return pageControl.some(
-    (control) =>
+  if (!Array.isArray(pageControl)) return false;
+
+  const itemUrl = item.url?.replace(/^\//, "").replace(/\\/g, "");
+
+  return pageControl.some((control) => {
+    const controlUrl = control.url?.replace(/^\//, "").replace(/\\/g, "");
+
+    return (
       control.page === item.title &&
-      control.url === itemUrl &&
+      controlUrl === itemUrl &&
       control.userIds.includes(userId) &&
       control.status === "Active"
-  );
+    );
+  });
 };
 
 const filterMenuItems = (items, pageControl, userId) => {
@@ -50,18 +57,34 @@ const filterMenuItems = (items, pageControl, userId) => {
         });
       }
     } else if (isItemAllowed(item, pageControl, userId)) {
+      console.log("✅ Allowed Item:", item.title, "URL:", item.url);
       acc.push(item);
+    } else {
+      // console.log("❌ Not Allowed:", item.title, "URL:", item.url);
     }
     return acc;
   }, []);
 };
 
 export function AppSidebar({ ...props }) {
-  const nameL = localStorage.getItem("name");
-  const emailL = localStorage.getItem("email");
-  const companyName = localStorage.getItem("companyName");
-  const userId = localStorage.getItem("id");
-  const pageControl = JSON.parse(localStorage.getItem("pageControl")) || [];
+  const nameL = useSelector((state) => state.auth.name);
+  const emailL = useSelector((state) => state.auth.email);
+  const companyName = useSelector((state) => state.auth.company_name);
+  const userId = String(useSelector((state) => state.auth.id));
+  const pageControlRaw = useSelector(
+    (state) => state.permissions?.pagePermissions
+  );
+
+  const pageControl = React.useMemo(() => {
+    try {
+      if (typeof pageControlRaw !== "string" || !pageControlRaw.trim())
+        return [];
+      return JSON.parse(pageControlRaw);
+    } catch (e) {
+      console.error("Failed to parse pageControl:", e);
+      return [];
+    }
+  }, [pageControlRaw]);
 
   const initialData = {
     user: {
@@ -336,20 +359,12 @@ export function AppSidebar({ ...props }) {
     ],
   };
 
-  // Filter menu items based on user permissions
   const filteredNavMain = filterMenuItems(
     initialData.navMain,
     pageControl,
     userId
   );
-  // const filteredProjects = filterMenuItems(initialData.projects.map(p => ({
-  //   title: p.name,
-  //   url: p.url
-  // })), pageControl, userId).map(p => ({
-  //   name: p.title,
-  //   url: p.url,
-  //   icon: initialData.projects.find(orig => orig.name === p.title)?.icon || Frame
-  // }));
+
   const filteredUserManagement = filterMenuItems(
     initialData.userManagement.map((p) => ({
       title: p.name,
@@ -361,7 +376,7 @@ export function AppSidebar({ ...props }) {
     name: p.title,
     url: p.url,
     icon:
-      initialData.userManagement.find((orig) => orig.name === p.title)?.icon ||
+      initialData.userManagement.find((orig) => orig.name == p.title)?.icon ||
       Frame,
   }));
 

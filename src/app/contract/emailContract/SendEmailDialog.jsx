@@ -89,7 +89,7 @@ const SendEmailDialog = ({ pdfRef, handleEmail }) => {
           <span>Email</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Send Contract via Email</DialogTitle>
         </DialogHeader>

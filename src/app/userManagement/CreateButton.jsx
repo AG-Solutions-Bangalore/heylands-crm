@@ -10,22 +10,25 @@ import Page from "../dashboard/page";
 import { ContextPanel } from "@/lib/ContextPanel";
 import BASE_URL from "@/config/BaseUrl";
 import { useToast } from "@/hooks/use-toast";
+import useApiToken from "@/components/common/useApiToken";
+import { useSelector } from "react-redux";
 
 const CreateButton = () => {
   const [selectedPage, setSelectedPage] = useState("");
   const [selectedButton, setSelectedButton] = useState("");
-  const [userIds, setUserIds] = useState("1,2,3,4");
+  const [userIds, setUserIds] = useState("1,2,3,4,5");
   const [status, setStatus] = useState("Active");
   const [selectedItems, setSelectedItems] = useState([]);
   const [availablePages, setAvailablePages] = useState([]);
   const { fetchPermissions } = useContext(ContextPanel);
   const { toast } = useToast();
-
+  const token = useApiToken();
+  const pageControlRaw = useSelector(
+    (state) => state.permissions?.buttonPermissions
+  );
   const navigate = useNavigate();
   useEffect(() => {
-    const existingControls = JSON.parse(
-      localStorage.getItem("buttonControl") || "[]"
-    );
+    const existingControls = JSON.parse(pageControlRaw);
 
     const existingPageButtonMap = new Map(
       existingControls.map((control) => [
@@ -58,9 +61,7 @@ const CreateButton = () => {
     setSelectedItems([]);
 
     if (page === "All") {
-      const existingControls = JSON.parse(
-        localStorage.getItem("buttonControl") || "[]"
-      );
+      const existingControls = JSON.parse(pageControlRaw);
 
       const existingPageButtonMap = new Map(
         existingControls.map((control) => [
@@ -87,10 +88,7 @@ const CreateButton = () => {
   const getAvailableButtons = () => {
     if (!selectedPage || selectedPage === "All") return [];
 
-    const existingControls = JSON.parse(
-      localStorage.getItem("buttonControl") || "[]"
-    );
-
+    const existingControls = JSON.parse(pageControlRaw);
     const existingPageButtonMap = new Map(
       existingControls.map((control) => [
         `${control.pages}-${control.button}`,
@@ -134,7 +132,6 @@ const CreateButton = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/api/panel-create-usercontrol`, {
         method: "POST",
         headers: {

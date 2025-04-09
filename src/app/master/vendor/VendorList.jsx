@@ -45,10 +45,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ButtonConfig } from "@/config/ButtonConfig";
-import {
-  BranchCreate,
-  BranchEdit,
-} from "@/components/buttonIndex/ButtonComponents";
+// import {
+//   BranchCreate,
+//   CompanyEdit,
+// } from "@/components/buttonIndex/ButtonComponents";
 import {
   ErrorComponent,
   LoaderComponent,
@@ -167,7 +167,7 @@ const VendorList = () => {
                     <Edit className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Edit Branch</TooltipContent>
+                <TooltipContent>Edit Vendor</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>

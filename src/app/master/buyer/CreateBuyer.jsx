@@ -1,13 +1,20 @@
-import { useToast } from "@/hooks/use-toast";
-import React from "react";
+// BuyerForm.jsx
+import {
+  BuyerCreate,
+  BuyerEdit,
+} from "@/components/buttonIndex/ButtonComponents";
+import useApiToken from "@/components/common/useApiToken";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,25 +22,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import axios from "axios";
-import BASE_URL from "@/config/BaseUrl";
-import { Loader2, SquarePlus } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
-import { ButtonConfig } from "@/config/ButtonConfig";
-import { useFetchCountrys, useFetchPorts } from "@/hooks/useApi";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
+import { useFetchCountrys, useFetchPorts } from "@/hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-const CreateBuyer = () => {
+const BuyerForm = ({ mode = "create", buyerId = null }) => {
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const { pathname } = useLocation();
-  const queryClient = useQueryClient();
+  const isEdit = mode === "edit";
+
   const [formData, setFormData] = useState({
     buyer_sort: "",
     buyer_group: "",
@@ -42,227 +51,328 @@ const CreateBuyer = () => {
     buyer_port: "",
     buyer_country: "",
     buyer_ecgc_ref: "",
+    buyer_status: isEdit ? "Active" : null,
   });
 
-  const handleInputChange = (e, key, value) => {
-    if (e && e.target) {
-      const { name, value } = e.target;
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
+  const [isLoading, setIsLoading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const token = useApiToken();
+  const { data: portsData } = useFetchPorts();
+  const { data: countryData } = useFetchCountrys();
+  const { pathname } = useLocation();
+
+  const fetchBuyerData = async () => {
+    if (!buyerId) return;
+    setIsFetching(true);
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-buyer-by-id/${buyerId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const buyer = response.data.buyer;
+      setFormData({
+        buyer_sort: buyer.buyer_sort,
+        buyer_group: buyer.buyer_group,
+        buyer_address: buyer.buyer_address,
+        buyer_port: buyer.buyer_port,
+        buyer_name: buyer.buyer_name,
+        buyer_country: buyer.buyer_country,
+        buyer_ecgc_ref: buyer.buyer_ecgc_ref,
+        buyer_status: buyer.buyer_status,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch buyer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetching(false);
     }
   };
 
-  const { data: portsData } = useFetchPorts();
-  const { data: countryData } = useFetchCountrys();
+  useEffect(() => {
+    if (isEdit && open) fetchBuyerData();
+  }, [open]);
+
+  const handleInputChange = (e, key, value) => {
+    if (e?.target) {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setFormData((prev) => ({ ...prev, [key]: value }));
+    }
+  };
+
+  const handleStatusChange = (value) => {
+    setFormData((prev) => ({ ...prev, buyer_status: value }));
+  };
+  const requiredFields = isEdit
+    ? {
+        "Buyer Short": "buyer_sort",
+        "Buyer Company": "buyer_group",
+        Address: "buyer_address",
+        Port: "buyer_port",
+        Country: "buyer_country",
+        Ref: "buyer_ecgc_ref",
+        Status: "buyer_status",
+      }
+    : {
+        "Buyer Short": "buyer_sort",
+        "Buyer Company": "buyer_group",
+        Name: "buyer_name",
+        Address: "buyer_address",
+        Port: "buyer_port",
+        Country: "buyer_country",
+        Ref: "buyer_ecgc_ref",
+      };
   const handleSubmit = async () => {
-    if (
-      !formData.buyer_sort ||
-      !formData.buyer_name ||
-      !formData.buyer_address ||
-      !formData.buyer_port ||
-      !formData.buyer_country
-    ) {
+    const missingFields = Object.entries(requiredFields).filter(
+      ([label, field]) =>
+        !formData[field]?.trim() && (!isEdit || field !== "buyer_status")
+    );
+
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "Please fill all fields",
+        title: "Missing Required Fields",
+        description: (
+          <div className="flex flex-col gap-1">
+            {missingFields.map(([label], index) => (
+              <div key={index}>• {label}</div>
+            ))}
+          </div>
+        ),
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${BASE_URL}/api/panel-create-buyer`,
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const url = isEdit
+        ? `${BASE_URL}/api/panel-update-buyer/${buyerId}`
+        : `${BASE_URL}/api/panel-create-buyer`;
 
-      if (response?.data.code == 200) {
-        toast({
-          title: "Success",
-          description: response.data.msg,
-        });
+      const method = isEdit ? axios.put : axios.post;
 
-        setFormData({
-          buyer_sort: "",
-          buyer_group: "",
-          buyer_name: "",
-          buyer_address: "",
-          buyer_port: "",
-          buyer_country: "",
-          buyer_ecgc_ref: "",
-        });
+      const response = await method(url, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const { code, msg } = response.data;
+
+      if (code === 200) {
+        toast({ title: "Success", description: msg });
         await queryClient.invalidateQueries(["buyers"]);
         setOpen(false);
+        if (!isEdit) {
+          setFormData({
+            buyer_sort: "",
+            buyer_group: "",
+            buyer_name: "",
+            buyer_address: "",
+            buyer_port: "",
+            buyer_country: "",
+            buyer_ecgc_ref: "",
+            buyer_status: "Active",
+          });
+        }
       } else {
-        toast({
-          title: "Error",
-          description: response.data.msg,
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: msg, variant: "destructive" });
       }
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create  Buyer",
+        description: err.response?.data?.message || "Failed to submit",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {/* <Button variant="default" className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100">
-               <SquarePlus className="h-4 w-4" /> Customer
-             </Button> */}
-
-        {pathname === "/master/buyer" ? (
-          <Button
-            variant="default"
-            className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-          >
-            <SquarePlus className="h-4 w-4" /> Buyer
-          </Button>
-        ) : pathname === "/create-contract" ||
-          pathname === "/create-invoice" ||
-          pathname === "/costing-create" ? (
-          <p className="text-xs text-blue-600  hover:text-red-800 cursor-pointer">
-            <span className="flex items-center flex-row gap-1">
-              <SquarePlus className="w-4 h-4" /> <span>Add</span>
-            </span>
-          </p>
-        ) : null}
-      </DialogTrigger>
-
-      <DialogContent className="sm:max-w-md">
+      {isEdit ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <BuyerEdit
+                  className={`h-4 w-4 ${
+                    isHovered ? "text-blue-500" : ""
+                  } transition-all`}
+                />
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isEdit ? "Edit Buyer" : "Create Buyer"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <DialogTrigger asChild>
+          {pathname === "/master/buyer" ? (
+            <div>
+              <BuyerCreate
+                className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+              />
+            </div>
+          ) : pathname === "/create-contract" ? (
+            <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
+              Create Buyer
+            </p>
+          ) : null}
+        </DialogTrigger>
+      )}
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>Create New Buyer</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Buyer" : "Create Buyer"}{" "}
+            {isEdit && formData.buyer_name && (
+              <span className="text-blue-500 text-xl">
+                - {formData.buyer_name}
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="buyer_name"> Name</Label>
-            <Input
-              id="buyer_name"
-              name="buyer_name"
-              value={formData.buyer_name}
-              onChange={handleInputChange}
-              placeholder="Enter buyer name"
-            />
+        {isFetching ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-          <div className=" flex items-center justify-between gap-2 ">
+        ) : (
+          <div className="grid gap-4 py-4">
+            <div className="flex gap-2">
+              <div className="grid gap-2 w-full">
+                <Label htmlFor="buyer_sort">Short Name</Label>
+                <Input
+                  name="buyer_sort"
+                  value={formData.buyer_sort}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="grid gap-2 w-full">
+                <Label htmlFor="buyer_group">Group</Label>
+                <Input
+                  name="buyer_group"
+                  value={formData.buyer_group}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="buyer_sort"> Short Name</Label>
-              <Input
-                id="buyer_sort"
-                name="buyer_sort"
-                value={formData.buyer_sort}
+              <Label htmlFor="buyer_address">Address</Label>
+              <Textarea
+                name="buyer_address"
+                rows={3}
+                value={formData.buyer_address}
                 onChange={handleInputChange}
-                placeholder="Enter buyer short name"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="buyer_group"> Group</Label>
-              <Input
-                id="buyer_group"
-                name="buyer_group"
-                value={formData.buyer_group}
-                onChange={handleInputChange}
-                placeholder="Enter buyer group name"
-              />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="buyer_address"> Address</Label>
-            <Textarea
-              id="buyer_address"
-              name="buyer_address"
-              rows={3}
-              value={formData.buyer_address}
-              onChange={handleInputChange}
-              placeholder="Enter buyer address"
-            />
-          </div>
 
-          <div className=" flex items-center justify-between gap-2 ">
-            <div className="w-full">
-              <Label htmlFor="buyer_port"> Port</Label>
-              <Select
-                value={formData.buyer_port}
-                onValueChange={(value) =>
-                  handleInputChange(null, "buyer_port", value)
-                }
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Select Port" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {portsData?.country?.map((country, index) => (
-                    <SelectItem key={index} value={country.country_port}>
-                      {country.country_port}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex gap-2">
+              <div className="w-full">
+                <Label>Port</Label>
+                <Select
+                  value={formData.buyer_port}
+                  onValueChange={(val) =>
+                    handleInputChange(null, "buyer_port", val)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Port" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portsData?.country?.map((port, idx) => (
+                      <SelectItem key={idx} value={port.country_port}>
+                        {port.country_port}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full">
+                <Label>Country</Label>
+                <Select
+                  value={formData.buyer_country}
+                  onValueChange={(val) =>
+                    handleInputChange(null, "buyer_country", val)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countryData?.country?.map((c, idx) => (
+                      <SelectItem key={idx} value={c.country_name}>
+                        {c.country_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="w-full">
-              <Label htmlFor="buyer_country"> Country</Label>
-              <Select
-                value={formData.buyer_country}
-                onValueChange={(value) =>
-                  handleInputChange(null, "buyer_country", value)
-                }
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Select Country" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {countryData?.country?.map((country, index) => (
-                    <SelectItem key={index} value={country.country_name}>
-                      {country.country_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex gap-2">
+              {!isEdit && (
+                <div className="grid gap-2 w-full">
+                  <Label htmlFor="buyer_name"> Buyer Name</Label>
+                  <Input
+                    name="buyer_name"
+                    value={formData.buyer_name}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              )}
+              <div className="grid gap-2 w-full">
+                <Label htmlFor="buyer_ecgc_ref">ECGC Ref</Label>
+                <Input
+                  name="buyer_ecgc_ref"
+                  value={formData.buyer_ecgc_ref}
+                  onChange={handleInputChange}
+                />
+              </div>
+              {isEdit && (
+                <div className="grid gap-2 w-full">
+                  <Label>Status</Label>
+                  <Select
+                    value={formData.buyer_status}
+                    onValueChange={handleStatusChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* <div className="grid gap-2">
-            <Label htmlFor="buyer_ecgc_ref">ECGC Ref</Label>
-            <Input
-              id="buyer_ecgc_ref"
-              name="buyer_ecgc_ref"
-              value={formData.buyer_ecgc_ref}
-              onChange={handleInputChange}
-              placeholder="Enter buyer ecgc ref "
-            />
-          </div> */}
-        </div>
+        )}
 
         <DialogFooter>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={isLoading || isFetching}
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
+                {isEdit ? "Updating..." : "Creating..."}
               </>
+            ) : isEdit ? (
+              "Update Buyer"
             ) : (
               "Create Buyer"
             )}
@@ -273,4 +383,4 @@ const CreateBuyer = () => {
   );
 };
 
-export default CreateBuyer;
+export default BuyerForm;

@@ -32,13 +32,17 @@ import { useNavigate } from "react-router-dom";
 import {
   ErrorComponent,
   LoaderComponent,
+  WithoutErrorComponent,
+  WithoutLoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
 import StatusToggle from "@/components/toggle/StatusToggle";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import CreateTeam from "./CreateTeam";
 import EditTeam from "./EditTeam";
+import useApiToken from "@/components/common/useApiToken";
 
 const TeamList = () => {
+  const token = useApiToken();
   const {
     data: teams,
     isLoading,
@@ -47,7 +51,6 @@ const TeamList = () => {
   } = useQuery({
     queryKey: ["teams"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-team-list`,
         {
@@ -65,8 +68,9 @@ const TeamList = () => {
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate();
   const handleOpenDashboard = (userId) => {
-    window.open(`/management-dashboard/${userId}`, "_blank");
+    navigate(`/management-dashboard/${userId}`);
   };
+
   // Define columns for the table
   const columns = [
     {
@@ -170,12 +174,14 @@ const TeamList = () => {
 
   // Render loading state
   if (isLoading) {
-    return <ErrorComponent name="Team Data" />; // ✅ Correct prop usage
+    return <WithoutLoaderComponent name="Team Data" />; // ✅ Correct prop usage
   }
 
   // Render error state
   if (isError) {
-    return <LoaderComponent message="Error Team Data" refetch={refetch} />;
+    return (
+      <WithoutErrorComponent message="Error Team Data" refetch={refetch} />
+    );
   }
 
   return (

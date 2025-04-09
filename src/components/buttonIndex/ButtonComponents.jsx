@@ -18,9 +18,12 @@ import {
 } from "../ui/tooltip";
 import { checkPermission } from "./checkPermission";
 import React, { forwardRef } from "react";
+import { useSelector } from "react-redux";
 
 const getStaticPermissions = () => {
-  const buttonPermissions = localStorage.getItem("buttonControl");
+  const buttonPermissions = useSelector(
+    (state) => state.permissions?.buttonPermissions
+  );
   try {
     return buttonPermissions ? JSON.parse(buttonPermissions) : [];
   } catch (error) {
@@ -34,7 +37,8 @@ const getStaticPermissions = () => {
 ////////invoice
 export const InvoiceCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  // const userId = useSelector((state) => state.auth.id);
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "InvoiceCreate", staticPermissions)) {
     return null;
@@ -48,82 +52,8 @@ export const InvoiceCreate = ({ onClick, className }) => {
 };
 InvoiceCreate.page = "Invoice";
 
-// export const InvoiceEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "InvoiceEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// InvoiceEdit.page = "Invoice";
-// export const InvoiceView = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "InvoiceView", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button
-//       onClick={onClick}
-//       className={className}
-//       title="View"
-//       variant="ghost"
-//       size="icon"
-//     >
-//       <Eye className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// InvoiceView.page = "Invoice";
-// export const InvoiceDocument = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "InvoiceDocument", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button
-//       onClick={onClick}
-//       className={className}
-//       title="Invoice Document"
-//       variant="ghost"
-//       size="icon"
-//     >
-//       <FilePlus2 className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// InvoiceDocument.page = "Invoice";
-// export const InvoiceDelete = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "InvoiceDelete", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button
-//       onClick={onClick}
-//       className={className}
-//       title="Invoice Delete"
-//       variant="ghost"
-//       size="icon"
-//     >
-//       <Trash className="h-4 w-4 text-red-500" />
-//     </Button>
-//   );
-// };
-// InvoiceDelete.page = "Invoice";
 export const InvoiceEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "InvoiceEdit", staticPermissions)) {
@@ -146,7 +76,7 @@ InvoiceEdit.page = "Invoice";
 
 // ===================== InvoiceView =====================
 export const InvoiceView = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "InvoiceView", staticPermissions)) {
@@ -170,7 +100,7 @@ InvoiceView.page = "Invoice";
 
 // ===================== InvoiceDocument =====================
 export const InvoiceDocument = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "InvoiceDocument", staticPermissions)) {
@@ -194,7 +124,7 @@ InvoiceDocument.page = "Invoice";
 
 // ===================== InvoiceDelete =====================
 export const InvoiceDelete = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "InvoiceDelete", staticPermissions)) {
@@ -218,7 +148,7 @@ InvoiceDelete.page = "Invoice";
 ////////contract
 export const ContractCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ContractCreate", staticPermissions)) {
     return null;
@@ -232,64 +162,9 @@ export const ContractCreate = ({ onClick, className }) => {
 };
 ContractCreate.page = "Contract";
 
-// export const ContractEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "ContractEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// ContractEdit.page = "Contract";
-// export const ContractView = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "ContractView", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button
-//       onClick={onClick}
-//       className={className}
-//       title="View"
-//       variant="ghost"
-//       size="icon"
-//     >
-//       <Eye className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// ContractView.page = "Contract";
-
-// export const ContractDelete = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "ContractDelete", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button
-//       onClick={onClick}
-//       className={className}
-//       title="Invoice Delete"
-//       variant="ghost"
-//       size="icon"
-//     >
-//       <Trash className="h-4 w-4 text-red-500" />
-//     </Button>
-//   );
-// };
-// ContractDelete.page = "Contract";
 // ===================== ContractEdit =====================
 export const ContractEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "ContractEdit", staticPermissions)) {
@@ -312,7 +187,7 @@ ContractEdit.page = "Contract";
 
 // ===================== ContractView =====================
 export const ContractView = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "ContractView", staticPermissions)) {
@@ -336,7 +211,7 @@ ContractView.page = "Contract";
 
 // ===================== ContractDelete =====================
 export const ContractDelete = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "ContractDelete", staticPermissions)) {
@@ -358,42 +233,27 @@ export const ContractDelete = forwardRef(({ onClick, className }, ref) => {
 });
 ContractDelete.page = "Contract";
 ////////MASTER-BRANCH
-export const BranchCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "BranchCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Company
-    </Button>
-  );
-};
-BranchCreate.page = "Branch";
-
-// export const BranchEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
+// export const BranchCreate = ({ onClick, className }) => {
+//   const navigate = useNavigate();
+//   const userId = useSelector((state) => state.auth.id);
 //   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "BranchEdit", staticPermissions)) {
+//   if (!checkPermission(userId, "BranchCreate", staticPermissions)) {
 //     return null;
 //   }
 
 //   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
+//     <Button variant="default" className={className} onClick={onClick}>
+//       <SquarePlus className="h-4 w-4" /> Company
 //     </Button>
 //   );
 // };
-// BranchEdit.page = "Branch";
+// BranchCreate.page = "Branch";
 
-export const BranchEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+export const CompanyEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
-  if (!checkPermission(userId, "BranchEdit", staticPermissions)) {
+  if (!checkPermission(userId, "CompanyEdit", staticPermissions)) {
     return null;
   }
 
@@ -410,12 +270,12 @@ export const BranchEdit = forwardRef(({ onClick, className }, ref) => {
   );
 });
 
-BranchEdit.page = "Branch";
+CompanyEdit.page = "Company";
 
 ////////MASTER-State
 export const StateCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "StateCreate", staticPermissions)) {
     return null;
@@ -430,7 +290,7 @@ export const StateCreate = ({ onClick, className }) => {
 StateCreate.page = "State";
 
 export const StateEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "StateEdit", staticPermissions)) {
     return null;
@@ -446,7 +306,7 @@ StateEdit.page = "State";
 ////////MASTER-Bank
 export const BankCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "BankCreate", staticPermissions)) {
     return null;
@@ -460,22 +320,8 @@ export const BankCreate = ({ onClick, className }) => {
 };
 BankCreate.page = "Bank";
 
-// export const BankEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "BankEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// BankEdit.page = "Bank";
 export const BankEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "BankEdit", staticPermissions)) {
@@ -496,10 +342,49 @@ export const BankEdit = forwardRef(({ onClick, className }, ref) => {
 });
 
 BankEdit.page = "Bank";
+///////MASTER-Buyer
+export const BuyerCreate = ({ onClick, className }) => {
+  const navigate = useNavigate();
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "BuyerCreate", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4" /> Buyer
+    </Button>
+  );
+};
+BuyerCreate.page = "Buyer";
+
+export const BuyerEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+
+  if (!checkPermission(userId, "BuyerEdit", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+BuyerEdit.page = "Buyer";
 ////////MASTER-Scheme
 export const SchemeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "SchemeCreate", staticPermissions)) {
     return null;
@@ -513,22 +398,8 @@ export const SchemeCreate = ({ onClick, className }) => {
 };
 SchemeCreate.page = "Scheme";
 
-// export const SchemeEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "SchemeEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// SchemeEdit.page = "Scheme";
 export const SchemeEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "SchemeEdit", staticPermissions)) {
@@ -552,7 +423,7 @@ SchemeEdit.page = "Scheme";
 ////////MASTER-Country
 export const CountryCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CountryCreate", staticPermissions)) {
     return null;
@@ -566,22 +437,8 @@ export const CountryCreate = ({ onClick, className }) => {
 };
 CountryCreate.page = "Country";
 
-// export const CountryEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "CountryEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Button onClick={onClick} className={className} variant="ghost" size="icon">
-//       <Edit className="h-4 w-4 text-black" />
-//     </Button>
-//   );
-// };
-// CountryEdit.page = "Country";
 export const CountryEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "CountryEdit", staticPermissions)) {
@@ -605,7 +462,7 @@ CountryEdit.page = "Country";
 ////////MASTER-Container Size
 export const ContainerSizeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ContainerSizeCreate", staticPermissions)) {
     return null;
@@ -620,7 +477,7 @@ export const ContainerSizeCreate = ({ onClick, className }) => {
 ContainerSizeCreate.page = "Container Size";
 
 export const ContainerSizeEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ContainerSizeEdit", staticPermissions)) {
     return null;
@@ -637,7 +494,7 @@ ContainerSizeEdit.page = "Container Size";
 ////////MASTER-Payment TermsC
 export const PaymentTermsCCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PaymentTermsCCreate", staticPermissions)) {
     return null;
@@ -652,7 +509,7 @@ export const PaymentTermsCCreate = ({ onClick, className }) => {
 PaymentTermsCCreate.page = "Payment TermsC";
 
 export const PaymentTermsCEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PaymentTermsCEdit", staticPermissions)) {
     return null;
@@ -668,7 +525,7 @@ PaymentTermsCEdit.page = "Payment TermsC";
 ////////MASTER-Description of Goods
 export const DescriptionofGoodsCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DescriptionofGoodsCreate", staticPermissions)) {
     return null;
@@ -683,7 +540,7 @@ export const DescriptionofGoodsCreate = ({ onClick, className }) => {
 DescriptionofGoodsCreate.page = "Description of Goods";
 
 export const DescriptionofGoodsEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DescriptionofGoodsEdit", staticPermissions)) {
     return null;
@@ -699,7 +556,7 @@ DescriptionofGoodsEdit.page = "Description of Goods";
 ////////MASTER-Bag Type
 export const BagTypeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "BagTypeCreate", staticPermissions)) {
     return null;
@@ -714,7 +571,7 @@ export const BagTypeCreate = ({ onClick, className }) => {
 BagTypeCreate.page = "Bag Type";
 
 export const BagTypeEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "BagTypeEdit", staticPermissions)) {
     return null;
@@ -730,7 +587,7 @@ BagTypeEdit.page = "Bag Type";
 ////////MASTER-CustomDescription
 export const CustomDescriptionCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CustomDescriptionCreate", staticPermissions)) {
     return null;
@@ -745,7 +602,7 @@ export const CustomDescriptionCreate = ({ onClick, className }) => {
 CustomDescriptionCreate.page = "Custom Description";
 
 export const CustomDescriptionEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CustomDescriptionEdit", staticPermissions)) {
     return null;
@@ -761,7 +618,7 @@ CustomDescriptionEdit.page = "Custom Description";
 ////////MASTER-TypeCreate
 export const TypeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "TypeCreate", staticPermissions)) {
     return null;
@@ -776,7 +633,7 @@ export const TypeCreate = ({ onClick, className }) => {
 TypeCreate.page = "Type";
 
 export const TypeEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "TypeEdit", staticPermissions)) {
     return null;
@@ -792,7 +649,7 @@ TypeEdit.page = "Type";
 ////////MASTER-Quality
 export const QualityCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "QualityCreate", staticPermissions)) {
     return null;
@@ -807,7 +664,7 @@ export const QualityCreate = ({ onClick, className }) => {
 QualityCreate.page = "Quality";
 
 export const QualityEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "QualityEdit", staticPermissions)) {
     return null;
@@ -823,7 +680,7 @@ QualityEdit.page = "Quality";
 ////////MASTER-Item
 export const ItemCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ItemCreate", staticPermissions)) {
     return null;
@@ -838,7 +695,7 @@ export const ItemCreate = ({ onClick, className }) => {
 ItemCreate.page = "Item";
 
 export const ItemEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ItemEdit", staticPermissions)) {
     return null;
@@ -854,7 +711,7 @@ ItemEdit.page = "Item";
 ////////MASTER-Marking
 export const MarkingCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "MarkingCreate", staticPermissions)) {
     return null;
@@ -869,7 +726,7 @@ export const MarkingCreate = ({ onClick, className }) => {
 MarkingCreate.page = "Marking";
 
 export const MarkingEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "MarkingEdit", staticPermissions)) {
     return null;
@@ -887,7 +744,7 @@ MarkingEdit.page = "Marking";
 ////////MASTER-Port of Loading
 export const PortofLoadingCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PortofLoadingCreate", staticPermissions)) {
     return null;
@@ -902,7 +759,7 @@ export const PortofLoadingCreate = ({ onClick, className }) => {
 PortofLoadingCreate.page = "Port of Loading";
 
 export const PortofLoadingEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PortofLoadingEdit", staticPermissions)) {
     return null;
@@ -918,7 +775,7 @@ PortofLoadingEdit.page = "Port of Loading";
 ////////MASTER-GR Code
 export const GRCodeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "GRCodeCreate", staticPermissions)) {
     return null;
@@ -933,7 +790,7 @@ export const GRCodeCreate = ({ onClick, className }) => {
 GRCodeCreate.page = "GR Code";
 
 export const GRCodeEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "GRCodeEdit", staticPermissions)) {
     return null;
@@ -949,7 +806,7 @@ GRCodeEdit.page = "GR Code";
 ////////MASTER-Product
 export const ProductCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductCreate", staticPermissions)) {
     return null;
@@ -964,7 +821,7 @@ export const ProductCreate = ({ onClick, className }) => {
 ProductCreate.page = "Product";
 
 export const ProductEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductEdit", staticPermissions)) {
     return null;
@@ -980,7 +837,7 @@ ProductEdit.page = "Product";
 ////////MASTER-Product Description
 export const ProductDescriptionCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductDescriptionCreate", staticPermissions)) {
     return null;
@@ -995,7 +852,7 @@ export const ProductDescriptionCreate = ({ onClick, className }) => {
 ProductDescriptionCreate.page = "Product Description";
 
 export const ProductDescriptionEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductDescriptionEdit", staticPermissions)) {
     return null;
@@ -1011,7 +868,7 @@ ProductDescriptionEdit.page = "Product Description";
 ////////MASTER-Shipper
 export const ShipperCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ShipperCreate", staticPermissions)) {
     return null;
@@ -1026,7 +883,7 @@ export const ShipperCreate = ({ onClick, className }) => {
 ShipperCreate.page = "Shipper";
 
 export const ShipperEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ShipperEdit", staticPermissions)) {
     return null;
@@ -1042,7 +899,7 @@ ShipperEdit.page = "Shipper";
 ////////MASTER-Vessel
 export const VesselCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "VesselCreate", staticPermissions)) {
     return null;
@@ -1057,7 +914,7 @@ export const VesselCreate = ({ onClick, className }) => {
 VesselCreate.page = "Vessel";
 
 export const VesselEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "VesselEdit", staticPermissions)) {
     return null;
@@ -1073,7 +930,7 @@ VesselEdit.page = "Vessel";
 ////////MASTER-Pre Recepits
 export const PreRecepitsCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PreRecepitsCreate", staticPermissions)) {
     return null;
@@ -1088,7 +945,7 @@ export const PreRecepitsCreate = ({ onClick, className }) => {
 PreRecepitsCreate.page = "Pre Recepits";
 
 export const PreRecepitsEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PreRecepitsEdit", staticPermissions)) {
     return null;
@@ -1104,7 +961,7 @@ PreRecepitsEdit.page = "Pre Recepits";
 ////////REPORT-BuyerR
 export const BuyerRDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "BuyerRDownload", staticPermissions)) {
     return null;
@@ -1119,7 +976,7 @@ export const BuyerRDownload = ({ onClick, className }) => {
 BuyerRDownload.page = "BuyerR";
 export const BuyerRPrint = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "BuyerRPrint", staticPermissions)) {
     return null;
@@ -1136,7 +993,7 @@ BuyerRPrint.page = "BuyerR";
 
 export const ContractRDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ContractRDownload", staticPermissions)) {
     return null;
@@ -1151,7 +1008,7 @@ export const ContractRDownload = ({ onClick, className }) => {
 ContractRDownload.page = "ContractR";
 export const ContractRView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ContractRView", staticPermissions)) {
     return null;
@@ -1168,7 +1025,7 @@ ContractRView.page = "ContractR";
 
 export const SalesAccountDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "SalesAccountDownload", staticPermissions)) {
     return null;
@@ -1183,7 +1040,7 @@ export const SalesAccountDownload = ({ onClick, className }) => {
 SalesAccountDownload.page = "Sales Accounts";
 export const SalesAccountView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "SalesAccountView", staticPermissions)) {
     return null;
@@ -1201,7 +1058,7 @@ SalesAccountView.page = "Sales Accounts";
 
 export const DutyDrawBackDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DutyDrawBackDownload", staticPermissions)) {
     return null;
@@ -1216,7 +1073,7 @@ export const DutyDrawBackDownload = ({ onClick, className }) => {
 DutyDrawBackDownload.page = "DutyDrawBack";
 export const DutyDrawBackView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DutyDrawBackView", staticPermissions)) {
     return null;
@@ -1233,7 +1090,7 @@ DutyDrawBackView.page = "DutyDrawBack";
 
 export const SalesDataDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "SalesDataDownload", staticPermissions)) {
     return null;
@@ -1248,7 +1105,7 @@ export const SalesDataDownload = ({ onClick, className }) => {
 SalesDataDownload.page = "Sales Summary";
 export const SalesDataView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "SalesDataView", staticPermissions)) {
     return null;
@@ -1266,7 +1123,7 @@ SalesDataView.page = "Sales Summary";
 
 export const PurchaseSummaryDownload = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PurchaseSummaryDownload", staticPermissions)) {
     return null;
@@ -1281,7 +1138,7 @@ export const PurchaseSummaryDownload = ({ onClick, className }) => {
 PurchaseSummaryDownload.page = "Purchase Summary";
 export const PurchaseSummaryVendorView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (
     !checkPermission(userId, "PurchaseSummaryVendorView", staticPermissions)
@@ -1298,7 +1155,7 @@ export const PurchaseSummaryVendorView = ({ onClick, className }) => {
 PurchaseSummaryVendorView.page = "Purchase Summary";
 export const PurchaseSummaryCompanyView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (
     !checkPermission(userId, "PurchaseSummaryCompanyView", staticPermissions)
@@ -1315,7 +1172,7 @@ export const PurchaseSummaryCompanyView = ({ onClick, className }) => {
 PurchaseSummaryCompanyView.page = "Purchase Summary";
 export const ProductStockView = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductStockView", staticPermissions)) {
     return null;
@@ -1332,7 +1189,7 @@ ProductStockView.page = "Product Stock";
 ////////Payment
 export const PaymentCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PaymentCreate", staticPermissions)) {
     return null;
@@ -1350,7 +1207,7 @@ PaymentCreate.page = "Payment";
 //Purchase Order List
 export const PurchaseOrderCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PurchaseOrderCreate", staticPermissions)) {
     return null;
@@ -1365,7 +1222,7 @@ export const PurchaseOrderCreate = ({ onClick, className }) => {
 PurchaseOrderCreate.page = "Purchase Order";
 
 // export const PurchaseOrderEdit = ({ onClick, className }) => {
-//   const userId = localStorage.getItem("id") || "";
+//   const userId = useSelector((state) => state.auth.id);
 //   const staticPermissions = getStaticPermissions();
 //   if (!checkPermission(userId, "PurchaseOrderEdit", staticPermissions)) {
 //     return null;
@@ -1389,7 +1246,7 @@ PurchaseOrderCreate.page = "Purchase Order";
 // };
 // PurchaseOrderEdit.page = "Purchase Order";
 export const PurchaseOrderEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
 
   if (!checkPermission(userId, "PurchaseOrderEdit", staticPermissions)) {
@@ -1415,7 +1272,7 @@ export const PurchaseOrderEdit = forwardRef(({ onClick, className }, ref) => {
 });
 PurchaseOrderEdit.page = "Purchase Order";
 export const PurchaseOrderView = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PurchaseOrderView", staticPermissions)) {
     return null;
@@ -1443,7 +1300,7 @@ PurchaseOrderView.page = "Purchase Order";
 //Purchase  List
 export const PurchaseCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PurchaseCreate", staticPermissions)) {
     return null;
@@ -1458,7 +1315,7 @@ export const PurchaseCreate = ({ onClick, className }) => {
 PurchaseCreate.page = "Purchase";
 
 export const PurchaseEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PurchaseEdit", staticPermissions)) {
     return null;
@@ -1484,7 +1341,7 @@ PurchaseEdit.page = "Purchase";
 //Production  List
 export const ProductionCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductionCreate", staticPermissions)) {
     return null;
@@ -1499,7 +1356,7 @@ export const ProductionCreate = ({ onClick, className }) => {
 ProductionCreate.page = "Production";
 
 export const ProductionEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductionEdit", staticPermissions)) {
     return null;
@@ -1523,7 +1380,7 @@ export const ProductionEdit = ({ onClick, className }) => {
 };
 ProductionEdit.page = "Production";
 export const ProductionDelete = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductionDelete", staticPermissions)) {
     return null;
@@ -1548,7 +1405,7 @@ export const ProductionDelete = ({ onClick, className }) => {
 ProductionDelete.page = "Production";
 
 export const ProductionremoveRow = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductionremoveRow", staticPermissions)) {
     return null;
@@ -1575,7 +1432,7 @@ ProductionremoveRow.page = "Production";
 //Processing  List
 export const ProcessingCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProcessingCreate", staticPermissions)) {
     return null;
@@ -1590,7 +1447,7 @@ export const ProcessingCreate = ({ onClick, className }) => {
 ProcessingCreate.page = "Processing";
 
 export const ProcessingEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProcessingEdit", staticPermissions)) {
     return null;
@@ -1614,7 +1471,7 @@ export const ProcessingEdit = ({ onClick, className }) => {
 };
 ProcessingEdit.page = "Processing";
 export const ProcessingDelete = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProcessingDelete", staticPermissions)) {
     return null;
@@ -1639,7 +1496,7 @@ export const ProcessingDelete = ({ onClick, className }) => {
 ProcessingDelete.page = "Processing";
 //DutyDrawBackPending
 export const DutyDrawBackPendingEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DutyDrawBackPendingEdit", staticPermissions)) {
     return null;
@@ -1654,7 +1511,7 @@ export const DutyDrawBackPendingEdit = ({ onClick, className }) => {
 DutyDrawBackPendingEdit.page = "Pending";
 //DutyDrawBackReceived
 export const DutyDrawBackReceivedEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "DutyDrawBackReceivedEdit", staticPermissions)) {
     return null;
@@ -1671,7 +1528,7 @@ DutyDrawBackReceivedEdit.page = "Received";
 //Costing  List
 export const CostingCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CostingCreate", staticPermissions)) {
     return null;
@@ -1686,7 +1543,7 @@ export const CostingCreate = ({ onClick, className }) => {
 CostingCreate.page = "Costing";
 
 export const CostingEdit = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CostingEdit", staticPermissions)) {
     return null;
@@ -1710,7 +1567,7 @@ export const CostingEdit = ({ onClick, className }) => {
 CostingEdit.page = "Costing";
 
 export const CostingView = ({ onClick, className }) => {
-  const userId = localStorage.getItem("id") || "";
+  const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "CostingView", staticPermissions)) {
     return null;
@@ -1746,14 +1603,17 @@ export default {
   ContractEdit,
   ContractView,
   ContractDelete,
-  BranchCreate,
-  BranchEdit,
+  // BranchCreate,
+  CompanyEdit,
   StateCreate,
   StateEdit,
   BankCreate,
   BankEdit,
+  BuyerCreate,
+  BuyerEdit,
   SchemeCreate,
   SchemeEdit,
+
   CountryCreate,
   CountryEdit,
   ContainerSizeCreate,

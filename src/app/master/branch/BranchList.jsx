@@ -1,23 +1,4 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,28 +15,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Search
+} from "lucide-react";
+import { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
-import BASE_URL from "@/config/BaseUrl";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
-import {
-  BranchCreate,
-  BranchEdit,
-} from "@/components/buttonIndex/ButtonComponents";
-import { encryptId } from "@/utils/encyrption/Encyrption";
+import { useNavigate } from "react-router-dom";
+
 import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
+import { encryptId } from "@/utils/encyrption/Encyrption";
+import { CompanyEdit } from "@/components/buttonIndex/ButtonComponents";
 
 const BranchList = () => {
+  const token = useApiToken();
   const {
     data: customers,
     isLoading,
@@ -64,7 +60,6 @@ const BranchList = () => {
   } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-branch-list`,
         {
@@ -143,7 +138,7 @@ const BranchList = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <BranchEdit
+                  <CompanyEdit
                     // onClick={() => navigate(`/edit-branch/${branchId}`)}
 
                     onClick={() => {
@@ -153,7 +148,7 @@ const BranchList = () => {
                         `/edit-branch/${encodeURIComponent(encryptedId)}`
                       );
                     }}
-                  ></BranchEdit>
+                  ></CompanyEdit>
                 </TooltipTrigger>
                 <TooltipContent>Edit Branch</TooltipContent>
               </Tooltip>
@@ -245,10 +240,10 @@ const BranchList = () => {
           </DropdownMenu>
 
           <div>
-            <BranchCreate
+            {/* <BranchCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
               onClick={() => navigate("/create-branch")}
-            />
+            /> */}
           </div>
         </div>
         {/* table  */}

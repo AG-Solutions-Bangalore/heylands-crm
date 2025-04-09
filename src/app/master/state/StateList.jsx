@@ -1,6 +1,5 @@
 import Page from "@/app/dashboard/page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,19 +26,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
 import { ButtonConfig } from "@/config/ButtonConfig";
-import CreateState from "./CreateState";
-import EditState from "./EditState";
 import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
+import StateForm from "./CreateState";
 
 const StateList = () => {
+  const token = useApiToken();
   const {
     data: customers,
     isLoading,
@@ -48,7 +46,6 @@ const StateList = () => {
   } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-state-list`,
         {
@@ -64,9 +61,7 @@ const StateList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const navigate = useNavigate();
 
-  // Define columns for the table
   const columns = [
     {
       accessorKey: "index",
@@ -119,7 +114,7 @@ const StateList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditState stateId={stateId} />
+            <StateForm stateId={stateId} />
           </div>
         );
       },
@@ -152,7 +147,7 @@ const StateList = () => {
   });
 
   if (isLoading) {
-    return <LoaderComponent name="State Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="State Data" />; 
   }
 
   // Render error state
@@ -169,16 +164,8 @@ const StateList = () => {
           State List
         </div>
 
-        {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
+     
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -215,7 +202,7 @@ const StateList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreateState />
+          <StateForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

@@ -8,6 +8,8 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import Page from "../dashboard/page";
 import BASE_URL from "@/config/BaseUrl";
+import useApiToken from "@/components/common/useApiToken";
+import { useSelector } from "react-redux";
 
 const CreatePage = () => {
   const [selectedPage, setSelectedPage] = useState("");
@@ -19,7 +21,10 @@ const CreatePage = () => {
   const navigate = useNavigate();
   const { fetchPagePermission } = useContext(ContextPanel);
   const { toast } = useToast();
-
+  const token = useApiToken();
+  const pageControlRaw = useSelector(
+    (state) => state.permissions?.pagePermissions
+  );
   const getAllPages = () => {
     const pages = [];
 
@@ -46,6 +51,7 @@ const CreatePage = () => {
             { title: "Company", url: "/master/branch" },
             { title: "State", url: "/master/state" },
             { title: "Bank", url: "/master/bank" },
+            { title: "Buyer", url: "/master/buyer" },
             { title: "Scheme", url: "/master/scheme" },
             { title: "Country", url: "/master/country" },
             { title: "Container Size", url: "/master/containersize" },
@@ -66,7 +72,6 @@ const CreatePage = () => {
             { title: "Pre Recepits", url: "/master/prerecepits" },
             { title: "Purchase Product", url: "/master/purchase-product" },
             { title: "Vendor", url: "/master/vendor" },
-            { title: "Buyer", url: "/master/buyer" },
           ],
         },
         {
@@ -147,9 +152,7 @@ const CreatePage = () => {
   };
 
   useEffect(() => {
-    const existingControls = JSON.parse(
-      localStorage.getItem("pageControl") || "[]"
-    );
+    const existingControls = JSON.parse(pageControlRaw);
     const allPages = getAllPages();
 
     const filteredPages = allPages.filter(
@@ -169,9 +172,7 @@ const CreatePage = () => {
     setSelectedPage(page);
 
     if (page === "All") {
-      const existingControls = JSON.parse(
-        localStorage.getItem("pageControl") || "[]"
-      );
+      const existingControls = JSON.parse(pageControlRaw);
       const allPages = getAllPages();
 
       const filteredPages = allPages.filter(
@@ -196,7 +197,6 @@ const CreatePage = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const token = localStorage.getItem("token");
       const response = await fetch(
         `${BASE_URL}/api/panel-create-usercontrol-new`,
         {

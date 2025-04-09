@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import useApiToken from "@/components/common/useApiToken";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,18 +20,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreateBank from "./CreateBank";
-import EditBank from "./EditBank";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import BankForm from "./CreateBank";
 
 const BankList = () => {
+  const token = useApiToken();
   const {
     data: banks,
     isLoading,
@@ -54,7 +47,6 @@ const BankList = () => {
   } = useQuery({
     queryKey: ["banks"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-bank-list`,
         {
@@ -130,7 +122,7 @@ const BankList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditBank bankId={bankId} />
+            <BankForm mode="edit" bankId={bankId} />
           </div>
         );
       },
@@ -163,7 +155,7 @@ const BankList = () => {
   });
 
   if (isLoading) {
-    return <LoaderComponent name="Bank Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="Bank Data" />;
   }
 
   // Render error state
@@ -179,16 +171,7 @@ const BankList = () => {
           Bank List
         </div>
 
-        {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -225,7 +208,7 @@ const BankList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreateBank />
+          <BankForm mode="create" />
         </div>
         {/* table  */}
         <div className="rounded-md border">

@@ -12,6 +12,7 @@ import {
   WithoutErrorComponent,
   WithoutLoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
 
 const ManagementDashboard = () => {
   const { id } = useParams();
@@ -22,7 +23,7 @@ const ManagementDashboard = () => {
   const staticUsers = getStaticUsers();
   const [buttonPermissions, setButtonPermissions] = useState([]);
   const [pagePermissions, setPagePermissions] = useState([]);
-
+  const token = useApiToken();
   // Fetch button permissions
   const {
     data: buttonControlData,
@@ -31,7 +32,6 @@ const ManagementDashboard = () => {
   } = useQuery({
     queryKey: ["usercontrol"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-usercontrol`,
         {
@@ -45,7 +45,6 @@ const ManagementDashboard = () => {
   // Mutation for updating button permissions
   const updateButtonPermissionMutation = useMutation({
     mutationFn: async ({ permissionId, updatedData }) => {
-      const token = localStorage.getItem("token");
       const response = await axios.put(
         `${BASE_URL}/api/panel-update-usercontrol/${permissionId}`,
         updatedData,
@@ -68,7 +67,6 @@ const ManagementDashboard = () => {
   // Mutation for updating page permissions
   const updatePagePermissionMutation = useMutation({
     mutationFn: async ({ permissionId, updatedData }) => {
-      const token = localStorage.getItem("token");
       const response = await axios.put(
         `${BASE_URL}/api/panel-update-usercontrol-new/${permissionId}`,
         updatedData,
@@ -96,7 +94,6 @@ const ManagementDashboard = () => {
   } = useQuery({
     queryKey: ["usercontrol-pages"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-usercontrol-new`,
         {
