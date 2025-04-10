@@ -218,6 +218,18 @@ export function AppSidebar({ ...props }) {
             title: "Purchase Product",
             url: "/master/purchase-product",
           },
+          {
+            title: "Order Type",
+            url: "/master/order-type",
+          },
+          {
+            title: "Item Category",
+            url: "/master/item-category",
+          },
+          {
+            title: "Item Packing",
+            url: "/master/item-packing",
+          },
         ],
       },
       {

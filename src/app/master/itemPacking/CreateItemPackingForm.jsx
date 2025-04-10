@@ -1,11 +1,12 @@
 import {
-  StateCreate,
-  StateEdit,
+  ItemPackingCreate,
+  ItemPackingEdit,
 } from "@/components/buttonIndex/ButtonComponents";
 import useApiToken from "@/components/common/useApiToken";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -21,49 +22,43 @@ import {
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
-const StateForm = ({ stateId = null }) => {
+const CreateItemPackingForm = ({ itemId = null }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const isEditMode = Boolean(stateId);
+  const isEditMode = Boolean(itemId);
   const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
-    state_name: "",
-    state_no: "",
-    state_status: isEditMode ? "Active" : null,
+    item_packing: isEditMode ? null : "",
+    item_packing_unit: isEditMode ? null : "",
+    item_packing_no: isEditMode ? null : "",
+    item_packing_status: isEditMode ? "Active" : null,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { pathname } = useLocation();
   const token = useApiToken();
 
-  // Fetch data for edit
   useEffect(() => {
     const fetchData = async () => {
-      if (!stateId || !open) return;
+      if (!itemId || !open) return;
       setIsFetching(true);
       try {
         const response = await axios.get(
-          `${BASE_URL}/api/panel-fetch-state-by-id/${stateId}`,
+          `${BASE_URL}/api/panel-fetch-ItemPacking-by-id/${itemId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const data = response.data.state;
+        const data = response.data.itemPacking;
         setFormData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          item_packing_status: data?.item_packing_status || "Active",
         });
         setOriginalData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          item_packing_status: data?.item_packing_status || "Active",
         });
       } catch {
         toast({
@@ -77,18 +72,22 @@ const StateForm = ({ stateId = null }) => {
       }
     };
     fetchData();
-  }, [stateId, open]);
-  const requiredFields = {
-    "State Name": "state_name",
-    "State No": "state_no",
-  };
+  }, [itemId, open]);
+  const requiredFields = isEditMode
+    ? {
+        Status: "item_packing_status",
+      }
+    : {
+        Packing: "item_packing",
+        Unit: "item_packing_unit",
+        "Packing No": "item_packing_no",
+      };
 
   const handleSubmit = async () => {
-
     // Identify missing fields
     const missingFields = Object.entries(requiredFields).filter(
       ([label, field]) =>
-        !formData[field]?.trim() && (!isEditMode || field !== "state_name") // skip state_name in edit mode
+        !formData[field]?.trim() && (!isEditMode || field !== "item_category") // skip state_name in edit mode
     );
 
     if (missingFields.length > 0) {
@@ -110,8 +109,8 @@ const StateForm = ({ stateId = null }) => {
 
     try {
       const endpoint = isEditMode
-        ? `${BASE_URL}/api/panel-update-state/${stateId}`
-        : `${BASE_URL}/api/panel-create-state`;
+        ? `${BASE_URL}/api/panel-update-ItemPacking/${orderId}`
+        : `${BASE_URL}/api/panel-create-ItemPacking`;
       const method = isEditMode ? "put" : "post";
 
       const response = await axios[method](endpoint, formData, {
@@ -124,11 +123,11 @@ const StateForm = ({ stateId = null }) => {
           description: response.data.msg,
         });
 
-        queryClient.invalidateQueries(["customers"]);
+        queryClient.invalidateQueries(["itemCategory"]);
         setOpen(false);
 
         if (!isEditMode) {
-          setFormData({ state_name: "", state_no: "", state_status: "Active" });
+          setFormData({ item_category: "" });
         }
       } else {
         toast({
@@ -151,27 +150,33 @@ const StateForm = ({ stateId = null }) => {
   const hasChanges =
     isEditMode &&
     originalData &&
-    (formData.state_name !== originalData.state_name ||
-      formData.state_no !== originalData.state_no ||
-      formData.state_status !== originalData.state_status);
+    formData.item_packing_status !== originalData.item_packing_status;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const isValid = /^\d*\.?\d*$/.test(value);
+
+    if ((name === "item_packing" || name === "item_packing_no") && !isValid)
+      return;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {isEditMode ? (
           <div>
-            <StateEdit />
+            <ItemPackingEdit />
           </div>
-        ) : pathname === "/master/state" ? (
+        ) : (
           <div>
-            <StateCreate
+            <ItemPackingCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
-        ) : (
-          <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
-            State
-          </p>
         )}
       </PopoverTrigger>
 
@@ -184,45 +189,61 @@ const StateForm = ({ stateId = null }) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">
-                {isEditMode ? "Edit State" : "Create New State"}
+                {isEditMode ? "Edit Item Packing" : "Create Item Packing"}
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isEditMode
-                  ? "Update state details"
-                  : "Enter the state details"}
+                  ? "Update item packing details"
+                  : "Enter the item packing details"}
               </p>
             </div>
             <div className="grid gap-2">
-              {!isEditMode && (
-                <Input
-                  id="state_name"
-                  placeholder="Enter state name"
-                  value={formData.state_name}
-                  onChange={(e) =>
+              {!isEditMode ? (
+                <>
+                  <Input
+                    id="item_packing"
+                    placeholder="Enter Item Packing"
+                    value={formData.item_packing}
+                    name="item_packing"
+                    onChange={handleChange}
+                  />
+
+                  <Select
+                    value={formData.item_packing_unit}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        item_packing_unit: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GM">GM</SelectItem>
+                      <SelectItem value="KG">KG</SelectItem>
+                      <SelectItem value="ML">ML</SelectItem>
+                      <SelectItem value="LTR">LTR</SelectItem>
+                      <SelectItem value="LBS">LBS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="item_packing_no"
+                    placeholder="Enter Item Packing No"
+                    value={formData.item_packing_no}
+                    name="item_packing_no"
+                    onChange={handleChange}
+                  />
+                </>
+              ) : (
+                <Select
+                  value={formData.item_packing_status}
+                  onValueChange={(value) =>
                     setFormData((prev) => ({
                       ...prev,
-                      state_name: e.target.value,
+                      item_packing_status: value,
                     }))
-                  }
-                />
-              )}
-
-              <Input
-                id="state_no"
-                placeholder="Enter state number"
-                value={formData.state_no}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    state_no: e.target.value,
-                  }))
-                }
-              />
-              {isEditMode && (
-                <Select
-                  value={formData.state_status}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, state_status: value }))
                   }
                 >
                   <SelectTrigger>
@@ -234,6 +255,7 @@ const StateForm = ({ stateId = null }) => {
                   </SelectContent>
                 </Select>
               )}
+
               {hasChanges && (
                 <Alert className="bg-blue-50 border-blue-200 mt-2">
                   <AlertCircle className="h-4 w-4 text-blue-500" />
@@ -242,7 +264,6 @@ const StateForm = ({ stateId = null }) => {
                   </AlertDescription>
                 </Alert>
               )}
-
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading || (isEditMode && !hasChanges)}
@@ -258,9 +279,9 @@ const StateForm = ({ stateId = null }) => {
                     {isEditMode ? "Updating..." : "Creating..."}
                   </>
                 ) : isEditMode ? (
-                  "Update State"
+                  "Update Item Packing"
                 ) : (
-                  "Create State"
+                  "Create Item Packing"
                 )}
                 {hasChanges && !isLoading && (
                   <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
@@ -274,4 +295,4 @@ const StateForm = ({ stateId = null }) => {
   );
 };
 
-export default StateForm;
+export default CreateItemPackingForm;

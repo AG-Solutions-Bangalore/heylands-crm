@@ -15,11 +15,13 @@ const validationKey = import.meta.env.VITE_SECRET_VALIDATION;
 const ValidationWrapper = ({ children }) => {
   const [status, setStatus] = useState("pending");
   const token = useApiToken();
-  console.log(token);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const res = await axios.post(
         `${BASE_URL}/api/panel-logout`,
         {},
@@ -29,26 +31,34 @@ const ValidationWrapper = ({ children }) => {
       );
 
       if (res.data?.code === 200) {
-        toast.success(res.data.msg);
+        toast({
+          title: "Sucess",
+          description: res.data.msg || "You have been logged out.",
+        });
+
         await persistor.flush();
         localStorage.clear();
         dispatch(logout());
         navigate("/");
         setTimeout(() => persistor.purge(), 1000);
       } else {
-        toast.error(res.data?.msg || "Logout failed.");
+        toast({
+          title: "Logout Failed",
+          description: res.data.msg || "An error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Logout failed:", error);
-      toast.error("Logout failed. Please try again.");
+      toast({
+        title: "Logout Error",
+        description:
+          error.response?.data?.message ||
+          "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
-
-  const navigate = useNavigate();
-  const location = useLocation();
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-
   useEffect(() => {
     const validateEnvironment = async () => {
       try {
@@ -79,11 +89,9 @@ const ValidationWrapper = ({ children }) => {
         }
       } catch (error) {
         console.error("❌ Validation Error:", error.message);
-
-        // await persistor.flush();
-        // localStorage.clear();
-        // dispatch(logout());
-        handleLogout();
+        if (token) {
+          handleLogout();
+        }
         toast({
           title: "Environment Error",
           description: "Environment validation failed. Redirecting...",
@@ -101,7 +109,7 @@ const ValidationWrapper = ({ children }) => {
     };
 
     validateEnvironment();
-  }, [navigate, dispatch, toast, location]);
+  }, [navigate, dispatch, location]);
 
   // if (status === "pending") {
   //   return (

@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import useApiToken from "@/components/common/useApiToken";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,34 +20,41 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreatePaymentTermC from "./CreatePaymentTermC";
-import EditPaymentTermC from "./EditPaymentTermC";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PaymentTermForm from "./CreatePaymentTermC";
 
 const PaymentTermCList = () => {
+  const token = useApiToken();
+
   const {
     data: paymenttermC,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["paymenttermC"],
+    queryKey: ["paymentterm"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-paymentTermsC-list`,
+        `${BASE_URL}/api/panel-fetch-payment-terms-list`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      return response.data.paymentTermsC;
+      return response.data.paymentTerms;
     },
   });
 
@@ -80,24 +73,28 @@ const PaymentTermCList = () => {
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
     {
-      accessorKey: "paymentTermsC",
+      accessorKey: "paymentTerms_short",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Payment Term C
+          Payment Short
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("paymentTermsC")}</div>,
+      cell: ({ row }) => <div>{row.getValue("paymentTerms_short")}</div>,
     },
-
     {
-      accessorKey: "paymentTermsC_status",
+      accessorKey: "paymentTerms",
+      header: "Payment Term",
+      cell: ({ row }) => <div>{row.getValue("paymentTerms")}</div>,
+    },
+    {
+      accessorKey: "paymentTerms_status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("paymentTermsC_status");
+        const status = row.getValue("paymentTerms_status");
 
         return (
           <span
@@ -120,7 +117,7 @@ const PaymentTermCList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditPaymentTermC paymentId={paymentId} />
+            <PaymentTermForm paymentId={paymentId} />
           </div>
         );
       },
@@ -154,14 +151,14 @@ const PaymentTermCList = () => {
 
   // Render loading state
   if (isLoading) {
-    return <LoaderComponent name="Payment Term C Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="Payment Term  Data" />; // ✅ Correct prop usage
   }
 
   // Render error state
   if (isError) {
     return (
       <ErrorComponent
-        message="Error Fetching Payment Term C Data"
+        message="Error Fetching Payment Term  Data"
         refetch={refetch}
       />
     );
@@ -171,19 +168,10 @@ const PaymentTermCList = () => {
     <Page>
       <div className="w-full p-4">
         <div className="flex text-left text-2xl text-gray-800 font-[400]">
-          Payment Term C List
+          Payment Term List
         </div>
 
-        {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -220,7 +208,7 @@ const PaymentTermCList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreatePaymentTermC />
+          <PaymentTermForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

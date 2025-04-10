@@ -15,7 +15,7 @@ const CreatePage = () => {
   const [selectedPage, setSelectedPage] = useState("");
   const [selectedUrl, setSelectedUrl] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
-  const [userIds, setUserIds] = useState("1,2,3,4");
+  const [userIds, setUserIds] = useState("1,2,3,4,5");
   const [status, setStatus] = useState("Active");
   const [availablePages, setAvailablePages] = useState([]);
   const navigate = useNavigate();
@@ -72,6 +72,9 @@ const CreatePage = () => {
             { title: "Pre Recepits", url: "/master/prerecepits" },
             { title: "Purchase Product", url: "/master/purchase-product" },
             { title: "Vendor", url: "/master/vendor" },
+            { title: "Order Type", url: "/master/order-type" },
+            { title: "Item Category", url: "/master/item-category" },
+            { title: "Item Packing", url: "/master/item-packing" },
           ],
         },
         {

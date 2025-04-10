@@ -53,12 +53,12 @@ import axios from "axios";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import CreateBuyer from "../master/buyer/CreateBuyer";
 import CreateProduct from "../master/product/CreateProduct";
-import CreatePortofLoading from "../master/portofLoading/CreatePortofLoading";
+import PortofLoadingForm from "../master/portofLoading/CreatePortofLoading";
 import CreateCountry from "../master/country/CreateCountry";
 import CreatePaymentTermC from "../master/paymentTermC/CreatePaymentTermC";
 import CreateItem from "../master/item/CreateItem";
 import CreateDescriptionGoods from "../master/descriptionGoods/CreateDescriptionGoods";
-import CreateMarking from "../master/marking/CreateMarking";
+import MarkingForm from "../master/marking/CreateMarking";
 
 // Validation Schemas
 const productRowSchema = z.object({
@@ -770,7 +770,8 @@ const InvoiceAdd = () => {
           if (selectedCompanySort) {
             updatedFormData.branch_name = selectedCompanySort.branch_name;
             updatedFormData.branch_address = selectedCompanySort.branch_address;
-            updatedFormData.invoice_prereceipts = selectedCompanySort.branch_prereceipts;
+            updatedFormData.invoice_prereceipts =
+              selectedCompanySort.branch_prereceipts;
 
             const selectedBuyer = buyerData?.buyer?.find(
               (buyer) => buyer.buyer_name == prev.invoice_buyer
@@ -822,7 +823,7 @@ const InvoiceAdd = () => {
         const newData = [...prev];
         newData[rowIndex] = {
           ...newData[rowIndex],
-          [field]:  value === null ? "" : value,
+          [field]: value === null ? "" : value,
         };
         return newData;
       });
@@ -913,8 +914,7 @@ const InvoiceAdd = () => {
         ...formData,
         invoice_data: processedContractData,
         invoice_payment_terms: formData.invoice_payment_terms || "",
-        invoice_remarks: formData.invoice_remarks || "", 
-    
+        invoice_remarks: formData.invoice_remarks || "",
       });
       const res = await createInvoiceMutation.mutateAsync(validatedData);
     } catch (error) {
@@ -935,7 +935,7 @@ const InvoiceAdd = () => {
             return `${label}: ${messages.join(", ")}`;
           }
         );
-console.log("toast",errorMessages)
+        console.log("toast", errorMessages);
         toast({
           title: "Validation Error",
           description: (
@@ -1363,7 +1363,7 @@ console.log("toast",errorMessages)
                       Port of Loading <span className="text-red-500">*</span>
                     </span>
                     <span>
-                      <CreatePortofLoading />
+                      <PortofLoadingForm />
                     </span>
                   </label>
                   <MemoizedSelect
@@ -1642,7 +1642,9 @@ console.log("toast",errorMessages)
                   <span>
                     <CreateDescriptionGoods />
                   </span>
-                  <span><CreateMarking/></span>
+                  <span>
+                    <MarkingForm />
+                  </span>
                 </div>
               </div>
 

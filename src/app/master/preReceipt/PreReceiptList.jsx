@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import useApiToken from "@/components/common/useApiToken";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,18 +20,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import EditPreReceipt from "./EditPreReceipt";
-import CreatePreReceipt from "./CreatePreReceipt";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PreReceiptForm from "./CreatePreReceipt";
 
 const PreReceiptList = () => {
+  const token = useApiToken();
+
   const {
     data: prereceipt,
     isLoading,
@@ -54,7 +48,6 @@ const PreReceiptList = () => {
   } = useQuery({
     queryKey: ["prereceipt"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-prereceipts-list`,
         {
@@ -120,14 +113,13 @@ const PreReceiptList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditPreReceipt preReceiptId={preReceiptId} />
+            <PreReceiptForm preReceiptId={preReceiptId} />
           </div>
         );
       },
     },
   ];
 
-  // Create the table instance
   const table = useReactTable({
     data: prereceipt || [],
     columns,
@@ -160,7 +152,10 @@ const PreReceiptList = () => {
   // Render error state
   if (isError) {
     return (
-      <ErrorComponent message="Error Fetching Pre Receipt Data" refetch={refetch} />
+      <ErrorComponent
+        message="Error Fetching Pre Receipt Data"
+        refetch={refetch}
+      />
     );
   }
   return (
@@ -215,7 +210,7 @@ const PreReceiptList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <CreatePreReceipt />
+          <PreReceiptForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

@@ -1,23 +1,8 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,18 +19,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreateBagType from "./CreateBagType";
-import EditBagType from "./EditBagType";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import BagTypeForm from "./CreateBagType";
+import EditBagType from "./EditBagType";
+import useApiToken from "@/components/common/useApiToken";
 
 const BagTypeList = () => {
+  const token = useApiToken();
+
   const {
     data: bagTypeList,
     isLoading,
@@ -54,7 +49,6 @@ const BagTypeList = () => {
   } = useQuery({
     queryKey: ["bagTypeList"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-bagType-list`,
         {
@@ -120,7 +114,7 @@ const BagTypeList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditBagType bagTypeId={bagTypeId} />
+            <BagTypeForm bagTypeId={bagTypeId} />
           </div>
         );
       },
@@ -219,7 +213,7 @@ const BagTypeList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreateBagType />
+          <BagTypeForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

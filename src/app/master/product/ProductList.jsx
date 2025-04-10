@@ -1,24 +1,7 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+import useApiToken from "@/components/common/useApiToken";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -34,170 +17,190 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreateProduct from "./CreateProduct";
-import EditProduct from "./EditProduct";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CreateProductForm from "./CreateProduct";
 
 const ProductList = () => {
-    const {
-        data: product,
-        isLoading,
-        isError,
-        refetch,
-      } = useQuery({
-        queryKey: ["product"],
-        queryFn: async () => {
-          const token = localStorage.getItem("token");
-          const response = await axios.get(
-            `${BASE_URL}/api/panel-fetch-product-list`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          return response.data.product;
-        },
-      });
-    
-      // State for table management
-      const [sorting, setSorting] = useState([]);
-      const [columnFilters, setColumnFilters] = useState([]);
-      const [columnVisibility, setColumnVisibility] = useState({});
-      const [rowSelection, setRowSelection] = useState({});
-      const navigate = useNavigate();
-    
-      // Define columns for the table
-      const columns = [
+  const token = useApiToken();
+
+  const {
+    data: product,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["product"],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-product-list`,
         {
-          accessorKey: "index",
-          header: "Sl No",
-          cell: ({ row }) => <div>{row.index + 1}</div>,
-        },
-        {
-          accessorKey: "product_name",
-          header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-             Product 
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.product;
+    },
+  });
+
+  // State for table management
+  const [sorting, setSorting] = useState([]);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate();
+
+  // Define columns for the table
+  const columns = [
+    {
+      accessorKey: "index",
+      header: "Sl No",
+      cell: ({ row }) => <div>{row.index + 1}</div>,
+    },
+    {
+      accessorKey: "product_name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Product
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("product_name")}</div>,
+    },
+    {
+      accessorKey: "product_rodtep_per",
+      header: "RODTEP",
+      cell: ({ row }) => {
+        const raw = row.getValue("product_rodtep_per");
+        const value = Number(raw).toFixed(2);
+        return <div>{value}</div>;
+      },
+    },
+    {
+      accessorKey: "product_drawback_per",
+      header: "DrawBack",
+      cell: ({ row }) => {
+        const raw = row.getValue("product_drawback_per");
+        const value = Number(raw).toFixed(2);
+        return <div>{value}</div>;
+      },
+    },
+    {
+      accessorKey: "product_status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("product_status");
+
+        return (
+          <span
+            className={`px-2 py-1 rounded text-xs ${
+              status == "Active"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {status}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Action",
+      cell: ({ row }) => {
+        const productId = row.original.id;
+
+        return (
+          <div className="flex flex-row">
+            <CreateProductForm productId={productId} />
+          </div>
+        );
+      },
+    },
+  ];
+
+  // Create the table instance
+  const table = useReactTable({
+    data: product || [],
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 7,
+      },
+    },
+  });
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <Page>
+        <div className="flex justify-center items-center h-full">
+          <Button disabled>
+            <Loader2 className=" h-4 w-4 animate-spin" />
+            Loading Product List
+          </Button>
+        </div>
+      </Page>
+    );
+  }
+
+  // Render error state
+  if (isError) {
+    return (
+      <Page>
+        <Card className="w-full max-w-md mx-auto mt-10">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Fetching Product List
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => refetch()} variant="outline">
+              Try Again
             </Button>
-          ),
-          cell: ({ row }) => <div>{row.getValue("product_name")}</div>,
-        },
-    
-        {
-          accessorKey: "product_status",
-          header: "Status",
-          cell: ({ row }) => {
-            const status = row.getValue("product_status");
-    
-            return (
-              <span
-                className={`px-2 py-1 rounded text-xs ${
-                  status == "Active"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {status}
-              </span>
-            );
-          },
-        },
-        {
-          id: "actions",
-          header: "Action",
-          cell: ({ row }) => {
-            const productId = row.original.id;
-    
-            return (
-              <div className="flex flex-row">
-                <EditProduct productId={productId} />
-              </div>
-            );
-          },
-        },
-      ];
-    
-      // Create the table instance
-      const table = useReactTable({
-        data: product || [],
-        columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
-        state: {
-          sorting,
-          columnFilters,
-          columnVisibility,
-          rowSelection,
-        },
-        initialState: {
-          pagination: {
-            pageSize: 7,
-          },
-        },
-      });
-    
-      // Render loading state
-      if (isLoading) {
-        return (
-          <Page>
-            <div className="flex justify-center items-center h-full">
-              <Button disabled>
-                <Loader2 className=" h-4 w-4 animate-spin" />
-                Loading Product List
-              </Button>
-            </div>
-          </Page>
-        );
-      }
-    
-      // Render error state
-      if (isError) {
-        return (
-          <Page>
-            <Card className="w-full max-w-md mx-auto mt-10">
-              <CardHeader>
-                <CardTitle className="text-destructive">
-                  Error Fetching Product List
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => refetch()} variant="outline">
-                  Try Again
-                </Button>
-              </CardContent>
-            </Card>
-          </Page>
-        );
-      }
+          </CardContent>
+        </Card>
+      </Page>
+    );
+  }
   return (
     <Page>
-         <div className="w-full p-4">
+      <div className="w-full p-4">
         <div className="flex text-left text-2xl text-gray-800 font-[400]">
           Product List
         </div>
 
         {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -233,7 +236,7 @@ const ProductList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-<CreateProduct/>
+          <CreateProductForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">
@@ -245,7 +248,7 @@ const ProductList = () => {
                     return (
                       <TableHead
                         key={header.id}
-                               className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
+                        className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
                       >
                         {header.isPlaceholder
                           ? null
@@ -316,7 +319,7 @@ const ProductList = () => {
         </div>
       </div>
     </Page>
-  )
-}
+  );
+};
 
-export default ProductList
+export default ProductList;
