@@ -1,6 +1,6 @@
 import {
-  StateCreate,
-  StateEdit,
+  OrderTypeCreate,
+  OrderTypeEdit,
 } from "@/components/buttonIndex/ButtonComponents";
 import useApiToken from "@/components/common/useApiToken";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,45 +25,38 @@ import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
-const StateForm = ({ stateId = null }) => {
+const CreateOrderTypeForm = ({ orderId = null }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const isEditMode = Boolean(stateId);
+  const isEditMode = Boolean(orderId);
   const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
-    state_name: "",
-    state_no: "",
-    state_status: isEditMode ? "Active" : null,
+    order_type: isEditMode ? null : "",
+    order_type_status: isEditMode ? "Active" : null,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { pathname } = useLocation();
   const token = useApiToken();
 
   // Fetch data for edit
   useEffect(() => {
     const fetchData = async () => {
-      if (!stateId || !open) return;
+      if (!orderId || !open) return;
       setIsFetching(true);
       try {
         const response = await axios.get(
-          `${BASE_URL}/api/panel-fetch-state-by-id/${stateId}`,
+          `${BASE_URL}/api/panel-fetch-orderType-by-id/${orderId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const data = response.data.state;
+        const data = response.data.orderType;
         setFormData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          order_type_status: data?.order_type_status || "Active",
         });
         setOriginalData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          order_type_status: data?.order_type_status || "Active",
         });
       } catch {
         toast({
@@ -77,14 +70,16 @@ const StateForm = ({ stateId = null }) => {
       }
     };
     fetchData();
-  }, [stateId, open]);
-  const requiredFields = {
-    "State Name": "state_name",
-    "State No": "state_no",
-  };
+  }, [orderId, open]);
+  const requiredFields = isEditMode
+    ? {
+        Status: "order_type_status",
+      }
+    : {
+        "Order Type": "order_type",
+      };
 
   const handleSubmit = async () => {
-
     // Identify missing fields
     const missingFields = Object.entries(requiredFields).filter(
       ([label, field]) =>
@@ -110,8 +105,8 @@ const StateForm = ({ stateId = null }) => {
 
     try {
       const endpoint = isEditMode
-        ? `${BASE_URL}/api/panel-update-state/${stateId}`
-        : `${BASE_URL}/api/panel-create-state`;
+        ? `${BASE_URL}/api/panel-update-orderType/${orderId}`
+        : `${BASE_URL}/api/panel-create-orderType`;
       const method = isEditMode ? "put" : "post";
 
       const response = await axios[method](endpoint, formData, {
@@ -124,7 +119,7 @@ const StateForm = ({ stateId = null }) => {
           description: response.data.msg,
         });
 
-        queryClient.invalidateQueries(["customers"]);
+        queryClient.invalidateQueries(["ordertypes"]);
         setOpen(false);
 
         if (!isEditMode) {
@@ -151,27 +146,21 @@ const StateForm = ({ stateId = null }) => {
   const hasChanges =
     isEditMode &&
     originalData &&
-    (formData.state_name !== originalData.state_name ||
-      formData.state_no !== originalData.state_no ||
-      formData.state_status !== originalData.state_status);
+    formData.order_type_status !== originalData.order_type_status;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {isEditMode ? (
           <div>
-            <StateEdit />
+            <OrderTypeEdit />
           </div>
-        ) : pathname === "/master/state" ? (
+        ) : (
           <div>
-            <StateCreate
+            <OrderTypeCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
-        ) : (
-          <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
-            State
-          </p>
         )}
       </PopoverTrigger>
 
@@ -184,45 +173,37 @@ const StateForm = ({ stateId = null }) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">
-                {isEditMode ? "Edit State" : "Create New State"}
+                {isEditMode ? "Edit Order Type" : "Create Order Type"}
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isEditMode
-                  ? "Update state details"
-                  : "Enter the state details"}
+                  ? "Update order type details"
+                  : "Enter the order typedetails"}
               </p>
             </div>
             <div className="grid gap-2">
               {!isEditMode && (
                 <Input
-                  id="state_name"
-                  placeholder="Enter state name"
-                  value={formData.state_name}
+                  id="order_type"
+                  placeholder="Enter order type"
+                  value={formData.order_type}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      state_name: e.target.value,
+                      order_type: e.target.value,
                     }))
                   }
                 />
               )}
 
-              <Input
-                id="state_no"
-                placeholder="Enter state number"
-                value={formData.state_no}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    state_no: e.target.value,
-                  }))
-                }
-              />
               {isEditMode && (
                 <Select
-                  value={formData.state_status}
+                  value={formData.order_type_status}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, state_status: value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      order_type_status: value,
+                    }))
                   }
                 >
                   <SelectTrigger>
@@ -258,9 +239,9 @@ const StateForm = ({ stateId = null }) => {
                     {isEditMode ? "Updating..." : "Creating..."}
                   </>
                 ) : isEditMode ? (
-                  "Update State"
+                  "Update Order Type"
                 ) : (
-                  "Create State"
+                  "Create Order Type"
                 )}
                 {hasChanges && !isLoading && (
                   <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
@@ -274,4 +255,4 @@ const StateForm = ({ stateId = null }) => {
   );
 };
 
-export default StateForm;
+export default CreateOrderTypeForm;

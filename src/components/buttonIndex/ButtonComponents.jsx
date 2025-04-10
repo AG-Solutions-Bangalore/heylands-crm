@@ -508,7 +508,7 @@ export const PaymentTermsCCreate = ({ onClick, className }) => {
 };
 PaymentTermsCCreate.page = "Payment TermsC";
 
-export const PaymentTermsCEdit = ({ onClick, className }) => {
+export const PaymentTermsCEdit = ({ onClick, className, ref }) => {
   const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "PaymentTermsCEdit", staticPermissions)) {
@@ -516,7 +516,13 @@ export const PaymentTermsCEdit = ({ onClick, className }) => {
   }
 
   return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
       <Edit className="h-4 w-4 text-black" />
     </Button>
   );
@@ -820,7 +826,7 @@ export const ProductCreate = ({ onClick, className }) => {
 };
 ProductCreate.page = "Product";
 
-export const ProductEdit = ({ onClick, className }) => {
+export const ProductEdit = ({ onClick, className, ref }) => {
   const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "ProductEdit", staticPermissions)) {
@@ -828,12 +834,129 @@ export const ProductEdit = ({ onClick, className }) => {
   }
 
   return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
       <Edit className="h-4 w-4 text-black" />
     </Button>
   );
 };
 ProductEdit.page = "Product";
+////////MASTER-Order Type
+export const OrderTypeCreate = ({ onClick, className }) => {
+  const navigate = useNavigate();
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "OrderTypeCreate", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4" /> Order Type
+    </Button>
+  );
+};
+OrderTypeCreate.page = "Order Type";
+
+export const OrderTypeEdit = ({ onClick, className, ref }) => {
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "OrderTypeEdit", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+};
+OrderTypeEdit.page = "Order Type";
+////////MASTER-Item Category
+export const ItemCategoryCreate = ({ onClick, className }) => {
+  const navigate = useNavigate();
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemCategoryCreate", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4" /> Item Category
+    </Button>
+  );
+};
+ItemCategoryCreate.page = "Item Category";
+
+export const ItemCategoryEdit = ({ onClick, className, ref }) => {
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemCategoryEdit", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+};
+ItemCategoryEdit.page = "Item Category";
+////////MASTER-Item Packing
+export const ItemPackingCreate = ({ onClick, className }) => {
+  const navigate = useNavigate();
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemPackingCreate", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4" /> Item Packing
+    </Button>
+  );
+};
+ItemPackingCreate.page = "Item Packing";
+
+export const ItemPackingEdit = ({ onClick, className, ref }) => {
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemPackingEdit", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+};
+ItemPackingEdit.page = "Item Packing";
 ////////MASTER-Product Description
 export const ProductDescriptionCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
@@ -1640,6 +1763,12 @@ export default {
   GRCodeEdit,
   ProductCreate,
   ProductEdit,
+  OrderTypeCreate,
+  OrderTypeEdit,
+  ItemCategoryCreate,
+  ItemCategoryEdit,
+  ItemPackingCreate,
+  ItemPackingEdit,
   ProductDescriptionCreate,
   ProductDescriptionEdit,
   ShipperCreate,

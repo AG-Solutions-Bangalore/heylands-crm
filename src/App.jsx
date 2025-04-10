@@ -1,12 +1,11 @@
 import { Route, Routes, useNavigate } from "react-router-dom";
 import Login from "./app/auth/Login";
-import Home from "./app/home/Home";
-import { Toaster } from "./components/ui/toaster";
 import ContractAdd from "./app/contract/ContractAdd";
 import ContractList from "./app/contract/ContractList";
 import EditContract from "./app/contract/EditContract";
 import TestViewPrint from "./app/contract/TestViewPrint";
 import ViewContract from "./app/contract/ViewContract";
+import Home from "./app/home/Home";
 import InvoiceAdd from "./app/invoice/InvoiceAdd";
 import InvoiceDocumentEdit from "./app/invoice/InvoiceDocumentEdit";
 import InvoiceEdit from "./app/invoice/InvoiceEdit";
@@ -28,31 +27,32 @@ import PortOfLoadingList from "./app/master/portofLoading/PortofLoadingList";
 import PreReceiptList from "./app/master/preReceipt/PreReceiptList";
 import ProductList from "./app/master/product/ProductList";
 import ProductionDescriptionList from "./app/master/productDescription/ProductionDescriptionList";
+import PurchaseProductList from "./app/master/purchaseProduct/PurchaseProductList";
 import QualityList from "./app/master/quality/QualityList";
 import SchemeList from "./app/master/scheme/SchemeList";
 import ShipperList from "./app/master/shipper/ShipperList";
 import StateList from "./app/master/state/StateList";
 import TypeList from "./app/master/type/TypeList";
+import CreateVendor from "./app/master/vendor/CreateVendor";
+import VendorEdit from "./app/master/vendor/VendorEdit";
+import VendorList from "./app/master/vendor/VendorList";
 import VesselList from "./app/master/vessel/VesselList";
+import CreatePurchaseOrder from "./app/purchaseOrder/CreatePurchaseOrder";
+import PurchaseOrderList from "./app/purchaseOrder/PurchaseOrderList";
 import Buyer from "./app/reports/buyer/Buyer";
 import ContractForm from "./app/reports/contract/ContractForm";
 import ContractReport from "./app/reports/contract/ContractReport";
+import SalesAccountForm from "./app/reports/salesAccount/SalesAccountForm";
+import SalesAccountReport from "./app/reports/salesAccount/SalesAccountReport";
+import SalesDataForm from "./app/reports/salesData/SalesDataForm";
+import SalesDataReport from "./app/reports/salesData/SalesDataReport";
 import CreateButton from "./app/userManagement/CreateButton";
 import CreatePage from "./app/userManagement/CreatePage";
 import ManagementDashboard from "./app/userManagement/ManagementDashboard";
 import UserPage from "./app/userManagement/UserPage";
 import UserTypeList from "./app/UserType/UserTypeList";
-import PurchaseProductList from "./app/master/purchaseProduct/PurchaseProductList";
-import CreateVendor from "./app/master/vendor/CreateVendor";
-import VendorEdit from "./app/master/vendor/VendorEdit";
-import VendorList from "./app/master/vendor/VendorList";
-import CreatePurchaseOrder from "./app/purchaseOrder/CreatePurchaseOrder";
-import PurchaseOrderList from "./app/purchaseOrder/PurchaseOrderList";
-import SalesAccountForm from "./app/reports/salesAccount/SalesAccountForm";
-import SalesAccountReport from "./app/reports/salesAccount/SalesAccountReport";
-import SalesDataForm from "./app/reports/salesData/SalesDataForm";
-import SalesDataReport from "./app/reports/salesData/SalesDataReport";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import { Toaster } from "./components/ui/toaster";
 import PaymentClose from "./payment/PaymentClose/PaymentClose";
 import CreatePayment from "./payment/PaymentList/CreatePayment";
 import EditPaymentList from "./payment/PaymentList/EditPaymentList";
@@ -60,6 +60,12 @@ import PaymentList from "./payment/PaymentList/PaymentList";
 import PaymentView from "./payment/PaymentList/PaymentView";
 import PaymentPending from "./payment/PaymentPending/PaymentPending";
 
+import CostingList from "./app/costing/CostingList";
+import CreateCosting from "./app/costing/CreateCosting";
+import EditCosting from "./app/costing/EditCosting";
+import ViewCosting from "./app/costing/ViewCosting";
+import DutyDrawBackPending from "./app/dutydrawback/pending/DutyDrawBackPending";
+import DutyDrawBackReceived from "./app/dutydrawback/received/DutyDrawBackReceived";
 import BuyerList from "./app/master/buyer/BuyerList";
 import CreateMarketDispatch from "./app/purchase/market-dispatch/CreateMarketDispatch";
 import EditMarketDispatch from "./app/purchase/market-dispatch/EditMarketDispatch";
@@ -76,25 +82,21 @@ import MarketPurchase from "./app/purchase/marketPurchase/MarketPurchase";
 import StockView from "./app/purchase/stock/StockView";
 import EditPurchaseOrder from "./app/purchaseOrder/EditPurchaseOrder";
 import ViewPurchaseOrder from "./app/purchaseOrder/ViewPurchaseOrder";
+import DrawBackForm from "./app/reports/drawBack/DrawBackForm";
+import DrawBackReport from "./app/reports/drawBack/DrawBackReport";
 import MonthwisePurchaseForm from "./app/reports/monthwisePurchase/MonthwisePurchaseForm";
 import MonthwisePurchaseReport from "./app/reports/monthwisePurchase/MonthwisePurchaseReport";
 import MonthwisePurchaseSellerReport from "./app/reports/monthwisePurchase/MonthwisePurchaseSellerReport";
 import ProductStock from "./app/reports/productStock/ProductStock";
 import ProductStockView from "./app/reports/productStock/ProductStockView";
+import EditUserType from "./app/UserType/EditUserType";
+import Maintenance from "./components/common/Maintenance";
 import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTimeoutTracker";
 import BASE_URL from "./config/BaseUrl";
-import DutyDrawBackPending from "./app/dutydrawback/pending/DutyDrawBackPending";
-import DutyDrawBackReceived from "./app/dutydrawback/received/DutyDrawBackReceived";
-import EditUserType from "./app/UserType/EditUserType";
-import DisableRightClick from "./components/DisableRightClick/DisableRightClick";
-import DrawBackForm from "./app/reports/drawBack/DrawBackForm";
-import DrawBackReport from "./app/reports/drawBack/DrawBackReport";
-import CostingList from "./app/costing/CostingList";
-import CreateCosting from "./app/costing/CreateCosting";
-import EditCosting from "./app/costing/EditCosting";
-import ViewCosting from "./app/costing/ViewCosting";
 import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
-import Maintenance from "./components/common/Maintenance";
+import OrderTypeList from "./app/master/orderType/OrderTypeList";
+import ItemCategoryList from "./app/master/itemCategory/ItemCategoryList";
+import ItemPackingList from "./app/master/itemPacking/ItemPackingList";
 
 function App() {
   const navigate = useNavigate();
@@ -262,6 +264,12 @@ function App() {
           <Route path="/master/grcode" element={<GrCodeList />} />
           {/* Master - Product */}
           <Route path="/master/product" element={<ProductList />} />
+          {/* Master - OrderType */}
+          <Route path="/master/order-type" element={<OrderTypeList />} />
+          {/* Master - ItemCategory */}
+          <Route path="/master/item-category" element={<ItemCategoryList />} />
+          {/* Master - ItemPacking */}
+          <Route path="/master/item-packing" element={<ItemPackingList />} />
           {/* Master - productdescription */}
           <Route
             path="/master/productdescription"

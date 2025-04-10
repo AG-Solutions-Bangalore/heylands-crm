@@ -1,18 +1,16 @@
+const token = useApiToken();
+
 const handleSubmit = async () => {
-  const requiredFields = isEdit
+  const requiredFields = isEditMode
     ? {
-        Description: "scheme_description",
-        Tax: "scheme_tax",
-        Status: "scheme_tax",
+      gr_code_status: "bagType_status",
       }
     : {
-        Short: "scheme_short",
-        Description: "scheme_description",
-        Tax: "scheme_tax",
+        Description: "gr_code_des",
+        Product Name: "product_name",
       };
   const missingFields = Object.entries(requiredFields).filter(
-    ([label, field]) =>
-      !formData[field]?.trim() && (!isEditMode || field !== "branch_short")
+    ([label, field]) => !formData[field]?.trim()
   );
 
   if (missingFields.length > 0) {
@@ -34,26 +32,24 @@ const handleSubmit = async () => {
   try {
     const response = isEditMode
       ? await axios.put(
-          `${BASE_URL}/api/panel-update-scheme/${schemeId}`,
+          `${BASE_URL}/api/panel-update-grcode/${grcodeId}`,
           formData,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         )
-      : await axios.post(`${BASE_URL}/api/panel-create-scheme`, formData, {
+      : await axios.post(`${BASE_URL}/api/panel-create-grcode`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
     if (response?.data.code == 200) {
       toast({ title: "Success", description: response.data.msg });
-      await queryClient.invalidateQueries(["schemes"]);
+      await queryClient.invalidateQueries(["grcodeList"]);
 
-      if (!isEdit) {
+      if (!isEditMode) {
         setFormData({
-          scheme_short: "",
-          scheme_description: "",
-          scheme_tax: "",
-          scheme_status: "",
+          gr_code_des: "",
+          product_name: "",
         });
       }
       setOpen(false);
@@ -67,7 +63,84 @@ const handleSubmit = async () => {
   } catch (error) {
     toast({
       title: "Error",
-      description: error.response?.data?.message || "Failed to submit scheme",
+      description:
+        error.response?.data?.message || "Failed to submit grcodeList",
+      variant: "destructive",
+    });
+    console.log(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const handleSubmit = async () => {
+  const requiredFields = {
+    ContainerSIze: "containerSize",
+    Status: "containerSize_status",
+  };
+  const missingFields = Object.entries(requiredFields).filter(
+    ([label, field]) =>
+      !formData[field]?.trim() &&
+      (!isEditMode || field !== "containerSize_status") // skip state_name in edit mode
+  );
+
+  if (missingFields.length > 0) {
+    toast({
+      title: "Missing Required Fields",
+      description: (
+        <div className="flex flex-col gap-1">
+          {missingFields.map(([label], index) => (
+            <div key={index}>• {label}</div>
+          ))}
+        </div>
+      ),
+      variant: "destructive",
+    });
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = isEditMode
+      ? await axios.put(
+          `${BASE_URL}/api/panel-update-container-size/${containerId}`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+      : await axios.post(
+          `${BASE_URL}/api/panel-create-container-size`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+    if (response.data.code === 200) {
+      toast({
+        title: "Success",
+        description: response.data.msg,
+      });
+
+      queryClient.invalidateQueries(["containersizes"]);
+      setOpen(false);
+
+      if (!isEditMode) {
+        setFormData({ state_name: "", state_no: "", state_status: "Active" });
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: response.data.msg,
+        variant: "destructive",
+      });
+    }
+  } catch (err) {
+    toast({
+      title: "Error",
+      description: err.response?.data?.message || "Something went wrong",
       variant: "destructive",
     });
   } finally {

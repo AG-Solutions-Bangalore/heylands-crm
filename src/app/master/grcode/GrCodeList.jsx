@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import useApiToken from "@/components/common/useApiToken";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,17 +20,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreateGrCode from "./CreateGrCode";
-import EditGrCode from "./EditGrCode";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import GrCodeForm from "./CreateGrCode";
 const GrCodeList = () => {
+  const token = useApiToken();
+
   const {
     data: grCode,
     isLoading,
@@ -53,7 +46,6 @@ const GrCodeList = () => {
   } = useQuery({
     queryKey: ["grcodeList"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-grcode-list`,
         {
@@ -118,7 +110,7 @@ const GrCodeList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditGrCode grcodeId={grcodeId} />
+            <GrCodeForm grcodeId={grcodeId} />
           </div>
         );
       },
@@ -215,7 +207,7 @@ const GrCodeList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreateGrCode />
+          <GrCodeForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

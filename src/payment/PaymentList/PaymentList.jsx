@@ -1,30 +1,21 @@
-import React, { useState } from "react";
-import Page from "../../app/dashboard/page";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  expandRows,
-} from "@tanstack/react-table";
+  InvoiceEdit,
+  PaymentCreate,
+} from "@/components/buttonIndex/ButtonComponents";
 import {
-  ArrowUpDown,
-  ChevronDown,
-  ChevronUp,
-  Edit,
-  Eye,
-  FilePlus2,
-  Loader2,
-  Search,
-  SquarePlus,
-  Trash,
-  UserPen,
-  View,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -47,42 +39,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import { useNavigate } from "react-router-dom";
-import moment from "moment";
-import { useToast } from "@/hooks/use-toast";
 import { ButtonConfig } from "@/config/ButtonConfig";
-import {
-  InvoiceCreate,
-  InvoiceDelete,
-  InvoiceDocument,
-  InvoiceEdit,
-  InvoiceView,
-  PaymentCreate,
-} from "@/components/buttonIndex/ButtonComponents";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { encryptId } from "@/utils/encyrption/Encyrption";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, ChevronUp, Search } from "lucide-react";
+import moment from "moment";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Page from "../../app/dashboard/page";
 const PaymentList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteInoice, setDeleteInoiceid] = useState(null);
   const [expandedRowId, setExpandedRowId] = useState(null);
   const [subRowData, setSubRowData] = useState({});
   const { toast } = useToast();
+  const token = useApiToken();
   const {
     data: payment,
     isLoading,
@@ -91,7 +73,6 @@ const PaymentList = () => {
   } = useQuery({
     queryKey: ["payment"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-invoice-payment-list`,
         {

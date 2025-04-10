@@ -66,9 +66,7 @@ const CreateProduct = () => {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {pathname === "/products" ? (
-          //  <Button variant="default" className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100">
-          //    <SquarePlus className="h-4 w-4 mr-2" /> Product
-          //  </Button>
+       
           <div>
             <ProductCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}

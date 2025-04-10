@@ -1,11 +1,12 @@
 import {
-  StateCreate,
-  StateEdit,
+  ItemCategoryCreate,
+  ItemCategoryEdit,
 } from "@/components/buttonIndex/ButtonComponents";
 import useApiToken from "@/components/common/useApiToken";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -21,49 +22,65 @@ import {
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
-const StateForm = ({ stateId = null }) => {
+const CreateItemCategoryForm = ({ itemId = null }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const isEditMode = Boolean(stateId);
+  const isEditMode = Boolean(itemId);
   const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
-    state_name: "",
-    state_no: "",
-    state_status: isEditMode ? "Active" : null,
+    item_category: isEditMode ? null : "",
+    order_type_status: isEditMode ? "Active" : null,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { pathname } = useLocation();
   const token = useApiToken();
-
-  // Fetch data for edit
+  const {
+    data: ItemCategory,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["ItemCategory", open, !isEditMode],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-ItemCategory`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.itemCategory || [];
+    },
+    enabled: open && !isEditMode,
+  });
+  const handleInputChange = (e, key = null, val = null) => {
+    if (e?.target) {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    } else if (key) {
+      setFormData((prev) => ({ ...prev, [key]: val }));
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
-      if (!stateId || !open) return;
+      if (!itemId || !open) return;
       setIsFetching(true);
       try {
         const response = await axios.get(
-          `${BASE_URL}/api/panel-fetch-state-by-id/${stateId}`,
+          `${BASE_URL}/api/panel-fetch-ItemCategory-by-id/${itemId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const data = response.data.state;
+        const data = response.data.itemCategory;
         setFormData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          item_category_status: data?.item_category_status || "Active",
         });
         setOriginalData({
-          state_name: data?.state_name || "",
-          state_no: data?.state_no || "",
-          state_status: data?.state_status || "Active",
+          item_category_status: data?.item_category_status || "Active",
         });
       } catch {
         toast({
@@ -77,18 +94,20 @@ const StateForm = ({ stateId = null }) => {
       }
     };
     fetchData();
-  }, [stateId, open]);
-  const requiredFields = {
-    "State Name": "state_name",
-    "State No": "state_no",
-  };
+  }, [itemId, open]);
+  const requiredFields = isEditMode
+    ? {
+        Status: "item_category_status",
+      }
+    : {
+        "Item Category": "item_category",
+      };
 
   const handleSubmit = async () => {
-
     // Identify missing fields
     const missingFields = Object.entries(requiredFields).filter(
       ([label, field]) =>
-        !formData[field]?.trim() && (!isEditMode || field !== "state_name") // skip state_name in edit mode
+        !formData[field]?.trim() && (!isEditMode || field !== "item_category") // skip state_name in edit mode
     );
 
     if (missingFields.length > 0) {
@@ -110,8 +129,8 @@ const StateForm = ({ stateId = null }) => {
 
     try {
       const endpoint = isEditMode
-        ? `${BASE_URL}/api/panel-update-state/${stateId}`
-        : `${BASE_URL}/api/panel-create-state`;
+        ? `${BASE_URL}/api/panel-update-ItemCategory/${itemId}`
+        : `${BASE_URL}/api/panel-create-ItemCategory`;
       const method = isEditMode ? "put" : "post";
 
       const response = await axios[method](endpoint, formData, {
@@ -124,11 +143,11 @@ const StateForm = ({ stateId = null }) => {
           description: response.data.msg,
         });
 
-        queryClient.invalidateQueries(["customers"]);
+        queryClient.invalidateQueries(["itemCategory"]);
         setOpen(false);
 
         if (!isEditMode) {
-          setFormData({ state_name: "", state_no: "", state_status: "Active" });
+          setFormData({ item_category: "" });
         }
       } else {
         toast({
@@ -151,27 +170,21 @@ const StateForm = ({ stateId = null }) => {
   const hasChanges =
     isEditMode &&
     originalData &&
-    (formData.state_name !== originalData.state_name ||
-      formData.state_no !== originalData.state_no ||
-      formData.state_status !== originalData.state_status);
+    formData.item_category_status !== originalData.item_category_status;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {isEditMode ? (
           <div>
-            <StateEdit />
+            <ItemCategoryEdit />
           </div>
-        ) : pathname === "/master/state" ? (
+        ) : (
           <div>
-            <StateCreate
+            <ItemCategoryCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
-        ) : (
-          <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
-            State
-          </p>
         )}
       </PopoverTrigger>
 
@@ -184,45 +197,44 @@ const StateForm = ({ stateId = null }) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">
-                {isEditMode ? "Edit State" : "Create New State"}
+                {isEditMode ? "Edit Item Category" : "Create Item Category"}
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isEditMode
-                  ? "Update state details"
-                  : "Enter the state details"}
+                  ? "Update item category details"
+                  : "Enter the item category details"}
               </p>
             </div>
             <div className="grid gap-2">
-              {!isEditMode && (
-                <Input
-                  id="state_name"
-                  placeholder="Enter state name"
-                  value={formData.state_name}
-                  onChange={(e) =>
+              {!isEditMode ? (
+                <div>
+                  <Label htmlFor="item_category">Item Category</Label>
+                  <Select
+                    value={formData.item_category}
+                    onValueChange={(val) =>
+                      handleInputChange(null, "item_category", val)
+                    }
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select Item Category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {ItemCategory?.map((b, i) => (
+                        <SelectItem key={i} value={b.item_category}>
+                          {b.item_category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <Select
+                  value={formData.item_category_status}
+                  onValueChange={(value) =>
                     setFormData((prev) => ({
                       ...prev,
-                      state_name: e.target.value,
+                      item_category_status: value,
                     }))
-                  }
-                />
-              )}
-
-              <Input
-                id="state_no"
-                placeholder="Enter state number"
-                value={formData.state_no}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    state_no: e.target.value,
-                  }))
-                }
-              />
-              {isEditMode && (
-                <Select
-                  value={formData.state_status}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, state_status: value }))
                   }
                 >
                   <SelectTrigger>
@@ -258,9 +270,9 @@ const StateForm = ({ stateId = null }) => {
                     {isEditMode ? "Updating..." : "Creating..."}
                   </>
                 ) : isEditMode ? (
-                  "Update State"
+                  "Update Item Category"
                 ) : (
-                  "Create State"
+                  "Create Item Category"
                 )}
                 {hasChanges && !isLoading && (
                   <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
@@ -274,4 +286,4 @@ const StateForm = ({ stateId = null }) => {
   );
 };
 
-export default StateForm;
+export default CreateItemCategoryForm;

@@ -25,31 +25,57 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
+import useApiToken from "./common/useApiToken";
+import axios from "axios";
+import { logout } from "@/redux/slice/authSlice";
+import { useDispatch } from "react-redux";
+import { persistor } from "@/redux/store/store";
+import { useToast } from "@/hooks/use-toast";
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
-  const user_position = localStorage.getItem("user_position")
-  // const handleLogout = () => {
-  //   localStorage.clear();
-  //   navigate("/");
-  // };
+  const dispatch = useDispatch();
+  const {toast} = useToast();
+  const user_position = localStorage.getItem("user_position");
+  const token = useApiToken();
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/panel-logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await axios.post(
+        `${BASE_URL}/api/panel-logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const result = await response.json();
-      console.log("Logout successful:", result);
-      localStorage.clear();
-      navigate("/");
+      if (res.data?.code === 200) {
+        toast({
+          title: "Sucess",
+          description: res.data.msg || "You have been logged out.",
+        });
+
+        await persistor.flush();
+        localStorage.clear();
+        dispatch(logout());
+        navigate("/");
+        setTimeout(() => persistor.purge(), 1000);
+      } else {
+        toast({
+          title: "Logout Failed",
+          description: res.data.msg || "An error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
-      console.error("Logout failed:", error.message);
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout Error",
+        description:
+          error.response?.data?.message ||
+          "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 

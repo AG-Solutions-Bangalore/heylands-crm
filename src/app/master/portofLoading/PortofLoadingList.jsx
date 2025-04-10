@@ -1,23 +1,9 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import useApiToken from "@/components/common/useApiToken";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,17 +20,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/config/BaseUrl";
-import CreatePortofLoading from "./CreatePortofLoading";
-import EditPortofLoading from "./EditPortofLoading";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import PortofLoadingForm from "./CreatePortofLoading";
 const PortOfLoadingList = () => {
+  const token = useApiToken();
+
   const {
     data: portofLoading,
     isLoading,
@@ -53,7 +46,6 @@ const PortOfLoadingList = () => {
   } = useQuery({
     queryKey: ["portofLoadingList"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-portofLoading-list`,
         {
@@ -90,7 +82,11 @@ const PortOfLoadingList = () => {
       ),
       cell: ({ row }) => <div>{row.getValue("portofLoading")}</div>,
     },
-
+    {
+      accessorKey: "portofLoadingCountry",
+      header: "Port Country",
+      cell: ({ row }) => <div>{row.getValue("portofLoadingCountry")}</div>,
+    },
     {
       accessorKey: "portofLoading_status",
       header: "Status",
@@ -118,7 +114,7 @@ const PortOfLoadingList = () => {
 
         return (
           <div className="flex flex-row">
-            <EditPortofLoading portId={portId} />
+            <PortofLoadingForm portId={portId} />
           </div>
         );
       },
@@ -217,7 +213,7 @@ const PortOfLoadingList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <CreatePortofLoading />
+          <PortofLoadingForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">

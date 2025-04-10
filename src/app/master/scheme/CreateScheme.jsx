@@ -210,61 +210,65 @@ const CreateScheme = ({ isEdit = false, schemeId = null }) => {
             {isEdit ? "Update Scheme" : "Create New Scheme"}
           </DialogTitle>
         </DialogHeader>
-
-        <div className="grid gap-4 py-4">
-          {!isEdit && (
+        {isFetching ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <div className="grid gap-4 py-4">
+            {!isEdit && (
+              <div className="grid gap-2">
+                <Label htmlFor="scheme_short">Scheme Short Name</Label>
+                <Input
+                  id="scheme_short"
+                  name="scheme_short"
+                  value={formData.scheme_short}
+                  onChange={handleInputChange}
+                  placeholder="Enter Scheme short name"
+                />
+              </div>
+            )}
             <div className="grid gap-2">
-              <Label htmlFor="scheme_short">Scheme Short Name</Label>
-              <Input
-                id="scheme_short"
-                name="scheme_short"
-                value={formData.scheme_short}
+              <Label htmlFor="scheme_description">Scheme Description</Label>
+              <textarea
+                id="scheme_description"
+                name="scheme_description"
+                value={formData.scheme_description}
                 onChange={handleInputChange}
-                placeholder="Enter Scheme short name"
+                placeholder="Enter Scheme Description"
+                className="w-full p-1 border border-gray-300 rounded-sm"
               />
             </div>
-          )}
-          <div className="grid gap-2">
-            <Label htmlFor="scheme_description">Scheme Description</Label>
-            <textarea
-              id="scheme_description"
-              name="scheme_description"
-              value={formData.scheme_description}
-              onChange={handleInputChange}
-              placeholder="Enter Scheme Description"
-              className="w-full p-1 border border-gray-300 rounded-sm"
-            />
-          </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="scheme_tax">Tax</Label>
-            <Input
-              id="scheme_tax"
-              name="scheme_tax"
-              value={formData.scheme_tax}
-              onChange={handleInputChange}
-              placeholder="Enter scheme tax details"
-            />
-          </div>
-          {isEdit && (
             <div className="grid gap-2">
-              <Label htmlFor="scheme_status">Status</Label>
-              <Select
-                value={formData.scheme_status}
-                onValueChange={handleStatusChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="scheme_tax">Tax</Label>
+              <Input
+                id="scheme_tax"
+                name="scheme_tax"
+                value={formData.scheme_tax}
+                onChange={handleInputChange}
+                placeholder="Enter scheme tax details"
+              />
             </div>
-          )}
-        </div>
-
+            {isEdit && (
+              <div className="grid gap-2">
+                <Label htmlFor="scheme_status">Status</Label>
+                <Select
+                  value={formData.scheme_status}
+                  onValueChange={handleStatusChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        )}
         <DialogFooter>
           <Button
             onClick={handleSubmit}

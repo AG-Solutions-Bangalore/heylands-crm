@@ -1,9 +1,9 @@
 import Page from "@/app/dashboard/page";
-import useApiToken from "@/components/common/useApiToken";
 import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,26 +34,25 @@ import {
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import MarkingForm from "./CreateMarking";
+import CreateItemPackingForm from "./CreateItemPackingForm";
 
-const MarkingList = () => {
+const ItemPackingList = () => {
   const token = useApiToken();
   const {
-    data: markings,
+    data: itemPacking,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["markings"],
+    queryKey: ["itemPacking"],
     queryFn: async () => {
       const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-marking-list`,
+        `${BASE_URL}/api/panel-fetch-ItemPacking-list`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      return response.data.marking;
+      return response.data.itemPacking;
     },
   });
 
@@ -62,9 +61,7 @@ const MarkingList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const navigate = useNavigate();
 
-  // Define columns for the table
   const columns = [
     {
       accessorKey: "index",
@@ -72,24 +69,33 @@ const MarkingList = () => {
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
     {
-      accessorKey: "marking",
+      accessorKey: "item_packing",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Marking
+          Packing
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("marking")}</div>,
+      cell: ({ row }) => <div>{row.getValue("item_packing")}</div>,
     },
-
     {
-      accessorKey: "marking_status",
+      accessorKey: "item_packing_unit",
+      header: "Unit",
+      cell: ({ row }) => <div>{row.getValue("item_packing_unit")}</div>,
+    },
+    {
+      accessorKey: "item_packing_no",
+      header: "Packing No",
+      cell: ({ row }) => <div>{row.getValue("item_packing_no")}</div>,
+    },
+    {
+      accessorKey: "item_packing_status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("marking_status");
+        const status = row.getValue("item_packing_status");
 
         return (
           <span
@@ -108,11 +114,11 @@ const MarkingList = () => {
       id: "actions",
       header: "Action",
       cell: ({ row }) => {
-        const markingId = row.original.id;
+        const itemId = row.original.id;
 
         return (
           <div className="flex flex-row">
-            <MarkingForm markingId={markingId} />
+            <CreateItemPackingForm itemId={itemId} />
           </div>
         );
       },
@@ -121,7 +127,7 @@ const MarkingList = () => {
 
   // Create the table instance
   const table = useReactTable({
-    data: markings || [],
+    data: itemPacking || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -144,38 +150,32 @@ const MarkingList = () => {
     },
   });
 
-  // Render loading state
   if (isLoading) {
-    return <LoaderComponent name="Marking Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="Item Packing Data" />;
   }
 
   // Render error state
   if (isError) {
     return (
-      <ErrorComponent message="Error Fetching Marking Data" refetch={refetch} />
+      <ErrorComponent
+        message="Error Fetching Item Packing  Data"
+        refetch={refetch}
+      />
     );
   }
+
   return (
     <Page>
       <div className="w-full p-4">
         <div className="flex text-left text-2xl text-gray-800 font-[400]">
-          Marking List
+          Item Packing List
         </div>
 
-        {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search marking..."
+              placeholder="Search item packing..."
               value={table.getState().globalFilter || ""}
               onChange={(event) => table.setGlobalFilter(event.target.value)}
               className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200"
@@ -207,7 +207,8 @@ const MarkingList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <MarkingForm />
+
+          <CreateItemPackingForm />
         </div>
         {/* table  */}
         <div className="rounded-md border">
@@ -266,7 +267,7 @@ const MarkingList = () => {
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            Total Marking : &nbsp;
+            Total Packing : &nbsp;
             {table.getFilteredRowModel().rows.length}
           </div>
           <div className="space-x-2">
@@ -293,4 +294,4 @@ const MarkingList = () => {
   );
 };
 
-export default MarkingList;
+export default ItemPackingList;
