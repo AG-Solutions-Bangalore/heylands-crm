@@ -957,6 +957,43 @@ export const ItemPackingEdit = ({ onClick, className, ref }) => {
   );
 };
 ItemPackingEdit.page = "Item Packing";
+////////MASTER-Item Box
+export const ItemBoxCreate = ({ onClick, className }) => {
+  const navigate = useNavigate();
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemBoxCreate", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4" /> Item Box
+    </Button>
+  );
+};
+ItemBoxCreate.page = "Item Box";
+
+export const ItemBoxEdit = ({ onClick, className, ref }) => {
+  const userId = useSelector((state) => state.auth.id);
+  const staticPermissions = getStaticPermissions();
+  if (!checkPermission(userId, "ItemBoxEdit", staticPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+};
+ItemBoxEdit.page = "Item Box";
 ////////MASTER-Product Description
 export const ProductDescriptionCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
@@ -1768,6 +1805,8 @@ export default {
   ItemCategoryCreate,
   ItemCategoryEdit,
   ItemPackingCreate,
+  ItemBoxCreate,
+  ItemBoxEdit,
   ItemPackingEdit,
   ProductDescriptionCreate,
   ProductDescriptionEdit,

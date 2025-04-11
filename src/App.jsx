@@ -97,6 +97,8 @@ import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
 import OrderTypeList from "./app/master/orderType/OrderTypeList";
 import ItemCategoryList from "./app/master/itemCategory/ItemCategoryList";
 import ItemPackingList from "./app/master/itemPacking/ItemPackingList";
+import ItemBoxList from "./app/master/itemBox/ItemBoxList";
+import CreateItemForm from "./app/master/item/CreateItem";
 
 function App() {
   const navigate = useNavigate();
@@ -252,6 +254,8 @@ function App() {
           />
           {/* Master -items */}
           <Route path="/master/item" element={<ItemList />} />
+          {/* Master -create&edit */}
+          <Route path="/master/item-form/:id" element={<CreateItemForm />} />
           {/* Master -marking */}
           <Route path="/master/marking" element={<MarkingList />} />
           {/* Master -typelist */}
@@ -270,6 +274,8 @@ function App() {
           <Route path="/master/item-category" element={<ItemCategoryList />} />
           {/* Master - ItemPacking */}
           <Route path="/master/item-packing" element={<ItemPackingList />} />
+          {/* Master - ItemBox */}
+          <Route path="/master/item-box" element={<ItemBoxList />} />
           {/* Master - productdescription */}
           <Route
             path="/master/productdescription"

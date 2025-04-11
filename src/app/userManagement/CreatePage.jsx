@@ -75,6 +75,7 @@ const CreatePage = () => {
             { title: "Order Type", url: "/master/order-type" },
             { title: "Item Category", url: "/master/item-category" },
             { title: "Item Packing", url: "/master/item-packing" },
+            { title: "Item Box", url: "/master/item-box" },
           ],
         },
         {

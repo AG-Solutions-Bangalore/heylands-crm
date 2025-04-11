@@ -36,7 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFetchCompanys } from "@/hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
