@@ -230,6 +230,10 @@ export function AppSidebar({ ...props }) {
             title: "Item Packing",
             url: "/master/item-packing",
           },
+          {
+            title: "Item Box",
+            url: "/master/item-box",
+          },
         ],
       },
       {

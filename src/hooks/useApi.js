@@ -107,11 +107,11 @@ export const useFetchContainerSizes = () => {
   );
 };
 
-export const useFetchPaymentTerms = () => {
-  return useQuery(
-    createQueryConfig(["paymentTerms"], "/api/panel-fetch-paymentTermsC")
-  );
-};
+// export const useFetchPaymentTerms = () => {
+//   return useQuery(
+//     createQueryConfig(["paymentTerms"], "/api/panel-fetch-paymentTermsC")
+//   );
+// };
 
 export const useFetchPorts = () => {
   return useQuery(
@@ -227,30 +227,35 @@ export const useFetchDispatchDcNo = () => {
   );
 };
 
-// //product dropdown in costing
-// export const useFetchProductCosting = (costing_product_id) => {
-//   const queryClient = useQueryClient();
-
-//   const query = useQuery(
-//     createQueryConfig(
-//       ["costing", costing_product_id],
-//       `/api/panel-fetch-costing-default/${costing_product_id}`,
-//       {
-//         enabled: Boolean(costing_product_id),
-//       }
-//     )
-//   );
-
-//   const prefetchNextContractNos = async () => {
-//     if (costing_product_id) {
-//       await queryClient.prefetchQuery(
-//         createQueryConfig(
-//           ["costing", costing_product_id],
-//           `/api/panel-fetch-costing-default/${costing_product_id}`
-//         )
-//       );
-//     }
-//   };
-
-//   return { data: query.data ?? [], prefetchNextContractNos };
-// };
+// //packing
+export const useFetchPacking = () => {
+  return useQuery(
+    createQueryConfig(["packing"], "/api/panel-fetch-ItemPacking")
+  );
+};
+// //country
+export const useFetchCountry = () => {
+  return useQuery(createQueryConfig(["country"], "/api/panel-fetch-country"));
+};
+// //country
+export const useFetchBox = () => {
+  return useQuery(createQueryConfig(["itembox"], "/api/panel-fetch-ItemBox"));
+};
+// //country
+export const useFetchItemCategory = () => {
+  return useQuery(
+    createQueryConfig(["itemcategory"], "/api/panel-fetch-ItemCategory")
+  );
+};
+//order type fpr contract
+export const useFetchOrderType = () => {
+  return useQuery(
+    createQueryConfig(["orderType"], "/api/panel-fetch-orderType")
+  );
+};
+//fetch payment terms in contarct
+export const useFetchPaymentTerms = () => {
+  return useQuery(
+    createQueryConfig(["paymentTerms"], "/api/panel-fetch-payment-terms")
+  );
+};

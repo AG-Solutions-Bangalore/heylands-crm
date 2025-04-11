@@ -1,12 +1,11 @@
 import {
-  ItemPackingCreate,
-  ItemPackingEdit,
+  ItemBoxCreate,
+  ItemBoxEdit,
 } from "@/components/buttonIndex/ButtonComponents";
 import useApiToken from "@/components/common/useApiToken";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -22,12 +21,12 @@ import {
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const CreateItemPackingForm = ({ itemId = null }) => {
+const CreateItemBoxForm = ({ itemId = null }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -35,10 +34,9 @@ const CreateItemPackingForm = ({ itemId = null }) => {
   const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
-    item_packing: isEditMode ? null : "",
-    item_packing_unit: isEditMode ? null : "",
-    item_packing_no: isEditMode ? null : "",
-    item_packing_status: isEditMode ? "Active" : null,
+    item_box_size: isEditMode ? null : "",
+    item_box_weight: isEditMode ? null : "",
+    item_box_status: isEditMode ? "Active" : null,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -50,15 +48,15 @@ const CreateItemPackingForm = ({ itemId = null }) => {
       setIsFetching(true);
       try {
         const response = await axios.get(
-          `${BASE_URL}/api/panel-fetch-ItemPacking-by-id/${itemId}`,
+          `${BASE_URL}/api/panel-fetch-ItemBox-by-id/${itemId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const data = response.data.itemPacking;
+        const data = response.data.itemBox;
         setFormData({
-          item_packing_status: data?.item_packing_status || "Active",
+          item_box_status: data?.item_box_status || "Active",
         });
         setOriginalData({
-          item_packing_status: data?.item_packing_status || "Active",
+          item_box_status: data?.item_box_status || "Active",
         });
       } catch {
         toast({
@@ -75,19 +73,16 @@ const CreateItemPackingForm = ({ itemId = null }) => {
   }, [itemId, open]);
   const requiredFields = isEditMode
     ? {
-        Status: "item_packing_status",
+        Status: "item_box_status",
       }
     : {
-        Packing: "item_packing",
-        Unit: "item_packing_unit",
-        "Packing No": "item_packing_no",
+        "Box Size": "item_box_size",
+        Weight: "item_box_weight",
       };
 
   const handleSubmit = async () => {
-    // Identify missing fields
     const missingFields = Object.entries(requiredFields).filter(
-      ([label, field]) =>
-        !formData[field]?.trim() && (!isEditMode || field !== "item_category") 
+      ([label, field]) => !formData[field]?.trim()
     );
 
     if (missingFields.length > 0) {
@@ -109,8 +104,8 @@ const CreateItemPackingForm = ({ itemId = null }) => {
 
     try {
       const endpoint = isEditMode
-        ? `${BASE_URL}/api/panel-update-ItemPacking/${itemId}`
-        : `${BASE_URL}/api/panel-create-ItemPacking`;
+        ? `${BASE_URL}/api/panel-update-ItemBox/${itemId}`
+        : `${BASE_URL}/api/panel-create-ItemBox`;
       const method = isEditMode ? "put" : "post";
 
       const response = await axios[method](endpoint, formData, {
@@ -123,11 +118,11 @@ const CreateItemPackingForm = ({ itemId = null }) => {
           description: response.data.msg,
         });
 
-        queryClient.invalidateQueries(["itemCategory"]);
+        queryClient.invalidateQueries(["itemBox"]);
         setOpen(false);
 
         if (!isEditMode) {
-          setFormData({ item_category: "" });
+          setFormData({ item_box_size: "", item_box_weight: "" });
         }
       } else {
         toast({
@@ -150,13 +145,19 @@ const CreateItemPackingForm = ({ itemId = null }) => {
   const hasChanges =
     isEditMode &&
     originalData &&
-    formData.item_packing_status !== originalData.item_packing_status;
+    formData.item_box_status !== originalData.item_box_status;
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const isValid = /^\d*\.?\d*$/.test(value);
 
-    if ((name === "item_packing" || name === "item_packing_no") && !isValid)
-      return;
+    if (name === "item_box_size") {
+      const isValidDimension = /^[\d.X]*$/.test(value);
+      if (!isValidDimension) return;
+    }
+
+    if (name === "item_box_weight") {
+      const isValidWeight = /^\d*\.?\d*$/.test(value);
+      if (!isValidWeight) return;
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -169,11 +170,11 @@ const CreateItemPackingForm = ({ itemId = null }) => {
       <PopoverTrigger asChild>
         {isEditMode ? (
           <div>
-            <ItemPackingEdit />
+            <ItemBoxEdit />
           </div>
         ) : (
           <div>
-            <ItemPackingCreate
+            <ItemBoxCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
@@ -189,60 +190,40 @@ const CreateItemPackingForm = ({ itemId = null }) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">
-                {isEditMode ? "Edit Item Packing" : "Create Item Packing"}
+                {isEditMode ? "Edit Item Box" : "Create Item Box"}
               </h4>
               <p className="text-sm text-muted-foreground">
                 {isEditMode
-                  ? "Update item packing details"
-                  : "Enter the item packing details"}
+                  ? "Update item box details"
+                  : "Enter the item box details"}
               </p>
             </div>
             <div className="grid gap-2">
               {!isEditMode ? (
                 <>
                   <Input
-                    id="item_packing"
-                    placeholder="Enter Item Packing"
-                    value={formData.item_packing}
-                    name="item_packing"
+                    id="item_box_size"
+                    placeholder="Enter Item Box"
+                    value={formData.item_box_size}
+                    name="item_box_size"
                     onChange={handleChange}
                   />
 
-                  <Select
-                    value={formData.item_packing_unit}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        item_packing_unit: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GM">GM</SelectItem>
-                      <SelectItem value="KG">KG</SelectItem>
-                      <SelectItem value="ML">ML</SelectItem>
-                      <SelectItem value="LTR">LTR</SelectItem>
-                      <SelectItem value="LBS">LBS</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <Input
-                    id="item_packing_no"
-                    placeholder="Enter Item Packing No"
-                    value={formData.item_packing_no}
-                    name="item_packing_no"
+                    id="item_box_weight"
+                    placeholder="Enter Item Weight"
+                    value={formData.item_box_weight}
+                    name="item_box_weight"
                     onChange={handleChange}
                   />
                 </>
               ) : (
                 <Select
-                  value={formData.item_packing_status}
+                  value={formData.item_box_status}
                   onValueChange={(value) =>
                     setFormData((prev) => ({
                       ...prev,
-                      item_packing_status: value,
+                      item_box_status: value,
                     }))
                   }
                 >
@@ -279,9 +260,9 @@ const CreateItemPackingForm = ({ itemId = null }) => {
                     {isEditMode ? "Updating..." : "Creating..."}
                   </>
                 ) : isEditMode ? (
-                  "Update Item Packing"
+                  "Update Item Box"
                 ) : (
-                  "Create Item Packing"
+                  "Create Item Box"
                 )}
                 {hasChanges && !isLoading && (
                   <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
@@ -295,4 +276,4 @@ const CreateItemPackingForm = ({ itemId = null }) => {
   );
 };
 
-export default CreateItemPackingForm;
+export default CreateItemBoxForm;

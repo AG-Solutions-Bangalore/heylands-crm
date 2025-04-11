@@ -1,23 +1,13 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+  ErrorComponent,
+  LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
 import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+  ItemCreate,
+  ItemEdit,
+} from "@/components/buttonIndex/ButtonComponents";
+import useApiToken from "@/components/common/useApiToken";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,17 +24,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import BASE_URL from "@/config/BaseUrl";
-import CreateItem from "./CreateItem";
-import EditItem from "./EditItem";
-import { ButtonConfig } from "@/config/ButtonConfig";
 import {
-  ErrorComponent,
-  LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { encryptId } from "@/utils/encyrption/Encyrption";
+import { useQuery } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 const ItemList = () => {
+  const token = useApiToken();
   const {
     data: items,
     isLoading,
@@ -53,7 +56,6 @@ const ItemList = () => {
   } = useQuery({
     queryKey: ["items"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}/api/panel-fetch-item-list`,
         {
@@ -79,27 +81,47 @@ const ItemList = () => {
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
     {
-      accessorKey: "item_name",
+      accessorKey: "item_code",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Item
+          Item Code
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue("item_name")}</div>,
+      cell: ({ row }) => <div>{row.getValue("item_code")}</div>,
     },
     {
-      accessorKey: "item_type",
-      header: "Item Type",
-      cell: ({ row }) => <div>{row.getValue("item_type")}</div>,
+      accessorKey: "item_packing",
+      header: "Item Packing",
+      cell: ({ row }) => <div>{row.getValue("item_packing")}</div>,
     },
     {
-      accessorKey: "item_hsn",
-      header: "Item Hsn",
-      cell: ({ row }) => <div>{row.getValue("item_hsn")}</div>,
+      accessorKey: "item_packing_unit",
+      header: "Unit",
+      cell: ({ row }) => <div>{row.getValue("item_packing_unit")}</div>,
+    },
+    {
+      accessorKey: "item_rate_per_pc",
+      header: "Rate Per Pc",
+      cell: ({ row }) => <div>{row.getValue("item_rate_per_pc")}</div>,
+    },
+    {
+      accessorKey: "item_box_size",
+      header: "Box Size",
+      cell: ({ row }) => <div>{row.getValue("item_box_size")}</div>,
+    },
+    {
+      accessorKey: "item_gross_wt",
+      header: "Gross Weight",
+      cell: ({ row }) => <div>{row.getValue("item_gross_wt")}</div>,
+    },
+    {
+      accessorKey: "item_category",
+      header: "Item Category",
+      cell: ({ row }) => <div>{row.getValue("item_category")}</div>,
     },
     {
       accessorKey: "item_status",
@@ -125,10 +147,26 @@ const ItemList = () => {
       header: "Action",
       cell: ({ row }) => {
         const itemId = row.original.id;
-
         return (
           <div className="flex flex-row">
-            <EditItem itemId={itemId} />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ItemEdit
+                    onClick={() => {
+                      const encryptedId = encryptId(itemId);
+
+                      navigate(
+                        `/master/item-form/${encodeURIComponent(
+                          encryptedId
+                        )}?mode=edit`
+                      );
+                    }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Edit Item</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },
@@ -163,7 +201,7 @@ const ItemList = () => {
   // Render loading state
 
   if (isLoading) {
-    return <LoaderComponent name="Item Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="Item Data" />;
   }
 
   // Render error state
@@ -179,16 +217,7 @@ const ItemList = () => {
           Item List
         </div>
 
-        {/* searching and column filter  */}
         <div className="flex items-center py-4">
-          {/* <Input
-            placeholder="Search..."
-            value={table.getState().globalFilter || ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="max-w-sm"
-          /> */}
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -224,7 +253,12 @@ const ItemList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <CreateItem />
+          <ItemCreate
+            className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center`}
+            onClick={() => {
+              navigate(`/master/item-form/new?mode=create`);
+            }}
+          />
         </div>
         {/* table  */}
         <div className="rounded-md border">

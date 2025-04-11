@@ -22,6 +22,7 @@ import {
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
+import { useFetchItemCategory } from "@/hooks/useApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -41,23 +42,9 @@ const CreateItemCategoryForm = ({ itemId = null }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const token = useApiToken();
-  const {
-    data: ItemCategory,
-    isError,
-    refetch,
-  } = useQuery({
-    queryKey: ["ItemCategory", open, !isEditMode],
-    queryFn: async () => {
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-ItemCategory`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return response.data.itemCategory || [];
-    },
-    enabled: open && !isEditMode,
-  });
+
+  const { data: ItemCategory } = useFetchItemCategory();
+
   const handleInputChange = (e, key = null, val = null) => {
     if (e?.target) {
       const { name, value } = e.target;
@@ -219,7 +206,7 @@ const CreateItemCategoryForm = ({ itemId = null }) => {
                       <SelectValue placeholder="Select Item Category" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
-                      {ItemCategory?.map((b, i) => (
+                      {ItemCategory?.itemCategory?.map((b, i) => (
                         <SelectItem key={i} value={b.item_category}>
                           {b.item_category}
                         </SelectItem>
