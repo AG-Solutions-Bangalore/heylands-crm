@@ -57,7 +57,7 @@ const filterMenuItems = (items, pageControl, userId) => {
         });
       }
     } else if (isItemAllowed(item, pageControl, userId)) {
-      console.log("✅ Allowed Item:", item.title, "URL:", item.url);
+      // console.log("✅ Allowed Item:", item.title, "URL:", item.url);
       acc.push(item);
     } else {
       // console.log("❌ Not Allowed:", item.title, "URL:", item.url);

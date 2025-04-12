@@ -259,3 +259,13 @@ export const useFetchPaymentTerms = () => {
     createQueryConfig(["paymentTerms"], "/api/panel-fetch-payment-terms")
   );
 };
+//fetch payment terms in contarct
+export const useFetchItemData = () => {
+  return useQuery(createQueryConfig(["itemData"], "/api/panel-fetch-item"));
+};
+//fetch payment terms in contarct
+export const useFetchSiginData = () => {
+  return useQuery(
+    createQueryConfig(["siginData"], "/api/panel-fetch-branches-sign-name")
+  );
+};

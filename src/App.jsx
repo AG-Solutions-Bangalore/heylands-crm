@@ -2,7 +2,6 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Login from "./app/auth/Login";
 import ContractAdd from "./app/contract/ContractAdd";
 import ContractList from "./app/contract/ContractList";
-import EditContract from "./app/contract/EditContract";
 import TestViewPrint from "./app/contract/TestViewPrint";
 import ViewContract from "./app/contract/ViewContract";
 import Home from "./app/home/Home";
@@ -137,10 +136,9 @@ function App() {
           <Route path="/home" element={<Home />} />
           {/* Contract  */}
           <Route path="/contract" element={<ContractList />} />
-          <Route path="/create-contract" element={<ContractAdd />} />
+          <Route path="/create-contract/:id" element={<ContractAdd />} />
           <Route path="/view-contract/:id" element={<ViewContract />} />
           <Route path="/tesview-contract/:id" element={<TestViewPrint />} />
-          <Route path="/edit-contract/:id" element={<EditContract />} />
           {/* Invoice  */}
           <Route path="/invoice" element={<InvoiceList />} />
           <Route path="/create-invoice" element={<InvoiceAdd />} />
