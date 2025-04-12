@@ -1,4 +1,5 @@
-import { ProgressBar } from "@/components/spinner/ProgressBar";
+import useApiToken from "@/components/common/useApiToken";
+import { LoaderComponent } from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
+
 import {
   useFetchBagsTypes,
   useFetchBuyers,
@@ -21,87 +23,36 @@ import {
   useFetchContainerSizes,
   useFetchContractNos,
   useFetchCountrys,
-  useFetchDescriptionofGoods,
+  useFetchItemData,
   useFetchMarkings,
   useFetchOrderType,
   useFetchPaymentTerms,
   useFetchPortofLoadings,
   useFetchPorts,
   useFetchProduct,
+  useFetchSiginData,
 } from "@/hooks/useApi";
 import { useCurrentYear } from "@/hooks/useCurrentYear";
 import { getTodayDate } from "@/utils/currentDate";
-import { useMutation } from "@tanstack/react-query";
-import { ChevronDown, MinusCircle, PlusCircle } from "lucide-react";
+import { decryptId } from "@/utils/encyrption/Encyrption";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import {
+  ChevronDown,
+  Loader2,
+  MinusCircle,
+  PlusCircle,
+  Trash2,
+} from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Select from "react-select";
-import { z } from "zod";
+import Currency from "../../components/json/contractCurrency.json";
+import Insurance from "../../components/json/contractInsurance.json";
+import Status from "../../components/json/contractstatus.json";
 import Page from "../dashboard/page";
-import { LoaderComponent } from "@/components/LoaderComponent/LoaderComponent";
-
-// Validation Schemas
-const productRowSchema = z.object({
-  contractSub_item_name: z.string().min(1, "Item name is required"),
-  contractSub_descriptionofGoods: z
-    .string()
-    .min(1, "Item Descriptions is required"),
-  contractSub_bagsize: z.number().min(1, "Gross Weight is required"),
-  contractSub_packing: z.number().min(1, "Packing is required"),
-  contractSub_item_bag: z.number().min(1, "Bag is required"),
-  contractSub_qntyInMt: z.number().min(1, "Quoted price is required"),
-  contractSub_rateMT: z.number().min(1, "Rate is required"),
-  contractSub_sbaga: z.string().min(1, "Bag Type is required"),
-  contractSub_marking: z.string().optional(),
-});
-
-const contractFormSchema = z.object({
-  branch_short: z.string().min(1, "Company Sort is required"),
-  branch_name: z.string().min(1, "Company Name is required"),
-  branch_address: z.string().min(1, "Company Address is required"),
-  contract_year: z.string().optional(),
-  contract_date: z.string().min(1, "Contract date is required"),
-  contract_no: z.number().min(1, "Contract No is required"),
-  contract_ref: z.string().min(1, "Contract Ref is required"),
-  contract_pono: z.string().min(1, "Contract PONO is required"),
-  contract_buyer: z.string().min(1, "Buyer Name is required"),
-  contract_buyer_add: z.string().min(1, "Buyer Address is required"),
-  contract_consignee: z.string().min(1, "Consignee Name is required"),
-  contract_consignee_add: z.string().min(1, "Consignee Address is required"),
-  contract_product: z.string().min(1, "Product is required"),
-  contract_container_size: z.string().min(1, "Containers/Size is required"),
-  contract_loading: z.string().min(1, "Port of Loading is required"),
-  contract_destination_port: z.string().min(1, "Destination Port is required"),
-  contract_discharge: z.string().min(1, "Discharge is required"),
-  contract_cif: z.string().min(1, "CIF is required"),
-  contract_destination_country: z.string().min(1, "Dest. Country is required"),
-  contract_shipment: z.string().optional(),
-  contract_ship_date: z.string().optional(),
-  contract_specification1: z.string().optional(),
-  contract_specification2: z.string().optional(),
-  contract_payment_terms: z.string().optional(),
-  contract_remarks: z.string().optional(),
-  contract_data: z
-    .array(productRowSchema)
-    .min(1, "At least one product is required"),
-});
-
-const createContract = async (data) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-create-contract`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) throw new Error("Failed to create enquiry");
-  return response.json();
-};
+import { ProgressBar } from "@/components/spinner/ProgressBar";
+import DeleteContract from "./DeleteContract";
 
 const MemoizedSelect = React.memo(
   ({ value, onChange, options, placeholder }) => {
@@ -280,23 +231,84 @@ const MemoizedProductSelect = React.memo(
 const ContractAdd = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [saveAndViewLoading, setSaveAndViewLoading] = useState(false);
+  const token = useApiToken();
+  const { data: currentYear } = useCurrentYear();
+  const [loading, setLoading] = useState(false);
+  const { id } = useParams();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const decryptedId = id !== "new" ? decryptId(id) : null;
+  const mode = searchParams.get("mode");
+  const isEditMode = mode === "edit";
+  const [isFetching, setIsFetching] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+  const [formData, setFormData] = useState({
+    branch_short: "",
+    branch_name: "",
+    branch_address: "",
+    contract_year: "",
+    contract_no: "",
+    contract_year: currentYear,
+    contract_date: getTodayDate(),
+    contract_order_type: "",
+    contract_ref: "",
+    contract_pono: "",
+    contract_buyer: "",
+    contract_buyer_add: "",
+    contract_consignee: "",
+    contract_consignee_add: "",
+    contract_container_size: "",
+    contract_product: "",
+    contract_loading_port: "",
+    contract_loading_country: "",
+    contract_destination_port: "",
+    contract_destination_country: "",
+    contract_payment_terms: "",
+    contract_delivery_terms: "",
+    contract_qty_inmt: "",
+    contract_validity: "",
+    contract_marking: "",
+    contract_insurance: "",
+    contract_pack_type: "",
+    contract_packing: "",
+    contract_currency: "",
+    contract_sign: "",
+    contract_position: "",
+    // contract_status: isEditMode ? "" : null,
+  });
   const [contractData, setContractData] = useState([
     {
-      contractSub_marking: "",
-      contractSub_item_name: "",
-      contractSub_descriptionofGoods: "",
-      contractSub_item_bag: "",
-      contractSub_packing: "",
-      contractSub_bagsize: "",
-      contractSub_qntyInMt: "",
-      contractSub_rateMT: "",
-      contractSub_sbaga: "",
+      id: isEditMode ? "" : null,
+      contractSub_item_code: "",
+      contractSub_item_description: "",
+      contractSub_item_packing: "",
+      contractSub_item_packing_unit: "",
+      contractSub_item_packing_no: "",
+      contractSub_item_rate_per_pc: "",
+      contractSub_item_box_size: "",
+      contractSub_item_box_wt: "",
+      contractSub_item_gross_wt: "",
+      contractSub_item_barcode: "",
+      contractSub_item_hsnCode: "",
+      contractSub_ctns: "",
     },
   ]);
-
-  const { data: currentYear } = useCurrentYear();
+  const { data: buyerData } = useFetchBuyers();
+  const { data: branchData } = useFetchCompanys();
+  const { data: contractNoData } = useFetchContractNos(formData.branch_short);
+  const { data: portofLoadingData } = useFetchPortofLoadings();
+  const { data: containerSizeData } = useFetchContainerSizes();
+  const { data: OrderTypeData } = useFetchOrderType();
+  const { data: paymentTermsData } = useFetchPaymentTerms();
+  const { data: bagTypeData } = useFetchBagsTypes();
+  const { data: countryData } = useFetchCountrys();
+  const { data: portsData } = useFetchPorts();
+  const { data: productData } = useFetchProduct();
+  const { data: itemData } = useFetchItemData();
+  const { data: markingData } = useFetchMarkings();
+  const { data: siginData } = useFetchSiginData();
   useEffect(() => {
     if (currentYear) {
       setFormData((prev) => ({
@@ -305,45 +317,270 @@ const ContractAdd = () => {
       }));
     }
   }, [currentYear]);
+  const fetchContractData = async () => {
+    try {
+      setIsFetching(true);
 
-  const [formData, setFormData] = useState({
-    branch_short: "",
-    branch_name: "",
-    branch_address: "",
-    contract_year: currentYear,
-    contract_date: getTodayDate(),
-    contract_no: "",
-    contract_ref: "",
-    contract_pono: "",
-    contract_buyer: "",
-    contract_buyer_add: "",
-    contract_consignee: "",
-    contract_consignee_add: "",
-    contract_product: "",
-    contract_container_size: "",
-    contract_loading: "",
-    contract_destination_port: "",
-    contract_discharge: "",
-    contract_cif: "",
-    contract_destination_country: "",
-    contract_shipment: "",
-    contract_ship_date: "",
-    contract_specification1: "",
-    contract_specification2: "",
-    contract_payment_terms: "",
-    contract_remarks: "",
-  });
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-contract-by-id/${decryptedId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-  const { data: buyerData } = useFetchBuyers();
-  const { data: branchData } = useFetchCompanys();
-  const { data: contractNoData } = useFetchContractNos(formData.branch_short);
-  const { data: portofLoadingData } = useFetchPortofLoadings();
-  const { data: containerSizeData } = useFetchContainerSizes();
-  const { data: OrderTypeData } = useFetchOrderType();
-  const { data: paymentTermsData } = useFetchPaymentTerms();
-  const { data: countryData } = useFetchCountrys();
-  const { data: portsData } = useFetchPorts();
-  const { data: productData } = useFetchProduct();
+      const itemData = response?.data?.contract;
+      const subItems = response?.data?.contractSub || [];
+
+      if (itemData) {
+        setFormData({
+          branch_short: itemData.branch_short || "",
+          branch_name: itemData.branch_name || "",
+          branch_address: itemData.branch_address || "",
+          contract_year: itemData.contract_year || currentYear,
+          contract_no: itemData.contract_no || "",
+          contract_date: itemData.contract_date || getTodayDate(),
+          contract_order_type: itemData.contract_order_type || "",
+          contract_ref: itemData.contract_ref || "",
+          contract_pono: itemData.contract_pono || "",
+          contract_buyer: itemData.contract_buyer || "",
+          contract_buyer_add: itemData.contract_buyer_add || "",
+          contract_consignee: itemData.contract_consignee || "",
+          contract_consignee_add: itemData.contract_consignee_add || "",
+          contract_container_size: itemData.contract_container_size || "",
+          contract_product: itemData.contract_product || "",
+          contract_loading_port: itemData.contract_loading_port || "",
+          contract_loading_country: itemData.contract_loading_country || "",
+          contract_destination_port: itemData.contract_destination_port || "",
+          contract_destination_country:
+            itemData.contract_destination_country || "",
+          contract_payment_terms: itemData.contract_payment_terms || "",
+          contract_delivery_terms: itemData.contract_delivery_terms || "",
+          contract_qty_inmt: itemData.contract_qty_inmt || "",
+          contract_validity: itemData.contract_validity || "",
+          contract_marking: itemData.contract_marking || "",
+          contract_insurance: itemData.contract_insurance || "",
+          contract_pack_type: itemData.contract_pack_type || "",
+          contract_packing: itemData.contract_packing || "",
+          contract_currency: itemData.contract_currency || "",
+          contract_sign: itemData.contract_sign || "",
+          contract_position: itemData.contract_position || "",
+          contract_status: itemData.contract_status || "",
+        });
+      }
+
+      if (subItems.length > 0) {
+        const mappedSubItems = subItems.map((item) => ({
+          id: item.id || "",
+          contractSub_item_code: item.contractSub_item_code || "",
+          contractSub_item_description: item.contractSub_item_description || "",
+          contractSub_item_packing: item.contractSub_item_packing || "",
+          contractSub_item_packing_unit:
+            item.contractSub_item_packing_unit || "",
+          contractSub_item_packing_no: item.contractSub_item_packing_no || "",
+          contractSub_item_rate_per_pc: item.contractSub_item_rate_per_pc || "",
+          contractSub_item_box_size: item.contractSub_item_box_size || "",
+          contractSub_item_box_wt: item.contractSub_item_box_wt || "",
+          contractSub_item_gross_wt: item.contractSub_item_gross_wt || "",
+          contractSub_item_barcode: item.contractSub_item_barcode || "",
+          contractSub_item_hsnCode: item.contractSub_item_hsnCode || "",
+          contractSub_ctns: item.contractSub_ctns || "",
+        }));
+
+        setContractData(mappedSubItems);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch contract data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchContractData();
+    }
+  }, [isEditMode]);
+  const handleInputChange = useCallback((field, value) => {
+    const numericFields = ["contract_qty_inmt", "contract_packing"];
+
+    if (numericFields.includes(field)) {
+      const sanitizedValue = value.replace(/[^\d.]/g, "");
+      const decimalCount = (sanitizedValue.match(/\./g) || []).length;
+
+      // Prevent multiple dots
+      if (decimalCount > 1) return;
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: sanitizedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+  }, []);
+
+  const handleSelectChange = useCallback(
+    (field, value) => {
+      setFormData((prev) => {
+        const updated = { ...prev, [field]: value };
+
+        // --- Update on contract_buyer ---
+        if (field === "contract_buyer") {
+          const selectedBuyer = buyerData?.buyer?.find(
+            (buyer) => buyer.buyer_name === value
+          );
+          if (selectedBuyer) {
+            updated.contract_buyer_add = selectedBuyer.buyer_address;
+            updated.contract_consignee = selectedBuyer.buyer_name;
+            updated.contract_consignee_add = selectedBuyer.buyer_address;
+            updated.contract_destination_port = selectedBuyer.buyer_port;
+            updated.contract_destination_country = selectedBuyer.buyer_country;
+
+            const selectedCompanySort = branchData?.branch?.find(
+              (branch) => branch.branch_short === updated.branch_short
+            );
+            if (
+              selectedCompanySort &&
+              updated.contract_no &&
+              updated.contract_year
+            ) {
+              updated.contract_ref = `${selectedCompanySort.branch_name_short}${updated.contract_no}/${updated.contract_year}`;
+              updated.contract_pono = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
+            }
+          }
+        }
+
+        if (field === "branch_short") {
+          const selectedBranch = branchData?.branch?.find(
+            (branch) => branch.branch_short === value
+          );
+          if (selectedBranch) {
+            updated.branch_name = selectedBranch.branch_name;
+            updated.branch_address = selectedBranch.branch_address;
+
+            const selectedBuyer = buyerData?.buyer?.find(
+              (buyer) => buyer.buyer_name === updated.contract_buyer
+            );
+            if (selectedBuyer && updated.contract_no && updated.contract_year) {
+              updated.contract_ref = `${selectedBranch.branch_name_short}${updated.contract_no}/${updated.contract_year}`;
+              updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
+            }
+          }
+        }
+
+        if (field === "contract_no") {
+          const selectedBuyer = buyerData?.buyer?.find(
+            (buyer) => buyer.buyer_name === updated.contract_buyer
+          );
+          const selectedBranch = branchData?.branch?.find(
+            (branch) => branch.branch_short === updated.branch_short
+          );
+          if (selectedBuyer && selectedBranch && updated.contract_year) {
+            updated.contract_ref = `${selectedBranch.branch_name_short}${value}/${updated.contract_year}`;
+            updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${value}/${updated.contract_year}`;
+          }
+        }
+
+        if (field === "contract_year") {
+          const selectedBuyer = buyerData?.buyer?.find(
+            (buyer) => buyer.buyer_name === updated.contract_buyer
+          );
+          const selectedBranch = branchData?.branch?.find(
+            (branch) => branch.branch_short === updated.branch_short
+          );
+          if (selectedBuyer && selectedBranch && updated.contract_no) {
+            updated.contract_ref = `${selectedBranch.branch_name_short}${updated.contract_no}/${value}`;
+            updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${value}`;
+          }
+        }
+
+        if (field === "contract_sign") {
+          const selectedSigner = siginData?.branch?.find(
+            (sigin) => sigin.branch_sign === value
+          );
+          if (selectedSigner) {
+            updated.contract_position = selectedSigner.branch_sign_position;
+          }
+        }
+
+        return updated;
+      });
+    },
+    [buyerData, branchData, siginData]
+  );
+
+  const handleRowDataChange = useCallback(
+    (rowIndex, field, value) => {
+      const digitOnlyFields = [
+        "contractSub_ctns",
+        "contractSub_item_packing",
+        "contractSub_item_packing_no",
+        "contractSub_item_rate_per_pc",
+        "contractSub_item_box_size",
+      ];
+
+      if (field === "contractSub_item_code") {
+        const selectedItem = itemData?.item?.find(
+          (item) => item.item_code === value
+        );
+
+        if (selectedItem) {
+          setContractData((prev) => {
+            const newData = [...prev];
+            newData[rowIndex] = {
+              ...newData[rowIndex],
+              contractSub_item_code: selectedItem.item_code || "",
+              contractSub_item_description: selectedItem.item_description || "",
+              contractSub_item_packing: selectedItem.item_packing || "",
+              contractSub_item_packing_unit:
+                selectedItem.item_packing_unit || "",
+              contractSub_item_packing_no: selectedItem.item_packing_no || "",
+              contractSub_item_rate_per_pc: selectedItem.item_rate_per_pc || "",
+              contractSub_item_box_size: selectedItem.item_box_size || "",
+              contractSub_item_box_wt: selectedItem.item_box_weight || "",
+              contractSub_item_gross_wt: selectedItem.item_gross_wt || "",
+              contractSub_item_barcode: selectedItem.item_barcode || "",
+              contractSub_item_hsnCode: selectedItem.item_hsnCode || "",
+            };
+            return newData;
+          });
+        }
+        return;
+      }
+
+      if (digitOnlyFields.includes(field)) {
+        const sanitizedValue = value.replace(/[^\d.]/g, "");
+        const decimalCount = (sanitizedValue.match(/\./g) || []).length;
+        if (decimalCount > 1) return;
+
+        setContractData((prev) => {
+          const newData = [...prev];
+          newData[rowIndex] = {
+            ...newData[rowIndex],
+            [field]: sanitizedValue,
+          };
+          return newData;
+        });
+      } else {
+        setContractData((prev) => {
+          const newData = [...prev];
+          newData[rowIndex] = {
+            ...newData[rowIndex],
+            [field]: value,
+          };
+          return newData;
+        });
+      }
+    },
+    [itemData]
+  );
   const loadingData =
     !buyerData ||
     !branchData ||
@@ -352,196 +589,27 @@ const ContractAdd = () => {
     !OrderTypeData ||
     !paymentTermsData ||
     !portsData ||
-    !productData;
-  const createContractMutation = useMutation({
-    mutationFn: createContract,
-    onSuccess: (response) => {
-      if (response.code == 200) {
-        toast({
-          title: "Success",
-          description: response.msg,
-        });
-        navigate("/contract");
-      } else if (response.code == 400) {
-        toast({
-          title: "Duplicate Entry",
-          description: response.msg,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Unexpected Response",
-          description: response.msg || "Something unexpected happened.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleInputChange = useCallback((field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  }, []);
-
-  const handleSelectChange = useCallback(
-    (field, value) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-
-      if (field === "contract_buyer") {
-        const selectedBuyer = buyerData?.buyer?.find(
-          (buyer) => buyer.buyer_name === value
-        );
-        if (selectedBuyer) {
-          setFormData((prev) => ({
-            ...prev,
-            contract_buyer_add: selectedBuyer.buyer_address,
-            contract_consignee: selectedBuyer.buyer_name,
-            contract_consignee_add: selectedBuyer.buyer_address,
-            contract_destination_port: selectedBuyer.buyer_port,
-            contract_discharge: selectedBuyer.buyer_port,
-            contract_cif: selectedBuyer.buyer_port,
-            contract_destination_country: selectedBuyer.buyer_country,
-          }));
-        }
-
-        const selectedCompanySort = branchData?.branch?.find(
-          (branch) => branch.branch_short === formData.branch_short
-        );
-        if (selectedCompanySort) {
-          const contractRef = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${formData.contract_no}/${formData.contract_year}`;
-          setFormData((prev) => ({
-            ...prev,
-            contract_ref: contractRef,
-            contract_pono: contractRef,
-          }));
-        }
-      }
-
-      if (field === "branch_short") {
-        const selectedCompanySort = branchData?.branch?.find(
-          (branch) => branch.branch_short === value
-        );
-        if (selectedCompanySort) {
-          setFormData((prev) => ({
-            ...prev,
-            branch_name: selectedCompanySort.branch_name,
-            branch_address: selectedCompanySort.branch_address,
-            contract_loading: selectedCompanySort.branch_port_of_loading,
-          }));
-
-          const selectedBuyer = buyerData?.buyer?.find(
-            (buyer) => buyer.buyer_name === formData.contract_buyer
-          );
-          if (selectedBuyer) {
-            const contractRef = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${formData.contract_no}/${formData.contract_year}`;
-            setFormData((prev) => ({
-              ...prev,
-              contract_ref: contractRef,
-              contract_pono: contractRef,
-            }));
-          }
-        }
-      }
-
-      if (field === "contract_consignee") {
-        const selectedConsignee = buyerData?.buyer?.find(
-          (buyer) => buyer.buyer_name === value
-        );
-        if (selectedConsignee) {
-          setFormData((prev) => ({
-            ...prev,
-            contract_consignee_add: selectedConsignee.buyer_address,
-          }));
-        }
-      }
-
-      if (field === "contract_no") {
-        const selectedBuyer = buyerData?.buyer?.find(
-          (buyer) => buyer.buyer_name === formData.contract_buyer
-        );
-        const selectedCompanySort = branchData?.branch?.find(
-          (branch) => branch.branch_short === formData.branch_short
-        );
-        if (selectedBuyer && selectedCompanySort) {
-          const contractRef = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${value}/${formData.contract_year}`;
-          setFormData((prev) => ({
-            ...prev,
-            contract_ref: contractRef,
-            contract_pono: contractRef,
-          }));
-        }
-      }
-    },
-    [
-      buyerData,
-      branchData,
-      formData.branch_short,
-      formData.contract_buyer,
-      formData.contract_no,
-      formData.contract_year,
-    ]
-  );
-
-  const handleRowDataChange = useCallback((rowIndex, field, value) => {
-    const numericFields = [
-      "contractSub_bagsize",
-      "contractSub_qntyInMt",
-      "contractSub_packing",
-      "contractSub_rateMT",
-      "contractSub_item_bag",
-    ];
-
-    if (numericFields.includes(field)) {
-      const sanitizedValue = value.replace(/[^\d.]/g, "");
-      const decimalCount = (sanitizedValue.match(/\./g) || []).length;
-
-      if (decimalCount > 1) return;
-
-      setContractData((prev) => {
-        const newData = [...prev];
-        newData[rowIndex] = {
-          ...newData[rowIndex],
-          [field]: sanitizedValue,
-        };
-        return newData;
-      });
-    } else {
-      setContractData((prev) => {
-        const newData = [...prev];
-        newData[rowIndex] = {
-          ...newData[rowIndex],
-          [field]: value,
-        };
-        return newData;
-      });
-    }
-  }, []);
-
+    !productData ||
+    !bagTypeData ||
+    !itemData ||
+    !markingData ||
+    isFetching;
   const addRow = useCallback(() => {
     setContractData((prev) => [
       ...prev,
       {
-        contractSub_item_bag: "",
-        contractSub_item_name: "",
-        contractSub_marking: "",
-        contractSub_descriptionofGoods: "",
-        contractSub_packing: "",
-        contractSub_bagsize: "",
-        contractSub_qntyInMt: "",
-        contractSub_rateMT: "",
-        contractSub_sbaga: "",
+        contractSub_item_code: "",
+        contractSub_item_description: "",
+        contractSub_item_packing: "",
+        contractSub_item_packing_unit: "",
+        contractSub_item_packing_no: "",
+        contractSub_item_rate_per_pc: "",
+        contractSub_item_box_size: "",
+        contractSub_item_box_wt: "",
+        contractSub_item_gross_wt: "",
+        contractSub_item_barcode: "",
+        contractSub_item_hsnCode: "",
+        contractSub_ctns: "",
       },
     ]);
   }, []);
@@ -554,178 +622,172 @@ const ContractAdd = () => {
     },
     [contractData.length]
   );
-
-  const fieldLabels = {
-    branch_short: "Company Sort",
-    branch_name: "Company Name",
-    branch_address: "Company Address",
-    contract_year: "Contract Year",
-    contract_date: "Contract Date",
-    contract_no: "Contract No",
-    contract_ref: "Contract Ref",
-    contract_pono: "Contract PONO",
-    contract_buyer: "Buyer Name",
-    contract_buyer_add: "Buyer Address",
-    contract_consignee: "Consignee Name",
-    contract_consignee_add: "Consignee Address",
-    contract_product: "Product",
-    contract_container_size: "Containers/Size",
-    contract_loading: "Port of Loading",
-    contract_destination_port: "Destination Port",
-    contract_discharge: "Discharge",
-    contract_cif: "CIF",
-    contract_destination_country: "Dest. Country",
-    contract_shipment: "Shipment",
-    contract_ship_date: "Shipment Date",
-    contract_specification1: "Specification 1",
-    contract_specification2: "Specification 2",
-    contract_payment_terms: "Payment Terms",
-    contract_remarks: "Remarks",
-    contractSub_item_name: "Item Name",
-    contractSub_descriptionofGoods: "Item Descriptions",
-    contractSub_bagsize: "Gross Weight",
-    contractSub_packing: "Packing",
-    contractSub_item_bag: "Bag",
-    contractSub_qntyInMt: "Qnty (MT)",
-    contractSub_rateMT: "Rate",
-    contractSub_sbaga: "Bag Type",
-    contractSub_marking: "Marking",
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitLoading(true);
-    try {
-      const processedContractData = contractData.map((row) => ({
-        ...row,
-        contractSub_item_bag: parseFloat(row.contractSub_item_bag),
-        contractSub_qntyInMt: parseFloat(row.contractSub_qntyInMt),
-        contractSub_rateMT: parseFloat(row.contractSub_rateMT),
-        contractSub_packing: parseFloat(row.contractSub_packing),
-        contractSub_bagsize: parseFloat(row.contractSub_bagsize),
-      }));
+    const requiredFormFields = Object.keys(formData).filter(
+      (key) => isEditMode || key !== "contract_status"
+    );
 
-      const validatedData = contractFormSchema.parse({
-        ...formData,
-        contract_data: processedContractData,
-      });
-      const res = await createContractMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const groupedErrors = error.errors.reduce((acc, err) => {
-          const field = err.path.join(".");
-          if (!acc[field]) acc[field] = [];
-          acc[field].push(err.message);
-          return acc;
-        }, {});
+    const requiredContractFields = Object.keys(contractData[0]).filter(
+      (key) => isEditMode || key !== "id"
+    );
 
-        const errorMessages = Object.entries(groupedErrors).map(
-          ([field, messages]) => {
-            const fieldKey = field.split(".").pop();
-            const label = fieldLabels[fieldKey] || field;
-            return `${label}: ${messages.join(", ")}`;
-          }
-        );
+    // Now do the validation checks
+    const missingFormFields = requiredFormFields.filter(
+      (key) => !formData[key]?.toString().trim()
+    );
 
-        toast({
-          title: "Validation Error",
-          description: (
-            <div>
-              <ul className="list-disc pl-5">
-                {errorMessages.map((message, index) => (
-                  <li key={index}>{message}</li>
-                ))}
-              </ul>
-            </div>
-          ),
-          variant: "destructive",
-        });
-        return;
-      }
+    const missingContractFields = requiredContractFields.filter(
+      (key) => !contractData[0][key]?.toString().trim()
+    );
 
+    if (missingFormFields.length > 0 || missingContractFields.length > 0) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Missing Required Fields",
+        description: (
+          <div className="flex flex-col gap-1">
+            {missingFormFields.map((field, idx) => (
+              <div key={idx}>• {field.replace(/_/g, " ")}</div>
+            ))}
+            {missingContractFields.map((field, idx) => (
+              <div key={idx + 100}>• {field.replace(/_/g, " ")}</div>
+            ))}
+          </div>
+        ),
         variant: "destructive",
       });
-    } finally {
-      setSubmitLoading(false);
+      return;
     }
-  };
-  const handleSaveAndView = async (e) => {
-    e.preventDefault();
-    setSaveAndViewLoading(true);
+
+    setLoading(true);
     try {
-      const processedContractData = contractData.map((row) => ({
-        ...row,
-        contractSub_item_bag: parseFloat(row.contractSub_item_bag),
-        contractSub_qntyInMt: parseFloat(row.contractSub_qntyInMt),
-        contractSub_rateMT: parseFloat(row.contractSub_rateMT),
-        contractSub_packing: parseFloat(row.contractSub_packing),
-        contractSub_bagsize: parseFloat(row.contractSub_bagsize),
-      }));
+      const payload = { ...formData, contract_data: contractData };
 
-      const validatedData = contractFormSchema.parse({
-        ...formData,
-        contract_data: processedContractData,
-      });
+      const response = isEditMode
+        ? await axios.put(
+            `${BASE_URL}/api/panel-update-contract/${decryptedId}`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        : await axios.post(`${BASE_URL}/api/panel-create-contract`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-      const response = await createContractMutation.mutateAsync(validatedData);
+      if (response?.data.code == 200) {
+        toast({ title: "Success", description: response.data.msg });
 
-      if (response.code == 200) {
-        navigate(`/view-contract/${response.latestid}`);
+        if (!isEditMode) {
+          setFormData({
+            branch_short: "",
+            branch_name: "",
+            branch_address: "",
+            contract_year: currentYear,
+            contract_no: "",
+            contract_date: getTodayDate(),
+            contract_order_type: "",
+            contract_pono: "",
+            contract_buyer: "",
+            contract_buyer_add: "",
+            contract_consignee: "",
+            contract_consignee_add: "",
+            contract_container_size: "",
+            contract_product: "",
+            contract_loading_port: "",
+            contract_loading_country: "",
+            contract_destination_port: "",
+            contract_destination_country: "",
+            contract_payment_terms: "",
+            contract_delivery_terms: "",
+            contract_qty_inmt: "",
+            contract_validity: "",
+            contract_marking: "",
+            contract_insurance: "",
+            contract_pack_type: "",
+            contract_packing: "",
+            contract_currency: "",
+            contract_sign: "",
+            contract_position: "",
+          });
+          setContractData([
+            {
+              contractSub_item_code: "",
+              contractSub_item_description: "",
+              contractSub_item_packing: "",
+              contractSub_item_packing_unit: "",
+              contractSub_item_packing_no: "",
+              contractSub_item_rate_per_pc: "",
+              contractSub_item_box_size: "",
+              contractSub_item_box_wt: "",
+              contractSub_item_gross_wt: "",
+              contractSub_item_barcode: "",
+              contractSub_item_hsnCode: "",
+              contractSub_ctns: "",
+            },
+          ]);
+        }
+        navigate("/contract");
       } else {
         toast({
           title: "Error",
-          description: response.msg,
+          description: response.data.msg,
           variant: "destructive",
         });
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const groupedErrors = error.errors.reduce((acc, err) => {
-          const field = err.path.join(".");
-          if (!acc[field]) acc[field] = [];
-          acc[field].push(err.message);
-          return acc;
-        }, {});
-
-        const errorMessages = Object.entries(groupedErrors).map(
-          ([field, messages]) => {
-            const fieldKey = field.split(".").pop();
-            const label = fieldLabels[fieldKey] || field;
-            return `${label}: ${messages.join(", ")}`;
-          }
-        );
-
-        toast({
-          title: "Validation Error",
-          description: (
-            <div>
-              <ul className="list-disc pl-5">
-                {errorMessages.map((message, index) => (
-                  <li key={index}>{message}</li>
-                ))}
-              </ul>
-            </div>
-          ),
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
-        description: error.message,
+        description: error.response?.data?.message || "Failed to submit item",
         variant: "destructive",
       });
+      console.error(error);
     } finally {
-      setSaveAndViewLoading(false);
+      setLoading(false);
     }
   };
-  /////mune
+
+  const handleDeleteRow = (id) => {
+    setDeleteItemId(id);
+    setDeleteConfirmOpen(true);
+  };
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}/api/panel-delete-contract-sub/${deleteItemId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.code == 200) {
+        toast({
+          title: "Success",
+          description: response.data.msg,
+          variant: "default",
+        });
+        fetchContractData();
+        setDeleteItemId(null);
+        setDeleteConfirmOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.msg,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete contract.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loadingData) {
     return <LoaderComponent name="Contract Data" />;
   }
+
+  console.log(formData.contract_ref, "formData.contract_ref");
   return (
     <Page>
       <form
@@ -858,26 +920,46 @@ const ContractAdd = () => {
                         }
                       />
                     </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract No <span className="text-red-500">*</span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData?.contract_no}
-                        onChange={(value) =>
-                          handleSelectChange("contract_no", value)
-                        }
-                        options={
-                          contractNoData?.contractNo?.map((contractNos) => ({
-                            value: contractNos,
-                            label: contractNos,
-                          })) || []
-                        }
-                        placeholder="Select Contract No"
-                      />
-                    </div>
+                    {!isEditMode ? (
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract No <span className="text-red-500">*</span>
+                        </label>
+                        <MemoizedSelect
+                          value={formData?.contract_no}
+                          onChange={(value) =>
+                            handleSelectChange("contract_no", value)
+                          }
+                          options={
+                            contractNoData?.contractNo?.map((contractNos) => ({
+                              value: contractNos,
+                              label: contractNos,
+                            })) || []
+                          }
+                          placeholder="Select Contract No"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract No <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Enter  Contract No "
+                          value={formData.contract_no}
+                          disabled
+                          className="bg-white"
+                          onChange={(e) =>
+                            handleInputChange("contract_no", e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
@@ -888,6 +970,7 @@ const ContractAdd = () => {
                         type="text"
                         placeholder="Enter Contract Ref"
                         value={formData.contract_ref}
+                        key={formData.contract_ref}
                         disabled
                         className="bg-white"
                         onChange={(e) =>
@@ -1147,13 +1230,164 @@ const ContractAdd = () => {
                         }
                       />
                     </div>
-                  </div>
-                </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        <span>
+                          {" "}
+                          Marking <span className="text-red-500">*</span>
+                        </span>
+                      </label>
+                      <MemoizedSelect
+                        value={formData.contract_marking}
+                        onChange={(value) =>
+                          handleSelectChange("contract_marking", value)
+                        }
+                        options={
+                          markingData?.marking?.map((marking) => ({
+                            value: marking.marking,
+                            label: marking.marking,
+                          })) || []
+                        }
+                        placeholder="Select Marking"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Insurance <span className="text-red-500">*</span>
+                      </label>
 
-                <div className="mb-2">
-                  <div className="grid grid-cols-6 gap-6">
-                    contract_insurance contract_pack_type contract_packing
-                    contract_currency""missing"""
+                      <MemoizedSelect
+                        value={formData.contract_insurance}
+                        onChange={(value) =>
+                          handleSelectChange("contract_insurance", value)
+                        }
+                        options={
+                          Insurance?.map((insurance) => ({
+                            value: insurance.value,
+                            label: insurance.label,
+                          })) || []
+                        }
+                        placeholder="Select Insurance"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        <span>Packing Type</span>
+                      </label>
+                      <MemoizedSelect
+                        className="bg-white"
+                        value={formData.contract_pack_type}
+                        onChange={(value) =>
+                          handleSelectChange("contract_pack_type", value)
+                        }
+                        options={
+                          bagTypeData?.bagType?.map((bagType) => ({
+                            value: bagType.bagType,
+                            label: bagType.bagType,
+                          })) || []
+                        }
+                        placeholder="Select Packing Type"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Packing
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.contract_packing}
+                        onChange={(e) =>
+                          handleInputChange("contract_packing", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        <span>Currency</span>
+                      </label>
+                      <MemoizedSelect
+                        className="bg-white"
+                        value={formData.contract_currency}
+                        onChange={(value) =>
+                          handleSelectChange("contract_currency", value)
+                        }
+                        options={
+                          Currency?.map((Currency) => ({
+                            value: Currency.value,
+                            label: Currency.label,
+                          })) || []
+                        }
+                        placeholder="Select Packing Type"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
+                      >
+                        <span>Sigin</span>
+                      </label>
+                      <MemoizedSelect
+                        className="bg-white"
+                        value={formData.contract_sign}
+                        onChange={(value) =>
+                          handleSelectChange("contract_sign", value)
+                        }
+                        options={
+                          siginData?.branch?.map((sigin) => ({
+                            value: sigin.branch_sign,
+                            label: sigin.branch_sign,
+                          })) || []
+                        }
+                        placeholder="Select Sigin"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Position
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.contract_position}
+                        onChange={(e) =>
+                          handleInputChange("contract_position", e.target.value)
+                        }
+                      />
+                    </div>
+                    {isEditMode && (
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                        >
+                          <span>Status</span>
+                        </label>
+                        <MemoizedSelect
+                          className="bg-white"
+                          value={formData.contract_status}
+                          onChange={(value) =>
+                            handleSelectChange("contract_status", value)
+                          }
+                          options={
+                            Status?.map((status) => ({
+                              value: status.value,
+                              label: status.label,
+                            })) || []
+                          }
+                          placeholder="Select Sigin"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1164,192 +1398,127 @@ const ContractAdd = () => {
                     <h2 className="text-base font-semibold">Products</h2>
                   </div>
 
-                  <div className="overflow-x-auto border rounded">
+                  <div className="overflow-x-auto border rounded max-h-[34rem] overflow-y-auto">
                     <Table className="text-xs">
                       <TableHeader>
                         <TableRow className="bg-gray-100">
                           {[
-                            "Marking",
-                            "Item / Desc",
-                            "Bag / Type",
-                            "Net / Gross",
-                            "Qnty",
+                            "Item (Code - Desc)",
+                            "Packing",
+                            "Mes",
+                            "Unit",
                             "Rate",
-                            "",
+                            "Carton",
                           ].map((title, i) => (
                             <TableHead
                               key={i}
-                              className="p-1 text-center border font-medium"
+                              className="p-1 text-center border font-medium whitespace-nowrap"
                             >
                               {title}
                             </TableHead>
                           ))}
+
+                          <TableHead className="p-1 text-center border font-medium whitespace-nowrap">
+                            <Button
+                              type="button"
+                              onClick={addRow}
+                              className={`h-8 px-3 text-xs flex items-center gap-1 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
 
                       <TableBody>
                         {contractData.map((row, rowIndex) => (
                           <TableRow key={rowIndex} className="hover:bg-gray-50">
-                            {/* Marking */}
-                            <TableCell className="p-1 border w-28">
-                              {/* <MemoizedProductSelect
-                                value={row.contractSub_marking}
-                                onChange={(value) =>
+                            {/* Item Code + Desc */}
+                            <TableCell className="p-1 border w-60">
+                              <MemoizedProductSelect
+                                value={row.contractSub_item_code}
+                                onChange={(value) => {
+                                  const selected = itemData?.item?.find(
+                                    (i) => i.item_code === value
+                                  );
                                   handleRowDataChange(
                                     rowIndex,
-                                    "contractSub_marking",
+                                    "contractSub_item_code",
                                     value
-                                  )
-                                }
+                                  );
+                                  handleRowDataChange(
+                                    rowIndex,
+                                    "contractSub_item_description",
+                                    selected?.item_description || ""
+                                  );
+                                }}
                                 options={
-                                  markingData?.marking?.map((m) => ({
-                                    value: m.marking,
-                                    label: m.marking,
+                                  itemData?.item?.map((i) => ({
+                                    value: i.item_code,
+                                    label: `${i.item_code} - ${i.item_description}`,
                                   })) || []
                                 }
-                                placeholder="Marking"
-                              /> */}
+                                placeholder="Item"
+                              />
                             </TableCell>
 
-                            {/* Item + Description */}
-                            <TableCell className="p-1 border w-36">
-                              <div className="flex flex-col gap-1">
-                                {/* <MemoizedProductSelect
-                                  value={row.contractSub_item_name}
-                                  onChange={(value) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      "contractSub_item_name",
-                                      value
-                                    )
-                                  }
-                                  options={
-                                    itemNameData?.itemname?.map((i) => ({
-                                      value: i.item_name,
-                                      label: i.item_name,
-                                    })) || []
-                                  }
-                                  placeholder="Item"
-                                /> */}
-                                {/* <MemoizedProductSelect
-                                  value={row.contractSub_descriptionofGoods}
-                                  onChange={(value) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      "contractSub_descriptionofGoods",
-                                      value
-                                    )
-                                  }
-                                  options={
-                                    descriptionofGoodseData?.descriptionofGoods?.map(
-                                      (d) => ({
-                                        value: d.descriptionofGoods,
-                                        label: d.descriptionofGoods,
-                                      })
-                                    ) || []
-                                  }
-                                  placeholder="Desc"
-                                /> */}
-                              </div>
-                            </TableCell>
-
-                            {/* Bags + Bag Type */}
+                            {/* Packing */}
                             <TableCell className="p-1 border w-32">
-                              <div className="flex flex-col gap-1">
-                                <Input
-                                  value={row.contractSub_item_bag}
-                                  onChange={(e) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      "contractSub_item_bag",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Bags"
-                                  className="bg-white h-8 px-2"
-                                />
-                                {/* <MemoizedProductSelect
-                                  value={row.contractSub_sbaga}
-                                  onChange={(value) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      "contractSub_sbaga",
-                                      value
-                                    )
-                                  }
-                                  options={
-                                    bagTypeData?.bagType?.map((b) => ({
-                                      value: b.bagType,
-                                      label: b.bagType,
-                                    })) || []
-                                  }
-                                  placeholder="Type"
-                                /> */}
-                              </div>
+                              <Input
+                                value={row.contractSub_item_packing}
+                                onChange={(e) =>
+                                  handleRowDataChange(
+                                    rowIndex,
+                                    "contractSub_item_packing",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Pack"
+                                className="bg-white h-8 px-2"
+                              />
                             </TableCell>
 
-                            {/* Net + Gross */}
+                            {/* Measurement (e.g., Nos) */}
                             <TableCell className="p-1 border w-28">
+                              {" "}
                               <Input
-                                value={row.contractSub_packing}
+                                value={row.contractSub_item_packing_unit}
                                 onChange={(e) =>
                                   handleRowDataChange(
                                     rowIndex,
-                                    "contractSub_packing",
+                                    "contractSub_item_packing_unit",
                                     e.target.value
                                   )
                                 }
-                                placeholder="Net"
-                                className="bg-white h-8 px-2 mb-1"
-                              />
-                              <Input
-                                value={row.contractSub_bagsize}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_bagsize",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Gross"
+                                placeholder="Mes"
                                 className="bg-white h-8 px-2"
                               />
                             </TableCell>
 
-                            {/* Quantity */}
-                            <TableCell className="p-1 border w-24 text-center">
+                            {/* Unit */}
+                            <TableCell className="p-1 border w-24">
                               <Input
-                                value={row.contractSub_qntyInMt}
+                                value={row.contractSub_item_packing_no}
                                 onChange={(e) =>
                                   handleRowDataChange(
                                     rowIndex,
-                                    "contractSub_qntyInMt",
+                                    "contractSub_item_packing_no",
                                     e.target.value
                                   )
                                 }
-                                placeholder="MT"
+                                placeholder="Unit"
                                 className="bg-white h-8 px-2"
                               />
-                              <p className="text-[10px] text-gray-500 mt-0.5">
-                                {row.contractSub_item_bag &&
-                                row.contractSub_packing
-                                  ? (
-                                      (parseFloat(row.contractSub_item_bag) *
-                                        parseFloat(row.contractSub_packing)) /
-                                      1000
-                                    ).toFixed(2)
-                                  : "Bags × Net"}
-                              </p>
                             </TableCell>
 
                             {/* Rate */}
-                            <TableCell className="p-1 border w-20">
+                            <TableCell className="p-1 border w-24">
                               <Input
-                                value={row.contractSub_rateMT}
+                                value={row.contractSub_item_rate_per_pc}
                                 onChange={(e) =>
                                   handleRowDataChange(
                                     rowIndex,
-                                    "contractSub_rateMT",
+                                    "contractSub_item_rate_per_pc",
                                     e.target.value
                                   )
                                 }
@@ -1358,34 +1527,49 @@ const ContractAdd = () => {
                               />
                             </TableCell>
 
-                            {/* Delete Btn */}
-                            <TableCell className="p-1 border text-center w-10">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => removeRow(rowIndex)}
-                                disabled={contractData.length === 1}
-                                className="p-0 text-red-500"
-                              >
-                                <MinusCircle className="w-4 h-4" />
-                              </Button>
+                            {/* Carton */}
+                            <TableCell className="p-1 border w-24">
+                              <Input
+                                value={row.contractSub_ctns}
+                                onChange={(e) =>
+                                  handleRowDataChange(
+                                    rowIndex,
+                                    "contractSub_ctns",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Carton"
+                                className="bg-white h-8 px-2"
+                              />
+                            </TableCell>
+
+                            {/* Remove Button */}
+                            <TableCell className="p-1 border">
+                              {row.id ? (
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => handleDeleteRow(row.id)}
+                                  className="text-red-500"
+                                  type="button"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => removeRow(rowIndex)}
+                                  disabled={contractData.length === 1}
+                                  className="text-red-500 "
+                                  type="button"
+                                >
+                                  <MinusCircle className="h-4 w-4" />
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </div>
-
-                  {/* Add Button */}
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={addRow}
-                      className={`h-8 px-3 text-xs flex items-center gap-1 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                      Add
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -1394,24 +1578,34 @@ const ContractAdd = () => {
         </Card>
 
         <div className="flex items-center justify-end  gap-2">
-          {createContractMutation.isPending && <ProgressBar progress={70} />}
+          {loading && <ProgressBar progress={70} />}
           <Button
             type="submit"
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={submitLoading}
+            disabled={loading}
+            className={`mt-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} $`}
           >
-            {submitLoading ? "Creating..." : "Create & Exit"}
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSaveAndView}
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={saveAndViewLoading}
-          >
-            {saveAndViewLoading ? "Creating..." : "Create & Print"}
-          </Button>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : isEditMode ? (
+              "Update Contract"
+            ) : (
+              "Create Contract"
+            )}
+            {loading && (
+              <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
+            )}
+          </Button>{" "}
         </div>
       </form>
+
+      <DeleteContract
+        deleteConfirmOpen={deleteConfirmOpen}
+        setDeleteConfirmOpen={setDeleteConfirmOpen}
+        handleDelete={handleDelete}
+      />
     </Page>
   );
 };

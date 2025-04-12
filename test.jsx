@@ -32,13 +32,13 @@ const handleSubmit = async () => {
   try {
     const response = isEditMode
       ? await axios.put(
-          `${BASE_URL}/api/panel-update-item/${decryptedId}`,
+          `${BASE_URL}/api/panel-update-contract/${decryptedId}`,
           formData,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         )
-      : await axios.post(`${BASE_URL}/api/panel-create-item`, formData, {
+      : await axios.post(`${BASE_URL}/api/panel-create-contract`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -48,21 +48,36 @@ const handleSubmit = async () => {
 
       if (!isEditMode) {
         setFormData({
-          item_code:"",
-          item_description: "",
-          item_buyer: "",
-          item_gsp: "",
-          item_packing_id: "",
-          item_country: "",
-          item_rate_per_pc: "",
-          item_box_id: "",
-          item_board: [],
-          item_barcode: "",
-          item_gross_wt: "",
-          item_category: "",
-          item_top: "",
-          item_hsnCode: "",
-          item_note: "",
+          branch_short: "",
+          branch_name: "",
+          branch_address: "",
+          contract_year: "",
+          contract_no: "",
+          contract_year: currentYear,
+          contract_date: getTodayDate(),
+          contract_order_type: "",
+          contract_pono: "",
+          contract_buyer: "",
+          contract_buyer_add: "",
+          contract_consignee: "",
+          contract_consignee_add: "",
+          contract_container_size: "",
+          contract_product: "",
+          contract_loading_port: "",
+          contract_loading_country: "",
+          contract_destination_port: "",
+          contract_destination_country: "",
+          contract_payment_terms: "",
+          contract_delivery_terms: "",
+          contract_qty_inmt: "",
+          contract_validity: "",
+          contract_marking: "",
+          contract_insurance: "",
+          contract_pack_type: "",
+          contract_packing: "",
+          contract_currency: "",
+          contract_sign: "",
+          contract_position: "",
         });
       }
       setOpen(false);
@@ -76,8 +91,7 @@ const handleSubmit = async () => {
   } catch (error) {
     toast({
       title: "Error",
-      description:
-        error.response?.data?.message || "Failed to submit item",
+      description: error.response?.data?.message || "Failed to submit item",
       variant: "destructive",
     });
     console.log(error);

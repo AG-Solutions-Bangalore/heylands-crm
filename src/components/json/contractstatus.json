@@ -1,0 +1,5 @@
+[
+  { "label": "Open", "value": "Open" },
+  { "label": "Pending", "value": "Pending" },
+  { "label": "Close", "value": "Close" }
+]

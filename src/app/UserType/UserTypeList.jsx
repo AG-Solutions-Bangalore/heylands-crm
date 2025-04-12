@@ -6,17 +6,17 @@ import { ChevronDown, ChevronUp, Edit } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Page from "../dashboard/page";
+import useApiToken from "@/components/common/useApiToken";
 
 const UserTypeList = () => {
   const [userTypeData, setUserTypeData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
   const navigate = useNavigate();
-
+  const token = useApiToken();
   const fetchUserTypeData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
       const response = await axios.get(`${BASE_URL}/api/panel-fetch-usertype`, {
         headers: {
           Authorization: `Bearer ${token}`,

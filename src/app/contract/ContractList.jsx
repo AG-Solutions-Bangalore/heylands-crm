@@ -4,20 +4,11 @@ import {
   ContractEdit,
   ContractView,
 } from "@/components/buttonIndex/ButtonComponents";
+import useApiToken from "@/components/common/useApiToken";
 import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -44,7 +35,7 @@ import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { encryptId } from "@/utils/encyrption/Encyrption";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   flexRender,
   getCoreRowModel,
@@ -59,12 +50,12 @@ import moment from "moment";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Page from "../dashboard/page";
-import useApiToken from "@/components/common/useApiToken";
+import DeleteContract from "./DeleteContract";
 const ContractList = () => {
+  const [deleteItemId, setDeleteItemId] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteContractId, setDeleteContractId] = useState(null);
   const { toast } = useToast();
-  const token =useApiToken()
+  const token = useApiToken();
   const {
     data: contract,
     isLoading,
@@ -83,27 +74,42 @@ const ContractList = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/panel-delete-contract/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    },
-    onSuccess: () => {
-      refetch();
-      setDeleteConfirmOpen(false);
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}/api/panel-delete-contract/${deleteItemId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.code == 200) {
+        toast({
+          title: "Success",
+          description: response.data.msg,
+          variant: "default",
+        });
+        refetch();
+        setDeleteItemId(null);
+        setDeleteConfirmOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.msg,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "Contract deleted successfully",
+        title: "Error",
+        description: "Failed to delete contract.",
+        variant: "destructive",
       });
-    },
-  });
-  const confirmDelete = () => {
-    if (deleteContractId) {
-      deleteMutation.mutate(deleteContractId);
-      setDeleteContractId(null);
     }
+  };
+  const handleDeleteRow = (id) => {
+    setDeleteItemId(id);
+    setDeleteConfirmOpen(true);
   };
   // State for table management
   const [sorting, setSorting] = useState([]);
@@ -121,11 +127,6 @@ const ContractList = () => {
         const date = row.getValue("contract_date");
         return moment(date).format("DD-MMM-YYYY");
       },
-    },
-    {
-      accessorKey: "branch_short",
-      header: "Company",
-      cell: ({ row }) => <div>{row.getValue("branch_short")}</div>,
     },
 
     {
@@ -209,7 +210,9 @@ const ContractList = () => {
                         const encryptedId = encryptId(contractId);
 
                         navigate(
-                          `/edit-contract/${encodeURIComponent(encryptedId)}`
+                          `/create-contract/${encodeURIComponent(
+                            encryptedId
+                          )}?mode=edit`
                         );
                       }}
                     ></ContractEdit>
@@ -223,10 +226,7 @@ const ContractList = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <ContractDelete
-                    onClick={() => {
-                      setDeleteContractId(contractId);
-                      setDeleteConfirmOpen(true);
-                    }}
+                    onClick={() => handleDeleteRow(contractId)}
                   ></ContractDelete>
                 </TooltipTrigger>
                 <TooltipContent>Delete Contract</TooltipContent>
@@ -265,7 +265,7 @@ const ContractList = () => {
 
   // Render loading state
   if (isLoading) {
-    return <LoaderComponent name="Contract Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="Contract Data" />;
   }
 
   // Render error state
@@ -320,16 +320,12 @@ const ContractList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* <Button
-            variant="default"
-            className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-            onClick={() => navigate("/create-contract")}
-          >
-            <SquarePlus className="h-4 w-4" /> Contract
-          </Button> */}
+
           <ContractCreate
             className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-            onClick={() => navigate("/create-contract")}
+            onClick={() => {
+              navigate(`/create-contract/new?mode=create`);
+            }}
           ></ContractCreate>
         </div>
         {/* table  */}
@@ -412,26 +408,12 @@ const ContractList = () => {
           </div>
         </div>
       </div>
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              contract.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className={`${ButtonConfig.backgroundColor}  ${ButtonConfig.textColor} text-black hover:bg-red-600`}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
+      <DeleteContract
+        deleteConfirmOpen={deleteConfirmOpen}
+        setDeleteConfirmOpen={setDeleteConfirmOpen}
+        handleDelete={handleDelete}
+      />
     </Page>
   );
 };

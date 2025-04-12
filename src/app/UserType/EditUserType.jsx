@@ -10,11 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { decryptId } from "@/utils/encyrption/Encyrption";
 import { LoaderComponent } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
+import { useSelector } from "react-redux";
 
 const EditUserType = () => {
   const { toast } = useToast();
   const { id } = useParams();
   const decryptedId = decryptId(id);
+  const token = useApiToken();
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -22,11 +25,12 @@ const EditUserType = () => {
   const [userData, setUserData] = useState(null);
   const [selectedButtons, setSelectedButtons] = useState([]);
   const [selectedPages, setSelectedPages] = useState([]);
-
-  const buttonControl = JSON.parse(
-    localStorage.getItem("buttonControl") || "[]"
+  const buttonControl = useSelector((state) =>
+    JSON.parse(state.permissions.buttonPermissions)
   );
-  const pageControl = JSON.parse(localStorage.getItem("pageControl") || "[]");
+  const pageControl = useSelector((state) =>
+    JSON.parse(state.permissions.pagePermissions)
+  );
 
   const buttonOptions = buttonControl.map((btn) => ({
     value: btn.button,
@@ -60,7 +64,6 @@ const EditUserType = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
         const response = await axios.get(
           `${BASE_URL}/api/panel-fetch-usertype-by-id/${decryptedId}`,
           {
@@ -110,7 +113,6 @@ const EditUserType = () => {
     }
     try {
       setSaving(true);
-      const token = localStorage.getItem("token");
       const payload = {
         default_button_role: selectedButtons.map((btn) => btn.value).join(","),
         default_page_role: selectedPages.map((page) => page.value).join(","),
