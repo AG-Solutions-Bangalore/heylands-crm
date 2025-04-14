@@ -14,6 +14,7 @@ const DeleteContract = ({
   deleteConfirmOpen,
   setDeleteConfirmOpen,
   handleDelete,
+  title,
 }) => {
   return (
     <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
@@ -22,7 +23,7 @@ const DeleteContract = ({
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the
-            contract from this list.
+            {title} from this list.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

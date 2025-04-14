@@ -104,7 +104,7 @@ const ContractAdd = () => {
     contract_currency: "",
     contract_sign: "",
     contract_position: "",
-    // contract_status: isEditMode ? "" : null,
+    contract_status: isEditMode ? "" : null,
   });
   const [contractData, setContractData] = useState([
     {
@@ -1203,7 +1203,7 @@ const ContractAdd = () => {
                             label: status.label,
                           })) || []
                         }
-                        placeholder="Select Sigin"
+                        placeholder="Select Status"
                       />
                     </div>
                   )}
@@ -1418,6 +1418,7 @@ const ContractAdd = () => {
       </form>
 
       <DeleteContract
+        title={"Contract"}
         deleteConfirmOpen={deleteConfirmOpen}
         setDeleteConfirmOpen={setDeleteConfirmOpen}
         handleDelete={handleDelete}

@@ -1,4 +1,7 @@
-import { ProgressBar } from "@/components/spinner/ProgressBar";
+import MemoizedProductSelect from "@/components/common/MemoizedProductSelect";
+import MemoizedSelect from "@/components/common/MemoizedSelect";
+import useApiToken from "@/components/common/useApiToken";
+import { LoaderComponent } from "@/components/LoaderComponent/LoaderComponent";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,106 +30,48 @@ import {
   useFetchBuyers,
   useFetchCompanys,
   useFetchContainerSizes,
+  useFetchContractRef,
   useFetchCountrys,
+  useFetchGrCode,
   useFetchItemData,
+  useFetchLutCode,
   useFetchMarkings,
   useFetchPaymentTerms,
   useFetchPortofLoadings,
   useFetchPorts,
+  useFetchPreReceipt,
+  useFetchProduct,
   useFetchSiginData,
 } from "@/hooks/useApi";
 import { useCurrentYear } from "@/hooks/useCurrentYear";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronDown, MinusCircle, PlusCircle, Trash2 } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Select from "react-select";
-import { z } from "zod";
+import {
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Loader2,
+  MinusCircle,
+  Package,
+  PlusCircle,
+  TestTubes,
+  Trash2,
+  Truck,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Currency from "../../components/json/contractCurrency.json";
 import Insurance from "../../components/json/contractInsurance.json";
 import Page from "../dashboard/page";
-
-// Validation Schemas
-const productRowSchema = z.object({
-  invoiceSub_item_name: z.string().min(1, "Item name is required"),
-  invoiceSub_descriptionofGoods: z
-    .string()
-    .min(1, "Item Descriptions is required"),
-  invoiceSub_bagsize: z.number().min(1, "Gross Weight is required"),
-  invoiceSub_packing: z.number().min(1, "Packing is required"),
-
-  invoiceSub_item_bag: z.number().min(1, "Bag is required"),
-
-  invoiceSub_qntyInMt: z.number().min(1, "Quoted price is required"),
-  invoiceSub_rateMT: z.number().min(1, "Rate is required"),
-  invoiceSub_sbaga: z.string().min(1, "Bag Type is required"),
-  invoiceSub_marking: z.string().optional(),
-});
-
-const contractFormSchema = z.object({
-  branch_short: z.string().min(1, "Company Sort is required"),
-  branch_name: z.string().min(1, "Company Name is required"),
-  branch_address: z.string().min(1, "Company Address is required"),
-  invoice_year: z.string().optional(),
-  invoice_date: z.string().min(1, "Invoice date is required"),
-  invoice_no: z.string().min(1, "Invoice No is required"),
-  invoice_ref: z.string().min(1, "Invoice Ref is required"),
-  contract_date: z.string().min(1, "Contract Date is required"),
-  contract_ref: z.string().min(1, "Contract Ref is required"),
-  contract_pono: z.string().min(1, "PONO is required"),
-  invoice_buyer: z.string().min(1, "Buyer Name is required"),
-  invoice_buyer_add: z.string().min(1, "Buyer Address is required"),
-  invoice_product: z.string().min(1, "Product is required"),
-  invoice_consignee: z.string().min(1, "Consignee Name is required"),
-  invoice_consignee_add: z.string().min(1, "Consignee Address is required"),
-
-  invoice_container_size: z.string().min(1, "Containers/Size is required"),
-  invoice_loading: z.string().min(1, "Port of Loading is required"),
-  invoice_destination_port: z.string().min(1, "Destination Port is required"),
-  invoice_discharge: z.string().min(1, "Discharge is required"),
-  invoice_cif: z.string().min(1, "CIF is required"),
-  invoice_destination_country: z.string().min(1, "Dest. Country is required"),
-  invoice_payment_terms: z.string().optional(),
-  invoice_remarks: z.string().optional(),
-  invoice_prereceipts: z.string().min(1, "Pre Receipt is required"),
-  invoice_precarriage: z.string().optional(),
-  invoice_product_cust_des: z
-    .string()
-    .min(1, "Product Descriptions is required"),
-  invoice_gr_code: z.string().min(1, "GR Code is required"),
-  invoice_lut_code: z.string().min(1, "LUT Code is required"),
-  invoice_data: z
-    .array(productRowSchema)
-    .min(1, "At least one product is required"),
-});
-
-const fetchLUT = async (value) => {
+import GenerateCTN from "./GenerateCTN";
+import moment from "moment";
+import { gsap } from "gsap";
+import { decryptId } from "@/utils/encyrption/Encyrption";
+import { ProgressBar } from "@/components/spinner/ProgressBar";
+import axios from "axios";
+const fetchContractData = async (value, token) => {
   if (!value) {
     throw new Error("Invalid value provided");
   }
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    `${BASE_URL}/api/panel-fetch-scheme-by-value/${value}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch LUT data");
-  return response.json();
-};
-const fetchContractData = async (value) => {
-  if (!value) {
-    throw new Error("Invalid value provided");
-  }
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
+  if (!token) throw new Error("No authentication token found in ref");
   const response = await fetch(`${BASE_URL}/api/panel-fetch-contract-by-ref`, {
     method: "POST",
     headers: {
@@ -139,275 +84,23 @@ const fetchContractData = async (value) => {
   if (!response.ok) throw new Error("Failed to fetch contract data");
   return response.json();
 };
-const fetchGRCode = async (value) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
 
-  const response = await fetch(`${BASE_URL}/api/panel-fetch-grcode/${value}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch GR Code data");
-
-  return response.json();
-};
-
-const fetchPrereceipts = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-fetch-prereceipts`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch Product no data");
-  return response.json();
-};
-
-const fetchContractRef = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-fetch-contract-ref`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch Contract ref data");
-  return response.json();
-};
-
-const fetchProductCustomDescription = async (value) => {
-  if (!value) {
-    throw new Error("Invalid value provided");
-  }
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    `${BASE_URL}/api/panel-fetch-product-description/${value}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch Container Size no data");
-
-  return response.json();
-};
-
-const createInvoice = async (data) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-create-invoice`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) throw new Error("Failed to create enquiry");
-  return response.json();
-};
-
-const MemoizedSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronDown className="h-4 w-4 mr-3 text-gray-500" />
-        </div>
-      );
-    };
-
-    return (
-      <Select
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-      />
-    );
-  }
-);
-
-const MemoizedProductSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronDown className="h-4 w-4 mr-3 text-gray-500" />
-        </div>
-      );
-    };
-
-    return (
-      <Select
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-        menuPortalTarget={document.body}
-        menuPosition="fixed"
-      />
-    );
-  }
-);
-
-// Main Component
 const InvoiceAdd = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const contentRef = useRef(null);
+  const token = useApiToken();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(false);
+  const decryptedId = id !== "new" ? decryptId(id) : null;
+  const mode = searchParams.get("mode");
+  const isEditMode = mode === "edit";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [saveAndViewLoading, setSaveAndViewLoading] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [invoiceData, setInvoiceData] = useState([
     {
+      id: isEditMode ? "" : null,
       invoiceSub_item_code: "",
       invoiceSub_item_description: "",
       invoiceSub_item_packing: "",
@@ -421,6 +114,7 @@ const InvoiceAdd = () => {
       invoiceSub_item_hsnCode: "",
       invoiceSub_ctns: "",
       invoiceSub_ct: "",
+      invoiceSub_packings: "",
     },
   ]);
 
@@ -434,21 +128,22 @@ const InvoiceAdd = () => {
     }
   }, [currentYear]);
   const [formData, setFormData] = useState({
-    branch_short: "",
-    branch_name: "",
-    branch_address: "",
-    invoice_year: currentYear,
-    invoice_date: "",
-    invoice_no: "",
-    invoice_ref: "",
-    contract_date: "",
-    contract_ref: "",
-    contract_pono: "",
+    branch_short: isEditMode ? null : "",
+    branch_name: isEditMode ? null : "",
+    branch_address: isEditMode ? null : "",
+    invoice_year: isEditMode ? null : currentYear,
+    invoice_date: isEditMode ? null : "",
+    invoice_no: isEditMode ? null : "",
+    invoice_ref: isEditMode ? null : "",
+    contract_date: isEditMode ? null : "",
+    contract_ref: isEditMode ? null : "",
+    contract_pono: isEditMode ? null : "",
     invoice_buyer: "",
     invoice_buyer_add: "",
     invoice_consignee: "",
     invoice_consignee_add: "",
     invoice_container_size: "",
+    invoice_product: "",
     invoice_product_cust_des: "",
     invoice_gr_code: "",
     invoice_lut_code: "",
@@ -471,21 +166,11 @@ const InvoiceAdd = () => {
     invoice_sign: "",
     invoice_position: "",
     invoice_precarriage: "",
-
-    contract_qty_inmt: "",
-    contract_validity: "",
-    contract_marking: "",
-    contract_insurance: "",
-    contract_pack_type: "",
-    contract_packing: "",
-    contract_currency: "",
-    contract_sign: "",
-    contract_position: "",
+    invoice_status: isEditMode ? "" : null,
   });
 
   const checkInvoiceRef = async (invoiceRef) => {
     try {
-      const token = localStorage.getItem("token");
       if (!token) throw new Error("No authentication token found");
 
       const response = await fetch(`${BASE_URL}/api/panel-check-invoice-ref`, {
@@ -529,43 +214,11 @@ const InvoiceAdd = () => {
     }
   }, [formData.invoice_ref]);
 
-  const { data: lutData } = useQuery({
-    queryKey: ["lut", formData.branch_short],
-    queryFn: () => {
-      const selectedBranch = branchData?.branch?.find(
-        (branch) => branch.branch_short === formData.branch_short
-      );
-      if (selectedBranch?.branch_scheme) {
-        return fetchLUT(selectedBranch.branch_scheme);
-      }
-      return null;
-    },
-    enabled: !!formData.branch_short,
-  });
-
-  const { data: grcodeData } = useQuery({
-    queryKey: ["grCode", formData.invoice_product],
-    queryFn: () => fetchGRCode(formData.invoice_product),
-    enabled: !!formData.invoice_product,
-  });
-  const { data: prereceiptsData } = useQuery({
-    queryKey: ["prereceipts"],
-    queryFn: fetchPrereceipts,
-  });
-
-  const { data: contractRefsData } = useQuery({
-    queryKey: ["contractRefs"],
-    queryFn: fetchContractRef,
-  });
-
-  const { data: productCustomDescriptionData } = useQuery({
-    queryKey: ["pCustomDescription", formData.invoice_product],
-    queryFn: () => fetchProductCustomDescription(formData.invoice_product),
-    enabled: !!formData.invoice_product,
-  });
-
-  const { data: buyerData } = useFetchBuyers();
   const { data: branchData } = useFetchCompanys();
+  const selectedBranch = branchData?.branch?.find(
+    (branch) => branch.branch_short === formData.branch_short
+  );
+  const { data: buyerData } = useFetchBuyers();
   const { data: portofLoadingData } = useFetchPortofLoadings();
   const { data: paymentTermsData } = useFetchPaymentTerms();
   const { data: countryData } = useFetchCountrys();
@@ -575,39 +228,11 @@ const InvoiceAdd = () => {
   const { data: siginData } = useFetchSiginData();
   const { data: portsData } = useFetchPorts();
   const { data: itemData } = useFetchItemData();
-
-  const createInvoiceMutation = useMutation({
-    mutationFn: createInvoice,
-
-    onSuccess: (response) => {
-      if (response.code == 200) {
-        toast({
-          title: "Success",
-          description: response.msg,
-        });
-        navigate("/invoice");
-      } else if (response.code == 400) {
-        toast({
-          title: "Duplicate Entry",
-          description: response.msg,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Unexpected Response",
-          description: response.msg || "Something unexpected happened.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const { data: productData } = useFetchProduct();
+  const { data: prereceiptsData } = useFetchPreReceipt();
+  const { data: contractRefsData } = useFetchContractRef();
+  const { data: lutData } = useFetchLutCode(selectedBranch?.branch_scheme);
+  const { data: grcodeData } = useFetchGrCode(formData?.invoice_product);
 
   const handleInputChange = (e, field) => {
     let value;
@@ -624,7 +249,7 @@ const InvoiceAdd = () => {
           updatedFormData.invoice_no &&
           updatedFormData.invoice_year
         ) {
-          const invoiceRef = `${selectedCompanySort.branch_name_short}${updatedFormData.invoice_no}${updatedFormData.invoice_year}`;
+          const invoiceRef = `${selectedCompanySort.branch_name_short}${updatedFormData.invoice_no}/${updatedFormData.invoice_year}`;
           updatedFormData.invoice_ref = invoiceRef;
         }
       }
@@ -653,32 +278,50 @@ const InvoiceAdd = () => {
               selectedConsignee.buyer_address;
           }
         }
+
         if (field === "contract_ref") {
-          fetchContractData(value).then((data) => {
+          fetchContractData(value, token).then((data) => {
             const { contract, contractSub } = data;
+
+            // Update form data with contract details
             const updatedFormDataWithContract = {
               ...updatedFormData,
               branch_short: contract.branch_short,
               branch_name: contract.branch_name,
               branch_address: contract.branch_address,
+              invoice_year: contract.contract_year,
               contract_date: contract.contract_date,
               contract_pono: contract.contract_pono,
+              invoice_no: contract.contract_no,
+              invoice_ref: contract.invoice_ref,
               invoice_buyer: contract.contract_buyer,
               invoice_buyer_add: contract.contract_buyer_add,
               invoice_consignee: contract.contract_consignee,
               invoice_consignee_add: contract.contract_consignee_add,
               invoice_container_size: contract.contract_container_size,
-              invoice_loading: contract.contract_loading,
-              invoice_destination_port: contract.contract_destination_port,
-              invoice_cif: contract.contract_cif,
-              invoice_destination_country:
-                contract.contract_destination_country,
-              invoice_payment_terms: contract.contract_payment_terms,
+              invoice_product: contract.contract_product,
               invoice_product_cust_des: contract.contract_product_cust_des,
               invoice_gr_code: contract.contract_gr_code,
               invoice_lut_code: contract.contract_lut_code,
               invoice_prereceipts: contract.contract_prereceipts,
-              invoice_no: contract.contract_no.toString(),
+              invoice_loading_port: contract.contract_loading_port,
+              invoice_loading_country: contract.contract_loading_country,
+              invoice_destination_port: contract.contract_destination_port,
+              invoice_destination_country:
+                contract.contract_destination_country,
+              invoice_payment_terms: contract.contract_payment_terms,
+              invoice_delivery_terms: contract.contract_delivery_terms,
+              invoice_qty_inmt: contract.contract_qty_inmt.toString(),
+              invoice_validity: contract.contract_validity,
+              invoice_pack_type: contract.contract_pack_type,
+              invoice_marking: contract.contract_marking,
+              invoice_insurance: contract.contract_insurance,
+              invoice_packing: contract.contract_packing,
+
+              invoice_precarriage: contract.contract_position,
+              invoice_currency: contract.contract_currency,
+              invoice_sign: contract.contract_sign,
+              invoice_position: contract.contract_position,
             };
             if (
               contract.branch_short &&
@@ -689,22 +332,34 @@ const InvoiceAdd = () => {
                 (branch) => branch.branch_short === contract.branch_short
               );
               if (selectedCompanySort) {
-                const invoiceRef = `${selectedCompanySort.branch_name_short}${updatedFormDataWithContract.invoice_no}${updatedFormDataWithContract.invoice_year}`;
+                const invoiceRef = `${selectedCompanySort.branch_name_short}${updatedFormDataWithContract.invoice_no}/${updatedFormDataWithContract.invoice_year}`;
                 updatedFormDataWithContract.invoice_ref = invoiceRef;
               }
             }
+
+            // Update the form data state
             setFormData(updatedFormDataWithContract);
+
+            // Map and set invoice data
             const mappedInvoiceData = contractSub.map((sub) => ({
-              invoiceSub_item_bag: sub.contractSub_item_bag,
-              invoiceSub_item_name: sub.contractSub_item_name,
-              invoiceSub_marking: sub.contractSub_marking,
-              invoiceSub_descriptionofGoods: sub.contractSub_descriptionofGoods,
-              invoiceSub_packing: sub.contractSub_packing,
-              invoiceSub_bagsize: sub.contractSub_bagsize,
-              invoiceSub_qntyInMt: sub.contractSub_qntyInMt,
-              invoiceSub_rateMT: sub.contractSub_rateMT,
-              invoiceSub_sbaga: sub.contractSub_sbaga,
+              invoiceSub_item_code: sub.contractSub_item_code || "",
+              invoiceSub_item_description:
+                sub.contractSub_item_description || "",
+              invoiceSub_item_packing: sub.contractSub_item_packing || "",
+              invoiceSub_item_packing_unit:
+                sub.contractSub_item_packing_unit || "",
+              invoiceSub_item_packing_no: sub.contractSub_item_packing_no || "",
+              invoiceSub_item_rate_per_pc:
+                sub.contractSub_item_rate_per_pc || "",
+              invoiceSub_item_box_size: sub.contractSub_item_box_size || "",
+              invoiceSub_item_box_wt: sub.contractSub_item_box_wt || "",
+              invoiceSub_item_gross_wt: sub.contractSub_item_gross_wt || "",
+              invoiceSub_item_barcode: sub.contractSub_item_barcode || "",
+              invoiceSub_item_hsnCode: sub.contractSub_item_hsnCode || "",
+              invoiceSub_ctns: sub.contractSub_ctns || "",
+              invoiceSub_ct: "",
             }));
+
             setInvoiceData(mappedInvoiceData);
           });
         }
@@ -722,9 +377,29 @@ const InvoiceAdd = () => {
               (buyer) => buyer.buyer_name == prev.invoice_buyer
             );
             if (selectedBuyer) {
-              const invoiceRef = `${selectedCompanySort.branch_name_short}${prev.invoice_no}${prev.invoice_year}`;
+              const invoiceRef = `${selectedCompanySort.branch_name_short}${prev.invoice_no}/${prev.invoice_year}`;
               updatedFormData.invoice_ref = invoiceRef;
             }
+          }
+        }
+        if (field == "invoice_no") {
+          if (updatedFormData.branch_short && updatedFormData.invoice_year) {
+            const selectedCompanySort = branchData?.branch?.find(
+              (branch) => branch.branch_short === updatedFormData.branch_short
+            );
+            console.log(selectedCompanySort, "selectedCompanySort");
+            if (selectedCompanySort) {
+              const invoiceRef = `${selectedCompanySort.branch_name_short}${updatedFormData.invoice_no}/${updatedFormData.invoice_year}`;
+              updatedFormData.invoice_ref = invoiceRef;
+            }
+          }
+        }
+        if (field === "contract_sign") {
+          const selectedSigner = siginData?.branch?.find(
+            (sigin) => sigin.branch_sign === value
+          );
+          if (selectedSigner) {
+            updated.invoice_position = selectedSigner.branch_sign_position;
           }
         }
 
@@ -739,18 +414,20 @@ const InvoiceAdd = () => {
       formData,
     ]
   );
-
+  console.log(formData.invoice_ref);
+  //done
   const handleRowDataChange = useCallback(
     (rowIndex, field, value) => {
       const digitOnlyFields = [
-        "contractSub_ctns",
-        "contractSub_item_packing",
-        "contractSub_item_packing_no",
-        "contractSub_item_rate_per_pc",
-        "contractSub_item_box_size",
+        "invoiceSub_ctns",
+        "invoiceSub_item_packing",
+        "invoiceSub_item_packing_no",
+        "invoiceSub_item_rate_per_pc",
+        "invoiceSub_item_box_size",
+        "invoiceSub_packings",
       ];
 
-      if (field === "contractSub_item_code") {
+      if (field === "invoiceSub_item_code") {
         const selectedItem = itemData?.item?.find(
           (item) => item.item_code === value
         );
@@ -760,18 +437,18 @@ const InvoiceAdd = () => {
             const newData = [...prev];
             newData[rowIndex] = {
               ...newData[rowIndex],
-              contractSub_item_code: selectedItem.item_code || "",
-              contractSub_item_description: selectedItem.item_description || "",
-              contractSub_item_packing: selectedItem.item_packing || "",
-              contractSub_item_packing_unit:
+              invoiceSub_item_code: selectedItem.item_code || "",
+              invoiceSub_item_description: selectedItem.item_description || "",
+              invoiceSub_item_packing: selectedItem.item_packing || "",
+              invoiceSub_item_packing_unit:
                 selectedItem.item_packing_unit || "",
-              contractSub_item_packing_no: selectedItem.item_packing_no || "",
-              contractSub_item_rate_per_pc: selectedItem.item_rate_per_pc || "",
-              contractSub_item_box_size: selectedItem.item_box_size || "",
-              contractSub_item_box_wt: selectedItem.item_box_weight || "",
-              contractSub_item_gross_wt: selectedItem.item_gross_wt || "",
-              contractSub_item_barcode: selectedItem.item_barcode || "",
-              contractSub_item_hsnCode: selectedItem.item_hsnCode || "",
+              invoiceSub_item_packing_no: selectedItem.item_packing_no || "",
+              invoiceSub_item_rate_per_pc: selectedItem.item_rate_per_pc || "",
+              invoiceSub_item_box_size: selectedItem.item_box_size || "",
+              invoiceSub_item_box_wt: selectedItem.item_box_weight || "",
+              invoiceSub_item_gross_wt: selectedItem.item_gross_wt || "",
+              invoiceSub_item_barcode: selectedItem.item_barcode || "",
+              invoiceSub_item_hsnCode: selectedItem.item_hsnCode || "",
             };
             return newData;
           });
@@ -823,6 +500,7 @@ const InvoiceAdd = () => {
         invoiceSub_item_hsnCode: "",
         invoiceSub_ctns: "",
         invoiceSub_ct: "",
+        invoiceSub_packings: "",
       },
     ]);
   }, []);
@@ -836,157 +514,517 @@ const InvoiceAdd = () => {
     [invoiceData.length]
   );
 
+  console.log(invoiceData);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const requiredFormFields = Object.keys(formData).filter(
+      (key) => isEditMode || key !== "invoice_status"
+    );
+
+    const requiredContractFields = Object.keys(invoiceData[0]).filter(
+      (key) => isEditMode || key !== "id"
+    );
+
+    // Now do the validation checks
+    const missingFormFields = requiredFormFields.filter(
+      (key) => !formData[key]?.toString().trim()
+    );
+
+    const missingContractFields = [];
+
+    invoiceData.forEach((item, index) => {
+      requiredContractFields.forEach((key) => {
+        const value = item[key];
+
+        const isMissing =
+          key == "invoiceSub_packings"
+            ? Number(value) === 0 || value === ""
+            : value === undefined ||
+              value === null ||
+              value === "" ||
+              (typeof value === "string" && value.trim() === "");
+
+        if (isMissing) {
+          missingContractFields.push(`${key} (Row ${index + 1})`);
+        }
+      });
+    });
+
+    if (missingFormFields.length > 0 || missingContractFields.length > 0) {
+      toast({
+        title: "Missing Required Fields",
+        description: (
+          <div className="flex flex-col gap-1">
+            {missingFormFields.map((field, idx) => (
+              <div key={idx}>• {field.replace(/_/g, " ")}</div>
+            ))}
+            {missingContractFields.map((field, idx) => (
+              <div key={idx + 100}>• {field.replace(/_/g, " ")}</div>
+            ))}
+          </div>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = { ...formData, invoice_data: invoiceData };
+
+      const response = isEditMode
+        ? await axios.put(
+            `${BASE_URL}/api/panel-update-invoice/${decryptedId}`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        : await axios.post(
+            `${BASE_URL}/api/panel-create-invoice
+  `,
+            payload,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+      if (response?.data.code == 200) {
+        toast({ title: "Success", description: response.data.msg });
+
+        if (!isEditMode) {
+          setFormData({
+            branch_short: "",
+            branch_name: "",
+            branch_address: "",
+            invoice_year: currentYear,
+            invoice_date: "",
+            invoice_no: "",
+            invoice_ref: "",
+            contract_date: "",
+            contract_ref: "",
+            contract_pono: "",
+            invoice_buyer: "",
+            invoice_buyer_add: "",
+            invoice_consignee: "",
+            invoice_consignee_add: "",
+            invoice_container_size: "",
+            invoice_product: "",
+            invoice_product_cust_des: "",
+            invoice_gr_code: "",
+            invoice_lut_code: "",
+            invoice_prereceipts: "",
+            invoice_loading_port: "",
+            invoice_loading_country: "",
+            invoice_destination_port: "",
+            invoice_destination_country: "",
+            invoice_payment_terms: "",
+            invoice_delivery_terms: "",
+            invoice_qty_inmt: "",
+            invoice_validity: "",
+            invoice_pack_type: "",
+            invoice_marking: "",
+            invoice_insurance: "",
+            invoice_packing: "",
+            invoice_currency: "",
+            invoice_sign: "",
+            invoice_position: "",
+            invoice_precarriage: "",
+            invoice_status: "",
+          });
+          setInvoiceData([
+            {
+              id: "",
+              invoiceSub_item_code: "",
+              invoiceSub_item_description: "",
+              invoiceSub_item_packing: "",
+              invoiceSub_item_packing_unit: "",
+              invoiceSub_item_packing_no: "",
+              invoiceSub_item_rate_per_pc: "",
+              invoiceSub_item_box_size: "",
+              invoiceSub_item_box_wt: "",
+              invoiceSub_item_gross_wt: "",
+              invoiceSub_item_barcode: "",
+              invoiceSub_item_hsnCode: "",
+              invoiceSub_ctns: "",
+              invoiceSub_ct: "",
+              invoiceSub_packings: 0,
+            },
+          ]);
+        }
+        navigate("/invoice");
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.msg,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to submit invoice",
+        variant: "destructive",
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadingData =
+    !buyerData ||
+    !branchData ||
+    !portofLoadingData ||
+    !containerSizeData ||
+    !paymentTermsData ||
+    !portsData ||
+    !productData ||
+    !bagTypeData ||
+    !itemData ||
+    !markingData ||
+    !countryData ||
+    !siginData ||
+    !prereceiptsData ||
+    !contractRefsData;
+  if (loadingData) {
+    return <LoaderComponent name="Invoice Data" />;
+  }
+  const CompactViewSection = ({ invoiceDatas }) => {
+    const [isExpanded, setIsExpanded] = useState(true);
+    const containerRef = useRef(null);
+    const contentRef = useRef(null);
+    const InfoItem = ({ icon: Icon, label, value }) => (
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-yellow-600 shrink-0" />
+        <span className="text-sm text-gray-600">{label}:</span>
+        <span className="text-sm font-medium">{value || "N/A"}</span>
+      </div>
+    );
+
+    const toggleView = () => {
+      const content = contentRef.current;
+
+      if (isExpanded) {
+        // Folding animation
+        gsap.to(content, {
+          height: 0,
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.inOut",
+          transformOrigin: "top",
+          transformStyle: "preserve-3d",
+          rotateX: -90,
+          onComplete: () => setIsExpanded(false),
+        });
+      } else {
+        // Unfolding animation
+        setIsExpanded(true);
+        gsap.fromTo(
+          content,
+          {
+            height: 0,
+            opacity: 0,
+            rotateX: -90,
+          },
+          {
+            height: "auto",
+            opacity: 1,
+            duration: 0.5,
+            ease: "power2.inOut",
+            transformOrigin: "top",
+            transformStyle: "preserve-3d",
+            rotateX: 0,
+          }
+        );
+      }
+    };
+
+    const TreatmentInfo = () =>
+      invoiceDatas?.invoice?.branch_short && (
+        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <InfoItem
+              icon={Clock}
+              label="Invoice Date"
+              value={
+                <Input
+                  type="date"
+                  value={formData.invoice_date}
+                  className="bg-white"
+                  onChange={(e) => handleInputChange(e, "invoice_date")}
+                />
+              }
+            />
+            <div className=" col-span-2">
+              <InfoItem
+                icon={TestTubes}
+                label="Branch Add"
+                value={invoiceDatas.invoice?.branch_address}
+              />
+            </div>
+          </div>
+        </div>
+      );
+
+    return (
+      <Card className="mb-2 " ref={containerRef}>
+        <div
+          className={`p-4 ${ButtonConfig.cardColor} flex items-center justify-between`}
+        >
+          <h2 className="text-lg font-semibold  flex items-center gap-2">
+            <p className="flex gap-1 relative items-center">
+              {" "}
+              <FileText className="h-5 w-5" />
+              {invoiceDatas?.invoice?.invoice_ref} -
+              <span className="text-sm uppercase">
+                {invoiceDatas?.invoice?.branch_short}
+              </span>
+              <span className=" absolute top-4 left-6 text-[9px]  bg-inherit ">
+                {invoiceDatas?.invoice?.branch_name}
+              </span>
+            </p>
+          </h2>
+
+          <div className="flex items-center gap-2">
+            <span className=" flex items-center gap-2    text-xs font-medium  text-yellow-800 ">
+              {/* {invoiceDatas?.invoice?.invoice_status} */}
+              {/* <MemoizedSelect
+                value={formData?.invoice_product}
+                onChange={(value) =>
+                  handleSelectChange("invoice_product", value)
+                }
+                // options={
+                //   productData?.product?.map((product) => ({
+                //     value: product.product_name,
+                //     label: product.product_name,
+                //   })) || []
+                // }
+                placeholder="Select Product"
+              />
+              <MemoizedSelect
+                value={formData.invoice_status}
+                onChange={(value) =>
+                  handleSelectChange("invoice_status", value)
+                }
+                // options={
+                //   statusData?.invoiceStatus?.map((status) => ({
+                //     value: status.invoice_status,
+                //     label: status.invoice_status,
+                //   })) || []
+                // }
+                placeholder="Select Status"
+              /> */}
+            </span>
+
+            {isExpanded ? (
+              <ChevronUp
+                onClick={toggleView}
+                className="h-5 w-5 cursor-pointer  text-yellow-600"
+              />
+            ) : (
+              <ChevronDown
+                onClick={toggleView}
+                className="h-5 w-5 cursor-pointer  text-yellow-600"
+              />
+            )}
+          </div>
+        </div>
+        <div
+          ref={contentRef}
+          className="transform-gpu"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <CardContent className="p-4">
+            {/* Basic Info */}
+
+            <div className="space-y-2 flex items-center justify-between">
+              <InfoItem
+                icon={FileText}
+                label="Contract Ref"
+                value={invoiceDatas?.invoice?.contract_ref}
+              />
+              <InfoItem
+                icon={Package}
+                label="Invoice No"
+                value={invoiceDatas?.invoice?.invoice_no}
+              />
+
+              <InfoItem
+                icon={TestTubes}
+                label="Contract Date"
+                value={moment(invoiceDatas?.invoice?.contract_date).format(
+                  "DD-MM-YYYY"
+                )}
+              />
+              <InfoItem
+                icon={Truck}
+                label="Contract PONO"
+                value={invoiceDatas?.invoice?.contract_pono}
+              />
+            </div>
+
+            <TreatmentInfo />
+          </CardContent>
+        </div>
+      </Card>
+    );
+  };
   return (
     <Page>
+      {isEditMode && <CompactViewSection invoiceDatas={invoiceData} />}
       <form
-        // onSubmit={handleSubmit}
+        onSubmit={handleSubmit}
         className="w-full p-4 bg-blue-50/30 rounded-lg"
       >
         <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="mb-3">
+                {!isEditMode && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Contract Ref. <span className="text-red-500">*</span>
+                      </label>
+                      <MemoizedSelect
+                        value={formData.contract_ref}
+                        onChange={(value) =>
+                          handleSelectChange("contract_ref", value)
+                        }
+                        options={
+                          contractRefsData?.contractRef?.map((contractRef) => ({
+                            value: contractRef.contract_ref,
+                            label: contractRef.contract_ref,
+                          })) || []
+                        }
+                        placeholder="Select Contract Ref."
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Company <span className="text-red-500">*</span>
+                      </label>
+                      <MemoizedSelect
+                        value={formData.branch_short}
+                        onChange={(value) =>
+                          handleSelectChange("branch_short", value)
+                        }
+                        options={
+                          branchData?.branch?.map((branch) => ({
+                            value: branch.branch_short,
+                            label: branch.branch_short,
+                          })) || []
+                        }
+                        placeholder="Select Company"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Invoice No <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Invoice No"
+                        className="bg-white"
+                        value={formData.invoice_no}
+                        onChange={(e) => handleInputChange(e, "invoice_no")}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Invoice Date <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.invoice_date}
+                        className="bg-white"
+                        onChange={(e) => handleInputChange(e, "invoice_date")}
+                      />
+                    </div>
+                    <div
+                      style={{ textAlign: "center" }}
+                      className="bg-white rounded-md"
+                    >
+                      <span style={{ fontSize: "12px" }}>
+                        {formData.branch_name}
+                      </span>
+                      <br />
+                      <span style={{ fontSize: "9px", display: "block" }}>
+                        {formData.branch_address}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Contract Ref. <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        className="bg-white"
+                        placeholder="Enter Contract Ref"
+                        value={formData.contract_ref}
+                        disabled
+                        onChange={(e) => handleInputChange(e, "contract_ref")}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Contract PONO. <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        className="bg-white"
+                        placeholder="Enter Contract PoNo"
+                        value={formData.contract_pono}
+                        disabled
+                        onChange={(e) => handleInputChange(e, "contract_pono")}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Contract Date <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="date"
+                        className="bg-white"
+                        value={formData.contract_date}
+                        onChange={(e) => handleInputChange(e, "contract_date")}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      >
+                        Invoice Ref. <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Invoice Ref"
+                        className="bg-white"
+                        value={formData.invoice_ref}
+                        disabled
+                        onChange={(e) => handleInputChange(e, "invoice_ref")}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Contract Ref. <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.contract_ref}
-                      onChange={(value) =>
-                        handleSelectChange("contract_ref", value)
-                      }
-                      options={
-                        contractRefsData?.contractRef?.map((contractRef) => ({
-                          value: contractRef.contract_ref,
-                          label: contractRef.contract_ref,
-                        })) || []
-                      }
-                      placeholder="Select Contract Ref."
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Company <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.branch_short}
-                      onChange={(value) =>
-                        handleSelectChange("branch_short", value)
-                      }
-                      options={
-                        branchData?.branch?.map((branch) => ({
-                          value: branch.branch_short,
-                          label: branch.branch_short,
-                        })) || []
-                      }
-                      placeholder="Select Company"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Invoice No <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Enter Invoice No"
-                      className="bg-white"
-                      value={formData.invoice_no}
-                      onChange={(e) => handleInputChange(e, "invoice_no")}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Invoice Date <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="date"
-                      value={formData.invoice_date}
-                      className="bg-white"
-                      onChange={(e) => handleInputChange(e, "invoice_date")}
-                    />
-                  </div>
-                  <div
-                    style={{ textAlign: "center" }}
-                    className="bg-white rounded-md"
-                  >
-                    <span style={{ fontSize: "12px" }}>
-                      {formData.branch_name}
-                    </span>
-                    <br />
-                    <span style={{ fontSize: "9px", display: "block" }}>
-                      {formData.branch_address}
-                    </span>
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Contract Ref. <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      className="bg-white"
-                      placeholder="Enter Contract Ref"
-                      value={formData.contract_ref}
-                      disabled
-                      onChange={(e) => handleInputChange(e, "contract_ref")}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Contract PONO. <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      className="bg-white"
-                      placeholder="Enter Contract PoNo"
-                      value={formData.contract_pono}
-                      onChange={(e) => handleInputChange(e, "contract_pono")}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Contract Date <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="date"
-                      className="bg-white"
-                      value={formData.contract_date}
-                      onChange={(e) => handleInputChange(e, "contract_date")}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Invoice Ref. <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Enter Invoice Ref"
-                      className="bg-white"
-                      value={formData.invoice_ref}
-                      disabled
-                      onChange={(e) => handleInputChange(e, "invoice_ref")}
-                    />
-                  </div>
-
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
@@ -1172,27 +1210,45 @@ const InvoiceAdd = () => {
                       placeholder="Select Containers/Size"
                     />
                   </div>
-
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        Product <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      key={formData.invoice_product}
+                      value={formData.invoice_product}
+                      onChange={(value) =>
+                        handleSelectChange("invoice_product", value)
+                      }
+                      options={
+                        productData?.product?.map((product) => ({
+                          value: product.product_name,
+                          label: product.product_name,
+                        })) || []
+                      }
+                      placeholder="Select Product"
+                    />
+                  </div>
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
                       Custom Des <span className="text-red-500">*</span>
                     </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
+
+                    <Input
+                      className="bg-white"
+                      value={formData.invoice_product_cust_des}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "invoice_product_cust_des",
+                          e.target.value
+                        )
                       }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
                     />
                   </div>
                   <div>
@@ -1235,106 +1291,6 @@ const InvoiceAdd = () => {
                     />
                   </div>
 
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Custom Des <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
-                      }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Precarriage
-                    </label>
-                    <Input
-                      type="text"
-                      className="bg-white"
-                      placeholder="Enter Precarriage"
-                      value={formData.invoice_precarriage}
-                      onChange={(e) =>
-                        handleInputChange(e, "invoice_precarriage")
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Containers/Size <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.invoice_container_size}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_container_size", value)
-                      }
-                      options={
-                        containerSizeData?.containerSize?.map(
-                          (containerSize) => ({
-                            value: containerSize.containerSize,
-                            label: containerSize.containerSize,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Containers/Size"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Custom Des <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
-                      }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Precarriage
-                    </label>
-                    <Input
-                      type="text"
-                      className="bg-white"
-                      placeholder="Enter Precarriage"
-                      value={formData.invoice_precarriage}
-                      onChange={(e) =>
-                        handleInputChange(e, "invoice_precarriage")
-                      }
-                    />
-                  </div>
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
@@ -1391,12 +1347,10 @@ const InvoiceAdd = () => {
                         handleSelectChange("invoice_payment_terms", value)
                       }
                       options={
-                        paymentTermsData?.paymentTermsC?.map(
-                          (paymentTermsC) => ({
-                            value: paymentTermsC.paymentTermsC,
-                            label: paymentTermsC.paymentTermsC,
-                          })
-                        ) || []
+                        paymentTermsData?.paymentTerms?.map((paymentTerms) => ({
+                          value: paymentTerms.paymentTerms,
+                          label: paymentTerms.paymentTerms_short,
+                        })) || []
                       }
                       placeholder="Select Payment Terms"
                     />
@@ -1425,9 +1379,9 @@ const InvoiceAdd = () => {
                     </label>
                     <Input
                       className="bg-white"
-                      value={formData.contract_qty_inmt}
+                      value={formData.invoice_qty_inmt}
                       onChange={(e) =>
-                        handleInputChange("contract_qty_inmt", e.target.value)
+                        handleInputChange("invoice_qty_inmt", e.target.value)
                       }
                     />
                   </div>
@@ -1440,15 +1394,16 @@ const InvoiceAdd = () => {
                     <Input
                       type="date"
                       className="bg-white"
-                      value={formData.contract_validity}
+                      value={formData.invoice_validity}
                       onChange={(e) =>
-                        handleInputChange("contract_validity", e.target.value)
+                        handleInputChange("invoice_validity", e.target.value)
                       }
                     />
                   </div>
+
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
                       <span>
                         {" "}
@@ -1456,9 +1411,9 @@ const InvoiceAdd = () => {
                       </span>
                     </label>
                     <MemoizedSelect
-                      value={formData.contract_marking}
+                      value={formData.invoice_marking}
                       onChange={(value) =>
-                        handleSelectChange("contract_marking", value)
+                        handleSelectChange("invoice_marking", value)
                       }
                       options={
                         markingData?.marking?.map((marking) => ({
@@ -1477,9 +1432,9 @@ const InvoiceAdd = () => {
                     </label>
 
                     <MemoizedSelect
-                      value={formData.contract_insurance}
+                      value={formData.invoice_insurance}
                       onChange={(value) =>
-                        handleSelectChange("contract_insurance", value)
+                        handleSelectChange("invoice_insurance", value)
                       }
                       options={
                         Insurance?.map((insurance) => ({
@@ -1498,9 +1453,9 @@ const InvoiceAdd = () => {
                     </label>
                     <MemoizedSelect
                       className="bg-white"
-                      value={formData.contract_pack_type}
+                      value={formData.invoice_pack_type}
                       onChange={(value) =>
-                        handleSelectChange("contract_pack_type", value)
+                        handleSelectChange("invoice_pack_type", value)
                       }
                       options={
                         bagTypeData?.bagType?.map((bagType) => ({
@@ -1519,12 +1474,13 @@ const InvoiceAdd = () => {
                     </label>
                     <Input
                       className="bg-white"
-                      value={formData.contract_packing}
+                      value={formData.invoice_packing}
                       onChange={(e) =>
-                        handleInputChange("contract_packing", e.target.value)
+                        handleInputChange("invoice_packing", e.target.value)
                       }
                     />
                   </div>
+
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
@@ -1533,9 +1489,9 @@ const InvoiceAdd = () => {
                     </label>
                     <MemoizedSelect
                       className="bg-white"
-                      value={formData.contract_currency}
+                      value={formData.invoice_currency}
                       onChange={(value) =>
-                        handleSelectChange("contract_currency", value)
+                        handleSelectChange("invoice_currency", value)
                       }
                       options={
                         Currency?.map((Currency) => ({
@@ -1548,15 +1504,15 @@ const InvoiceAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                     >
                       <span>Sigin</span>
                     </label>
                     <MemoizedSelect
                       className="bg-white"
-                      value={formData.contract_sign}
+                      value={formData.invoice_sign}
                       onChange={(value) =>
-                        handleSelectChange("contract_sign", value)
+                        handleSelectChange("invoice_sign", value)
                       }
                       options={
                         siginData?.branch?.map((sigin) => ({
@@ -1575,9 +1531,9 @@ const InvoiceAdd = () => {
                     </label>
                     <Input
                       className="bg-white"
-                      value={formData.contract_position}
+                      value={formData.invoice_position}
                       onChange={(e) =>
-                        handleInputChange("contract_position", e.target.value)
+                        handleInputChange("invoice_position", e.target.value)
                       }
                     />
                   </div>
@@ -1585,8 +1541,15 @@ const InvoiceAdd = () => {
               </div>
 
               <div className="mb-6">
-                <div className="mb-2">
-                  <h2 className="text-base font-semibold">Products</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-semibold text-gray-800">
+                    Products
+                  </h2>
+
+                  <GenerateCTN
+                    invoiceData={invoiceData}
+                    setInvoiceData={setInvoiceData}
+                  />
                 </div>
 
                 <div className="overflow-x-auto border rounded max-h-[34rem] overflow-y-auto">
@@ -1595,11 +1558,12 @@ const InvoiceAdd = () => {
                       <TableRow className="bg-gray-100">
                         {[
                           "Item (Code - Desc)",
-                          "Packing",
+                          "Pack",
                           "Mes",
                           "Unit",
                           "Rate",
                           "Carton",
+                          "Packing",
                           "Ct No",
                         ].map((title, i) => (
                           <TableHead
@@ -1736,6 +1700,21 @@ const InvoiceAdd = () => {
                           </TableCell>
                           <TableCell className="p-1 border w-24">
                             <Input
+                              value={row.invoiceSub_packings}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "invoiceSub_packings",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Packing"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          <TableCell className="p-1 border w-24">
+                            <Input
                               value={row.invoiceSub_ct}
                               onChange={(e) =>
                                 handleRowDataChange(
@@ -1780,16 +1759,27 @@ const InvoiceAdd = () => {
             </div>
           </CardContent>
         </Card>
-
         <div className="flex items-center justify-end  gap-2">
-          {createInvoiceMutation.isPending && <ProgressBar progress={70} />}
+          {loading && <ProgressBar progress={70} />}
           <Button
             type="submit"
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={submitLoading}
+            disabled={loading}
+            className={`mt-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} $`}
           >
-            {submitLoading ? "Creating..." : "Create & Exit"}
-          </Button>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : isEditMode ? (
+              "Update Invoice"
+            ) : (
+              "Create Invoice"
+            )}
+            {loading && (
+              <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
+            )}
+          </Button>{" "}
         </div>
       </form>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
