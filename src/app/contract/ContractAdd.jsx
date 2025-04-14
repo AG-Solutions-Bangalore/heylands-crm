@@ -53,180 +53,8 @@ import Status from "../../components/json/contractstatus.json";
 import Page from "../dashboard/page";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import DeleteContract from "./DeleteContract";
-
-const MemoizedSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronDown className="h-4 w-4 mr-3 text-gray-500" />
-        </div>
-      );
-    };
-
-    return (
-      <Select
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-      />
-    );
-  }
-);
-
-const MemoizedProductSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronDown className="h-4 w-4 mr-3 text-gray-500" />
-        </div>
-      );
-    };
-
-    return (
-      <Select
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-        menuPortalTarget={document.body}
-        menuPosition="fixed"
-      />
-    );
-  }
-);
+import MemoizedSelect from "@/components/common/MemoizedSelect";
+import MemoizedProductSelect from "@/components/common/MemoizedProductSelect";
 
 const ContractAdd = () => {
   const { toast } = useToast();
@@ -451,7 +279,7 @@ const ContractAdd = () => {
               updated.contract_no &&
               updated.contract_year
             ) {
-              updated.contract_ref = `${selectedCompanySort.branch_name_short}${updated.contract_no}/${updated.contract_year}`;
+              updated.contract_ref = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
               updated.contract_pono = `${selectedCompanySort.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
             }
           }
@@ -469,7 +297,7 @@ const ContractAdd = () => {
               (buyer) => buyer.buyer_name === updated.contract_buyer
             );
             if (selectedBuyer && updated.contract_no && updated.contract_year) {
-              updated.contract_ref = `${selectedBranch.branch_name_short}${updated.contract_no}/${updated.contract_year}`;
+              updated.contract_ref = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
               updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${updated.contract_year}`;
             }
           }
@@ -483,7 +311,7 @@ const ContractAdd = () => {
             (branch) => branch.branch_short === updated.branch_short
           );
           if (selectedBuyer && selectedBranch && updated.contract_year) {
-            updated.contract_ref = `${selectedBranch.branch_name_short}${value}/${updated.contract_year}`;
+            updated.contract_ref = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${value}/${updated.contract_year}`;
             updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${value}/${updated.contract_year}`;
           }
         }
@@ -496,7 +324,7 @@ const ContractAdd = () => {
             (branch) => branch.branch_short === updated.branch_short
           );
           if (selectedBuyer && selectedBranch && updated.contract_no) {
-            updated.contract_ref = `${selectedBranch.branch_name_short}${updated.contract_no}/${value}`;
+            updated.contract_ref = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${value}`;
             updated.contract_pono = `${selectedBranch.branch_name_short}/${selectedBuyer.buyer_sort}/${updated.contract_no}/${value}`;
           }
         }
@@ -787,7 +615,6 @@ const ContractAdd = () => {
     return <LoaderComponent name="Contract Data" />;
   }
 
-  console.log(formData.contract_ref, "formData.contract_ref");
   return (
     <Page>
       <form
@@ -798,779 +625,768 @@ const ContractAdd = () => {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="mb-0">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Company <span className="text-red-500">*</span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.branch_short}
-                        onChange={(value) =>
-                          handleSelectChange("branch_short", value)
-                        }
-                        options={
-                          branchData?.branch?.map((branch) => ({
-                            value: branch.branch_short,
-                            label: branch.branch_short,
-                          })) || []
-                        }
-                        placeholder="Select Company"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
-                      >
-                        <span>
-                          Buyer <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_buyer}
-                        onChange={(value) =>
-                          handleSelectChange("contract_buyer", value)
-                        }
-                        options={
-                          buyerData?.buyer?.map((buyer) => ({
-                            value: buyer.buyer_name,
-                            label: buyer.buyer_name,
-                          })) || []
-                        }
-                        placeholder="Select Buyer"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
-                      >
-                        <span>
-                          {" "}
-                          Consignee <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_consignee}
-                        onChange={(value) =>
-                          handleSelectChange("contract_consignee", value)
-                        }
-                        options={
-                          buyerData?.buyer?.map((buyer) => ({
-                            value: buyer.buyer_name,
-                            label: buyer.buyer_name,
-                          })) || []
-                        }
-                        placeholder="Select Consignee"
-                      />
-                    </div>
-                    <div
-                      style={{ textAlign: "center" }}
-                      className="bg-white rounded-md"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
-                      <span style={{ fontSize: "12px" }}>
-                        {formData.branch_name}
+                      Company <span className="text-red-500">*</span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.branch_short}
+                      onChange={(value) =>
+                        handleSelectChange("branch_short", value)
+                      }
+                      options={
+                        branchData?.branch?.map((branch) => ({
+                          value: branch.branch_short,
+                          label: branch.branch_short,
+                        })) || []
+                      }
+                      placeholder="Select Company"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        Buyer <span className="text-red-500">*</span>
                       </span>
-                      <br />
-                      <span style={{ fontSize: "9px", display: "block" }}>
-                        {formData.branch_address}
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_buyer}
+                      onChange={(value) =>
+                        handleSelectChange("contract_buyer", value)
+                      }
+                      options={
+                        buyerData?.buyer?.map((buyer) => ({
+                          value: buyer.buyer_name,
+                          label: buyer.buyer_name,
+                        })) || []
+                      }
+                      placeholder="Select Buyer"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                    >
+                      <span>
+                        {" "}
+                        Consignee <span className="text-red-500">*</span>
                       </span>
-                    </div>
-                    <div>
-                      <Textarea
-                        type="text"
-                        placeholder="Enter Buyer Address"
-                        value={formData.contract_buyer_add}
-                        className=" text-[9px] bg-white border-none hover:border-none "
-                        onChange={(e) =>
-                          handleInputChange(
-                            "contract_buyer_add",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Textarea
-                        type="text"
-                        placeholder="Enter Consignee Address"
-                        className=" text-[9px] bg-white border-none hover:border-none"
-                        value={formData.contract_consignee_add}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "contract_consignee_add",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_consignee}
+                      onChange={(value) =>
+                        handleSelectChange("contract_consignee", value)
+                      }
+                      options={
+                        buyerData?.buyer?.map((buyer) => ({
+                          value: buyer.buyer_name,
+                          label: buyer.buyer_name,
+                        })) || []
+                      }
+                      placeholder="Select Consignee"
+                    />
+                  </div>
+                  <div
+                    style={{ textAlign: "center" }}
+                    className="bg-white rounded-md"
+                  >
+                    <span style={{ fontSize: "12px" }}>
+                      {formData.branch_name}
+                    </span>
+                    <br />
+                    <span style={{ fontSize: "9px", display: "block" }}>
+                      {formData.branch_address}
+                    </span>
+                  </div>
+                  <div>
+                    <Textarea
+                      type="text"
+                      placeholder="Enter Buyer Address"
+                      value={formData.contract_buyer_add}
+                      className=" text-[9px] bg-white border-none hover:border-none "
+                      onChange={(e) =>
+                        handleInputChange("contract_buyer_add", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Textarea
+                      type="text"
+                      placeholder="Enter Consignee Address"
+                      className=" text-[9px] bg-white border-none hover:border-none"
+                      value={formData.contract_consignee_add}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "contract_consignee_add",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Contract Date <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="date"
+                      value={formData.contract_date}
+                      className="bg-white"
+                      onChange={(e) =>
+                        handleInputChange("contract_date", e.target.value)
+                      }
+                    />
+                  </div>
+                  {!isEditMode ? (
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                       >
-                        Contract Date <span className="text-red-500">*</span>
+                        Contract No <span className="text-red-500">*</span>
                       </label>
-                      <Input
-                        type="date"
-                        value={formData.contract_date}
-                        className="bg-white"
-                        onChange={(e) =>
-                          handleInputChange("contract_date", e.target.value)
+                      <MemoizedSelect
+                        value={formData?.contract_no}
+                        onChange={(value) =>
+                          handleSelectChange("contract_no", value)
                         }
+                        options={
+                          contractNoData?.contractNo?.map((contractNos) => ({
+                            value: contractNos,
+                            label: contractNos,
+                          })) || []
+                        }
+                        placeholder="Select Contract No"
                       />
                     </div>
-                    {!isEditMode ? (
-                      <div>
-                        <label
-                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                        >
-                          Contract No <span className="text-red-500">*</span>
-                        </label>
-                        <MemoizedSelect
-                          value={formData?.contract_no}
-                          onChange={(value) =>
-                            handleSelectChange("contract_no", value)
-                          }
-                          options={
-                            contractNoData?.contractNo?.map((contractNos) => ({
-                              value: contractNos,
-                              label: contractNos,
-                            })) || []
-                          }
-                          placeholder="Select Contract No"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label
-                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                        >
-                          Contract No <span className="text-red-500">*</span>
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Enter  Contract No "
-                          value={formData.contract_no}
-                          disabled
-                          className="bg-white"
-                          onChange={(e) =>
-                            handleInputChange("contract_no", e.target.value)
-                          }
-                        />
-                      </div>
-                    )}
+                  ) : (
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                       >
-                        Contract Ref. <span className="text-red-500">*</span>
+                        Contract No <span className="text-red-500">*</span>
                       </label>
                       <Input
                         type="text"
-                        placeholder="Enter Contract Ref"
-                        value={formData.contract_ref}
-                        key={formData.contract_ref}
+                        placeholder="Enter  Contract No "
+                        value={formData.contract_no}
                         disabled
                         className="bg-white"
                         onChange={(e) =>
-                          handleInputChange("contract_ref", e.target.value)
+                          handleInputChange("contract_no", e.target.value)
                         }
                       />
                     </div>
+                  )}
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Contract Ref. <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter Contract Ref"
+                      value={formData.contract_ref}
+                      key={formData.contract_ref}
+                      disabled
+                      className="bg-white"
+                      onChange={(e) =>
+                        handleInputChange("contract_ref", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Order Type <span className="text-red-500">*</span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_order_type}
+                      onChange={(value) =>
+                        handleSelectChange("contract_order_type", value)
+                      }
+                      options={
+                        OrderTypeData?.orderType?.map((OrderType) => ({
+                          value: OrderType.order_type,
+                          label: OrderType.order_type,
+                        })) || []
+                      }
+                      placeholder="Select OrderType"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Contract PONO. <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter Contract PoNo"
+                      value={formData.contract_pono}
+                      className="bg-white"
+                      onChange={(e) =>
+                        handleInputChange("contract_pono", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Containers/Size <span className="text-red-500">*</span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_container_size}
+                      onChange={(value) =>
+                        handleSelectChange("contract_container_size", value)
+                      }
+                      options={
+                        containerSizeData?.containerSize?.map(
+                          (containerSize) => ({
+                            value: containerSize.containerSize,
+                            label: containerSize.containerSize,
+                          })
+                        ) || []
+                      }
+                      placeholder="Select Containers/Size"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                    >
+                      <span>
+                        Product <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_product}
+                      onChange={(value) =>
+                        handleSelectChange("contract_product", value)
+                      }
+                      options={
+                        productData?.product?.map((product) => ({
+                          value: product.product_name,
+                          label: product.product_name,
+                        })) || []
+                      }
+                      placeholder="Select Product"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        {" "}
+                        Port of Loading <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_loading_port}
+                      onChange={(value) =>
+                        handleSelectChange("contract_loading_port", value)
+                      }
+                      options={
+                        portofLoadingData?.portofLoading?.map(
+                          (portofLoading) => ({
+                            value: portofLoading.portofLoading,
+                            label: portofLoading.portofLoading,
+                          })
+                        ) || []
+                      }
+                      placeholder="Select Port of Loading"
+                    />
+                  </div>{" "}
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                    >
+                      <span>
+                        {" "}
+                        Country <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_loading_country}
+                      onChange={(value) =>
+                        handleSelectChange("contract_loading_country", value)
+                      }
+                      options={
+                        countryData?.country?.map((country) => ({
+                          value: country.country_name,
+                          label: country.country_name,
+                        })) || []
+                      }
+                      placeholder="Select Dest. Country"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        {" "}
+                        Destination Port <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_destination_port}
+                      onChange={(value) =>
+                        handleSelectChange("contract_destination_port", value)
+                      }
+                      options={
+                        portsData?.country?.map((country) => ({
+                          value: country.country_port,
+                          label: country.country_port,
+                        })) || []
+                      }
+                      placeholder="Select Destination Port"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                    >
+                      <span>
+                        {" "}
+                        Dest. Country <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_destination_country}
+                      onChange={(value) =>
+                        handleSelectChange(
+                          "contract_destination_country",
+                          value
+                        )
+                      }
+                      options={
+                        countryData?.country?.map((country) => ({
+                          value: country.country_name,
+                          label: country.country_name,
+                        })) || []
+                      }
+                      placeholder="Select Dest. Country"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
+                    >
+                      <span>Payment Terms</span>
+                    </label>
+                    <MemoizedSelect
+                      className="bg-white"
+                      value={formData.contract_payment_terms}
+                      onChange={(value) =>
+                        handleSelectChange("contract_payment_terms", value)
+                      }
+                      options={
+                        paymentTermsData?.paymentTerms?.map((paymentTerms) => ({
+                          value: paymentTerms.paymentTerms,
+                          label: paymentTerms.paymentTerms_short,
+                        })) || []
+                      }
+                      placeholder="Select Payment Terms"
+                    />
+                  </div>
+                  <div>
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                       >
-                        Order Type <span className="text-red-500">*</span>
+                        Delivery Terms
                       </label>
-                      <MemoizedSelect
-                        value={formData.contract_order_type}
-                        onChange={(value) =>
-                          handleSelectChange("contract_order_type", value)
-                        }
-                        options={
-                          OrderTypeData?.orderType?.map((OrderType) => ({
-                            value: OrderType.order_type,
-                            label: OrderType.order_type,
-                          })) || []
-                        }
-                        placeholder="Select OrderType"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract PONO. <span className="text-red-500">*</span>
-                      </label>
-                      <Input
+                      <Textarea
                         type="text"
-                        placeholder="Enter Contract PoNo"
-                        value={formData.contract_pono}
                         className="bg-white"
+                        placeholder="Enter Remarks"
+                        value={formData.contract_delivery_terms}
                         onChange={(e) =>
-                          handleInputChange("contract_pono", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Containers/Size <span className="text-red-500">*</span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_container_size}
-                        onChange={(value) =>
-                          handleSelectChange("contract_container_size", value)
-                        }
-                        options={
-                          containerSizeData?.containerSize?.map(
-                            (containerSize) => ({
-                              value: containerSize.containerSize,
-                              label: containerSize.containerSize,
-                            })
-                          ) || []
-                        }
-                        placeholder="Select Containers/Size"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
-                      >
-                        <span>
-                          Product <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_product}
-                        onChange={(value) =>
-                          handleSelectChange("contract_product", value)
-                        }
-                        options={
-                          productData?.product?.map((product) => ({
-                            value: product.product_name,
-                            label: product.product_name,
-                          })) || []
-                        }
-                        placeholder="Select Product"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
-                      >
-                        <span>
-                          {" "}
-                          Port of Loading{" "}
-                          <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_loading_port}
-                        onChange={(value) =>
-                          handleSelectChange("contract_loading_port", value)
-                        }
-                        options={
-                          portofLoadingData?.portofLoading?.map(
-                            (portofLoading) => ({
-                              value: portofLoading.portofLoading,
-                              label: portofLoading.portofLoading,
-                            })
-                          ) || []
-                        }
-                        placeholder="Select Port of Loading"
-                      />
-                    </div>{" "}
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
-                      >
-                        <span>
-                          {" "}
-                          Country <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_loading_country}
-                        onChange={(value) =>
-                          handleSelectChange("contract_loading_country", value)
-                        }
-                        options={
-                          countryData?.country?.map((country) => ({
-                            value: country.country_name,
-                            label: country.country_name,
-                          })) || []
-                        }
-                        placeholder="Select Dest. Country"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
-                      >
-                        <span>
-                          {" "}
-                          Destination Port{" "}
-                          <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_destination_port}
-                        onChange={(value) =>
-                          handleSelectChange("contract_destination_port", value)
-                        }
-                        options={
-                          portsData?.country?.map((country) => ({
-                            value: country.country_port,
-                            label: country.country_port,
-                          })) || []
-                        }
-                        placeholder="Select Destination Port"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
-                      >
-                        <span>
-                          {" "}
-                          Dest. Country <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_destination_country}
-                        onChange={(value) =>
-                          handleSelectChange(
-                            "contract_destination_country",
-                            value
+                          handleInputChange(
+                            "contract_delivery_terms",
+                            e.target.value
                           )
                         }
-                        options={
-                          countryData?.country?.map((country) => ({
-                            value: country.country_name,
-                            label: country.country_name,
-                          })) || []
-                        }
-                        placeholder="Select Dest. Country"
                       />
                     </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
-                      >
-                        <span>Payment Terms</span>
-                      </label>
-                      <MemoizedSelect
-                        className="bg-white"
-                        value={formData.contract_payment_terms}
-                        onChange={(value) =>
-                          handleSelectChange("contract_payment_terms", value)
-                        }
-                        options={
-                          paymentTermsData?.paymentTerms?.map(
-                            (paymentTerms) => ({
-                              value: paymentTerms.paymentTerms,
-                              label: paymentTerms.paymentTerms_short,
-                            })
-                          ) || []
-                        }
-                        placeholder="Select Payment Terms"
-                      />
-                    </div>
-                    <div>
-                      <div>
-                        <label
-                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                        >
-                          Delivery Terms
-                        </label>
-                        <Textarea
-                          type="text"
-                          className="bg-white"
-                          placeholder="Enter Remarks"
-                          value={formData.contract_delivery_terms}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "contract_delivery_terms",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Quantity INMT
-                      </label>
-                      <Input
-                        className="bg-white"
-                        value={formData.contract_qty_inmt}
-                        onChange={(e) =>
-                          handleInputChange("contract_qty_inmt", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Validatity
-                      </label>
-                      <Input
-                        type="date"
-                        className="bg-white"
-                        value={formData.contract_validity}
-                        onChange={(e) =>
-                          handleInputChange("contract_validity", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                      >
-                        <span>
-                          {" "}
-                          Marking <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_marking}
-                        onChange={(value) =>
-                          handleSelectChange("contract_marking", value)
-                        }
-                        options={
-                          markingData?.marking?.map((marking) => ({
-                            value: marking.marking,
-                            label: marking.marking,
-                          })) || []
-                        }
-                        placeholder="Select Marking"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                      >
-                        Insurance <span className="text-red-500">*</span>
-                      </label>
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Quantity INMT
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.contract_qty_inmt}
+                      onChange={(e) =>
+                        handleInputChange("contract_qty_inmt", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Validatity
+                    </label>
+                    <Input
+                      type="date"
+                      className="bg-white"
+                      value={formData.contract_validity}
+                      onChange={(e) =>
+                        handleInputChange("contract_validity", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      <span>
+                        {" "}
+                        Marking <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.contract_marking}
+                      onChange={(value) =>
+                        handleSelectChange("contract_marking", value)
+                      }
+                      options={
+                        markingData?.marking?.map((marking) => ({
+                          value: marking.marking,
+                          label: marking.marking,
+                        })) || []
+                      }
+                      placeholder="Select Marking"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Insurance <span className="text-red-500">*</span>
+                    </label>
 
-                      <MemoizedSelect
-                        value={formData.contract_insurance}
-                        onChange={(value) =>
-                          handleSelectChange("contract_insurance", value)
-                        }
-                        options={
-                          Insurance?.map((insurance) => ({
-                            value: insurance.value,
-                            label: insurance.label,
-                          })) || []
-                        }
-                        placeholder="Select Insurance"
-                      />
-                    </div>
+                    <MemoizedSelect
+                      value={formData.contract_insurance}
+                      onChange={(value) =>
+                        handleSelectChange("contract_insurance", value)
+                      }
+                      options={
+                        Insurance?.map((insurance) => ({
+                          value: insurance.value,
+                          label: insurance.label,
+                        })) || []
+                      }
+                      placeholder="Select Insurance"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      <span>Packing Type</span>
+                    </label>
+                    <MemoizedSelect
+                      className="bg-white"
+                      value={formData.contract_pack_type}
+                      onChange={(value) =>
+                        handleSelectChange("contract_pack_type", value)
+                      }
+                      options={
+                        bagTypeData?.bagType?.map((bagType) => ({
+                          value: bagType.bagType,
+                          label: bagType.bagType,
+                        })) || []
+                      }
+                      placeholder="Select Packing Type"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Packing
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.contract_packing}
+                      onChange={(e) =>
+                        handleInputChange("contract_packing", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      <span>Currency</span>
+                    </label>
+                    <MemoizedSelect
+                      className="bg-white"
+                      value={formData.contract_currency}
+                      onChange={(value) =>
+                        handleSelectChange("contract_currency", value)
+                      }
+                      options={
+                        Currency?.map((Currency) => ({
+                          value: Currency.value,
+                          label: Currency.label,
+                        })) || []
+                      }
+                      placeholder="Select Packing Type"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
+                    >
+                      <span>Sigin</span>
+                    </label>
+                    <MemoizedSelect
+                      className="bg-white"
+                      value={formData.contract_sign}
+                      onChange={(value) =>
+                        handleSelectChange("contract_sign", value)
+                      }
+                      options={
+                        siginData?.branch?.map((sigin) => ({
+                          value: sigin.branch_sign,
+                          label: sigin.branch_sign,
+                        })) || []
+                      }
+                      placeholder="Select Sigin"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Position
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.contract_position}
+                      onChange={(e) =>
+                        handleInputChange("contract_position", e.target.value)
+                      }
+                    />
+                  </div>
+                  {isEditMode && (
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                       >
-                        <span>Packing Type</span>
+                        <span>Status</span>
                       </label>
                       <MemoizedSelect
                         className="bg-white"
-                        value={formData.contract_pack_type}
+                        value={formData.contract_status}
                         onChange={(value) =>
-                          handleSelectChange("contract_pack_type", value)
+                          handleSelectChange("contract_status", value)
                         }
                         options={
-                          bagTypeData?.bagType?.map((bagType) => ({
-                            value: bagType.bagType,
-                            label: bagType.bagType,
-                          })) || []
-                        }
-                        placeholder="Select Packing Type"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                      >
-                        Packing
-                      </label>
-                      <Input
-                        className="bg-white"
-                        value={formData.contract_packing}
-                        onChange={(e) =>
-                          handleInputChange("contract_packing", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                      >
-                        <span>Currency</span>
-                      </label>
-                      <MemoizedSelect
-                        className="bg-white"
-                        value={formData.contract_currency}
-                        onChange={(value) =>
-                          handleSelectChange("contract_currency", value)
-                        }
-                        options={
-                          Currency?.map((Currency) => ({
-                            value: Currency.value,
-                            label: Currency.label,
-                          })) || []
-                        }
-                        placeholder="Select Packing Type"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
-                      >
-                        <span>Sigin</span>
-                      </label>
-                      <MemoizedSelect
-                        className="bg-white"
-                        value={formData.contract_sign}
-                        onChange={(value) =>
-                          handleSelectChange("contract_sign", value)
-                        }
-                        options={
-                          siginData?.branch?.map((sigin) => ({
-                            value: sigin.branch_sign,
-                            label: sigin.branch_sign,
+                          Status?.map((status) => ({
+                            value: status.value,
+                            label: status.label,
                           })) || []
                         }
                         placeholder="Select Sigin"
                       />
                     </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                      >
-                        Position
-                      </label>
-                      <Input
-                        className="bg-white"
-                        value={formData.contract_position}
-                        onChange={(e) =>
-                          handleInputChange("contract_position", e.target.value)
-                        }
-                      />
-                    </div>
-                    {isEditMode && (
-                      <div>
-                        <label
-                          className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                        >
-                          <span>Status</span>
-                        </label>
-                        <MemoizedSelect
-                          className="bg-white"
-                          value={formData.contract_status}
-                          onChange={(value) =>
-                            handleSelectChange("contract_status", value)
-                          }
-                          options={
-                            Status?.map((status) => ({
-                              value: status.value,
-                              label: status.label,
-                            })) || []
-                          }
-                          placeholder="Select Sigin"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
 
-              <div className="mb-6">
-                <div className="mb-4">
-                  <div className="mb-2">
-                    <h2 className="text-base font-semibold">Products</h2>
-                  </div>
+              <div className="mb-4">
+                <div className="mb-2">
+                  <h2 className="text-base font-semibold">Products</h2>
+                </div>
 
-                  <div className="overflow-x-auto border rounded max-h-[34rem] overflow-y-auto">
-                    <Table className="text-xs">
-                      <TableHeader>
-                        <TableRow className="bg-gray-100">
-                          {[
-                            "Item (Code - Desc)",
-                            "Packing",
-                            "Mes",
-                            "Unit",
-                            "Rate",
-                            "Carton",
-                          ].map((title, i) => (
-                            <TableHead
-                              key={i}
-                              className="p-1 text-center border font-medium whitespace-nowrap"
-                            >
-                              {title}
-                            </TableHead>
-                          ))}
-
-                          <TableHead className="p-1 text-center border font-medium whitespace-nowrap">
-                            <Button
-                              type="button"
-                              onClick={addRow}
-                              className={`h-8 px-3 text-xs flex items-center gap-1 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                            >
-                              <PlusCircle className="h-4 w-4" />
-                            </Button>
+                <div className="overflow-x-auto border rounded max-h-[34rem] overflow-y-auto">
+                  <Table className="text-xs">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        {[
+                          "Item (Code - Desc)",
+                          "Packing",
+                          "Mes",
+                          "Unit",
+                          "Rate",
+                          "Carton",
+                        ].map((title, i) => (
+                          <TableHead
+                            key={i}
+                            className="p-1 text-center border font-medium whitespace-nowrap"
+                          >
+                            {title}
                           </TableHead>
-                        </TableRow>
-                      </TableHeader>
-
-                      <TableBody>
-                        {contractData.map((row, rowIndex) => (
-                          <TableRow key={rowIndex} className="hover:bg-gray-50">
-                            {/* Item Code + Desc */}
-                            <TableCell className="p-1 border w-60">
-                              <MemoizedProductSelect
-                                value={row.contractSub_item_code}
-                                onChange={(value) => {
-                                  const selected = itemData?.item?.find(
-                                    (i) => i.item_code === value
-                                  );
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_code",
-                                    value
-                                  );
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_description",
-                                    selected?.item_description || ""
-                                  );
-                                }}
-                                options={
-                                  itemData?.item?.map((i) => ({
-                                    value: i.item_code,
-                                    label: `${i.item_code} - ${i.item_description}`,
-                                  })) || []
-                                }
-                                placeholder="Item"
-                              />
-                            </TableCell>
-
-                            {/* Packing */}
-                            <TableCell className="p-1 border w-32">
-                              <Input
-                                value={row.contractSub_item_packing}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_packing",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Pack"
-                                className="bg-white h-8 px-2"
-                              />
-                            </TableCell>
-
-                            {/* Measurement (e.g., Nos) */}
-                            <TableCell className="p-1 border w-28">
-                              {" "}
-                              <Input
-                                value={row.contractSub_item_packing_unit}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_packing_unit",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Mes"
-                                className="bg-white h-8 px-2"
-                              />
-                            </TableCell>
-
-                            {/* Unit */}
-                            <TableCell className="p-1 border w-24">
-                              <Input
-                                value={row.contractSub_item_packing_no}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_packing_no",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Unit"
-                                className="bg-white h-8 px-2"
-                              />
-                            </TableCell>
-
-                            {/* Rate */}
-                            <TableCell className="p-1 border w-24">
-                              <Input
-                                value={row.contractSub_item_rate_per_pc}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_item_rate_per_pc",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Rate"
-                                className="bg-white h-8 px-2"
-                              />
-                            </TableCell>
-
-                            {/* Carton */}
-                            <TableCell className="p-1 border w-24">
-                              <Input
-                                value={row.contractSub_ctns}
-                                onChange={(e) =>
-                                  handleRowDataChange(
-                                    rowIndex,
-                                    "contractSub_ctns",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Carton"
-                                className="bg-white h-8 px-2"
-                              />
-                            </TableCell>
-
-                            {/* Remove Button */}
-                            <TableCell className="p-1 border">
-                              {row.id ? (
-                                <Button
-                                  variant="ghost"
-                                  onClick={() => handleDeleteRow(row.id)}
-                                  className="text-red-500"
-                                  type="button"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  onClick={() => removeRow(rowIndex)}
-                                  disabled={contractData.length === 1}
-                                  className="text-red-500 "
-                                  type="button"
-                                >
-                                  <MinusCircle className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
                         ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+
+                        <TableHead className="p-1 text-center border font-medium whitespace-nowrap">
+                          <Button
+                            type="button"
+                            onClick={addRow}
+                            className={`h-8 px-3 text-xs flex items-center gap-1 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                          </Button>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {contractData.map((row, rowIndex) => (
+                        <TableRow key={rowIndex} className="hover:bg-gray-50">
+                          {/* Item Code + Desc */}
+                          <TableCell className="p-1 border w-60">
+                            <MemoizedProductSelect
+                              value={row.contractSub_item_code}
+                              onChange={(value) => {
+                                const selected = itemData?.item?.find(
+                                  (i) => i.item_code === value
+                                );
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_code",
+                                  value
+                                );
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_description",
+                                  selected?.item_description || ""
+                                );
+                              }}
+                              options={
+                                itemData?.item?.map((i) => ({
+                                  value: i.item_code,
+                                  label: `${i.item_code} - ${i.item_description}`,
+                                })) || []
+                              }
+                              placeholder="Item"
+                            />
+                          </TableCell>
+
+                          {/* Packing */}
+                          <TableCell className="p-1 border w-32">
+                            <Input
+                              value={row.contractSub_item_packing}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_packing",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Pack"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          {/* Measurement (e.g., Nos) */}
+                          <TableCell className="p-1 border w-28">
+                            {" "}
+                            <Input
+                              value={row.contractSub_item_packing_unit}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_packing_unit",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Mes"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          {/* Unit */}
+                          <TableCell className="p-1 border w-24">
+                            <Input
+                              value={row.contractSub_item_packing_no}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_packing_no",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Unit"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          {/* Rate */}
+                          <TableCell className="p-1 border w-24">
+                            <Input
+                              value={row.contractSub_item_rate_per_pc}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_item_rate_per_pc",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Rate"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          {/* Carton */}
+                          <TableCell className="p-1 border w-24">
+                            <Input
+                              value={row.contractSub_ctns}
+                              onChange={(e) =>
+                                handleRowDataChange(
+                                  rowIndex,
+                                  "contractSub_ctns",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Carton"
+                              className="bg-white h-8 px-2"
+                            />
+                          </TableCell>
+
+                          {/* Remove Button */}
+                          <TableCell className="p-1 border">
+                            {row.id ? (
+                              <Button
+                                variant="ghost"
+                                onClick={() => handleDeleteRow(row.id)}
+                                className="text-red-500"
+                                type="button"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                onClick={() => removeRow(rowIndex)}
+                                disabled={contractData.length === 1}
+                                className="text-red-500 "
+                                type="button"
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { ProgressBar } from "@/components/spinner/ProgressBar";
+import useApiToken from "@/components/common/useApiToken";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,84 +27,33 @@ import {
   useFetchBuyers,
   useFetchCompanys,
   useFetchContainerSizes,
+  useFetchContractRef,
   useFetchCountrys,
   useFetchItemData,
   useFetchMarkings,
   useFetchPaymentTerms,
   useFetchPortofLoadings,
   useFetchPorts,
+  useFetchPreReceipt,
+  useFetchProduct,
   useFetchSiginData,
 } from "@/hooks/useApi";
 import { useCurrentYear } from "@/hooks/useCurrentYear";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, MinusCircle, PlusCircle, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { z } from "zod";
 import Currency from "../../components/json/contractCurrency.json";
 import Insurance from "../../components/json/contractInsurance.json";
 import Page from "../dashboard/page";
 
-// Validation Schemas
-const productRowSchema = z.object({
-  invoiceSub_item_name: z.string().min(1, "Item name is required"),
-  invoiceSub_descriptionofGoods: z
-    .string()
-    .min(1, "Item Descriptions is required"),
-  invoiceSub_bagsize: z.number().min(1, "Gross Weight is required"),
-  invoiceSub_packing: z.number().min(1, "Packing is required"),
-
-  invoiceSub_item_bag: z.number().min(1, "Bag is required"),
-
-  invoiceSub_qntyInMt: z.number().min(1, "Quoted price is required"),
-  invoiceSub_rateMT: z.number().min(1, "Rate is required"),
-  invoiceSub_sbaga: z.string().min(1, "Bag Type is required"),
-  invoiceSub_marking: z.string().optional(),
-});
-
-const contractFormSchema = z.object({
-  branch_short: z.string().min(1, "Company Sort is required"),
-  branch_name: z.string().min(1, "Company Name is required"),
-  branch_address: z.string().min(1, "Company Address is required"),
-  invoice_year: z.string().optional(),
-  invoice_date: z.string().min(1, "Invoice date is required"),
-  invoice_no: z.string().min(1, "Invoice No is required"),
-  invoice_ref: z.string().min(1, "Invoice Ref is required"),
-  contract_date: z.string().min(1, "Contract Date is required"),
-  contract_ref: z.string().min(1, "Contract Ref is required"),
-  contract_pono: z.string().min(1, "PONO is required"),
-  invoice_buyer: z.string().min(1, "Buyer Name is required"),
-  invoice_buyer_add: z.string().min(1, "Buyer Address is required"),
-  invoice_product: z.string().min(1, "Product is required"),
-  invoice_consignee: z.string().min(1, "Consignee Name is required"),
-  invoice_consignee_add: z.string().min(1, "Consignee Address is required"),
-
-  invoice_container_size: z.string().min(1, "Containers/Size is required"),
-  invoice_loading: z.string().min(1, "Port of Loading is required"),
-  invoice_destination_port: z.string().min(1, "Destination Port is required"),
-  invoice_discharge: z.string().min(1, "Discharge is required"),
-  invoice_cif: z.string().min(1, "CIF is required"),
-  invoice_destination_country: z.string().min(1, "Dest. Country is required"),
-  invoice_payment_terms: z.string().optional(),
-  invoice_remarks: z.string().optional(),
-  invoice_prereceipts: z.string().min(1, "Pre Receipt is required"),
-  invoice_precarriage: z.string().optional(),
-  invoice_product_cust_des: z
-    .string()
-    .min(1, "Product Descriptions is required"),
-  invoice_gr_code: z.string().min(1, "GR Code is required"),
-  invoice_lut_code: z.string().min(1, "LUT Code is required"),
-  invoice_data: z
-    .array(productRowSchema)
-    .min(1, "At least one product is required"),
-});
-
 const fetchLUT = async (value) => {
+  const token = useApiToken();
+
   if (!value) {
     throw new Error("Invalid value provided");
   }
-  const token = localStorage.getItem("token");
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
@@ -120,12 +69,12 @@ const fetchLUT = async (value) => {
   if (!response.ok) throw new Error("Failed to fetch LUT data");
   return response.json();
 };
-const fetchContractData = async (value) => {
+const fetchContractData = async (value, token) => {
+  console.log(value, token, "by-ref");
   if (!value) {
     throw new Error("Invalid value provided");
   }
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
+  if (!token) throw new Error("No authentication token found in ref");
 
   const response = await fetch(`${BASE_URL}/api/panel-fetch-contract-by-ref`, {
     method: "POST",
@@ -140,7 +89,8 @@ const fetchContractData = async (value) => {
   return response.json();
 };
 const fetchGRCode = async (value) => {
-  const token = localStorage.getItem("token");
+  const token = useApiToken();
+
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(`${BASE_URL}/api/panel-fetch-grcode/${value}`, {
@@ -152,75 +102,6 @@ const fetchGRCode = async (value) => {
 
   if (!response.ok) throw new Error("Failed to fetch GR Code data");
 
-  return response.json();
-};
-
-const fetchPrereceipts = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-fetch-prereceipts`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch Product no data");
-  return response.json();
-};
-
-const fetchContractRef = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-fetch-contract-ref`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch Contract ref data");
-  return response.json();
-};
-
-const fetchProductCustomDescription = async (value) => {
-  if (!value) {
-    throw new Error("Invalid value provided");
-  }
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    `${BASE_URL}/api/panel-fetch-product-description/${value}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch Container Size no data");
-
-  return response.json();
-};
-
-const createInvoice = async (data) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/panel-create-invoice`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) throw new Error("Failed to create enquiry");
   return response.json();
 };
 
@@ -402,9 +283,8 @@ const MemoizedProductSelect = React.memo(
 const InvoiceAdd = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const token = useApiToken();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [saveAndViewLoading, setSaveAndViewLoading] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [invoiceData, setInvoiceData] = useState([
     {
@@ -449,6 +329,7 @@ const InvoiceAdd = () => {
     invoice_consignee: "",
     invoice_consignee_add: "",
     invoice_container_size: "",
+    invoice_product: "",
     invoice_product_cust_des: "",
     invoice_gr_code: "",
     invoice_lut_code: "",
@@ -485,7 +366,6 @@ const InvoiceAdd = () => {
 
   const checkInvoiceRef = async (invoiceRef) => {
     try {
-      const token = localStorage.getItem("token");
       if (!token) throw new Error("No authentication token found");
 
       const response = await fetch(`${BASE_URL}/api/panel-check-invoice-ref`, {
@@ -542,25 +422,9 @@ const InvoiceAdd = () => {
     },
     enabled: !!formData.branch_short,
   });
-
   const { data: grcodeData } = useQuery({
     queryKey: ["grCode", formData.invoice_product],
     queryFn: () => fetchGRCode(formData.invoice_product),
-    enabled: !!formData.invoice_product,
-  });
-  const { data: prereceiptsData } = useQuery({
-    queryKey: ["prereceipts"],
-    queryFn: fetchPrereceipts,
-  });
-
-  const { data: contractRefsData } = useQuery({
-    queryKey: ["contractRefs"],
-    queryFn: fetchContractRef,
-  });
-
-  const { data: productCustomDescriptionData } = useQuery({
-    queryKey: ["pCustomDescription", formData.invoice_product],
-    queryFn: () => fetchProductCustomDescription(formData.invoice_product),
     enabled: !!formData.invoice_product,
   });
 
@@ -575,39 +439,9 @@ const InvoiceAdd = () => {
   const { data: siginData } = useFetchSiginData();
   const { data: portsData } = useFetchPorts();
   const { data: itemData } = useFetchItemData();
-
-  const createInvoiceMutation = useMutation({
-    mutationFn: createInvoice,
-
-    onSuccess: (response) => {
-      if (response.code == 200) {
-        toast({
-          title: "Success",
-          description: response.msg,
-        });
-        navigate("/invoice");
-      } else if (response.code == 400) {
-        toast({
-          title: "Duplicate Entry",
-          description: response.msg,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Unexpected Response",
-          description: response.msg || "Something unexpected happened.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const { data: productData } = useFetchProduct();
+  const { data: prereceiptsData } = useFetchPreReceipt();
+  const { data: contractRefsData } = useFetchContractRef();
 
   const handleInputChange = (e, field) => {
     let value;
@@ -654,8 +488,10 @@ const InvoiceAdd = () => {
           }
         }
         if (field === "contract_ref") {
-          fetchContractData(value).then((data) => {
+          fetchContractData(value, token).then((data) => {
             const { contract, contractSub } = data;
+
+            // Update form data with contract details
             const updatedFormDataWithContract = {
               ...updatedFormData,
               branch_short: contract.branch_short,
@@ -668,12 +504,14 @@ const InvoiceAdd = () => {
               invoice_consignee: contract.contract_consignee,
               invoice_consignee_add: contract.contract_consignee_add,
               invoice_container_size: contract.contract_container_size,
-              invoice_loading: contract.contract_loading,
+              invoice_product: contract.contract_product,
               invoice_destination_port: contract.contract_destination_port,
+              invoice_discharge: contract.contract_discharge,
               invoice_cif: contract.contract_cif,
               invoice_destination_country:
                 contract.contract_destination_country,
               invoice_payment_terms: contract.contract_payment_terms,
+              invoice_remarks: contract.contract_remarks,
               invoice_product_cust_des: contract.contract_product_cust_des,
               invoice_gr_code: contract.contract_gr_code,
               invoice_lut_code: contract.contract_lut_code,
@@ -693,18 +531,30 @@ const InvoiceAdd = () => {
                 updatedFormDataWithContract.invoice_ref = invoiceRef;
               }
             }
+
+            // Update the form data state
             setFormData(updatedFormDataWithContract);
+
+            // Map and set invoice data
             const mappedInvoiceData = contractSub.map((sub) => ({
-              invoiceSub_item_bag: sub.contractSub_item_bag,
-              invoiceSub_item_name: sub.contractSub_item_name,
-              invoiceSub_marking: sub.contractSub_marking,
-              invoiceSub_descriptionofGoods: sub.contractSub_descriptionofGoods,
-              invoiceSub_packing: sub.contractSub_packing,
-              invoiceSub_bagsize: sub.contractSub_bagsize,
-              invoiceSub_qntyInMt: sub.contractSub_qntyInMt,
-              invoiceSub_rateMT: sub.contractSub_rateMT,
-              invoiceSub_sbaga: sub.contractSub_sbaga,
+              invoiceSub_item_code: sub.contractSub_item_code || "",
+              invoiceSub_item_description:
+                sub.contractSub_item_description || "",
+              invoiceSub_item_packing: sub.contractSub_item_packing || "",
+              invoiceSub_item_packing_unit:
+                sub.contractSub_item_packing_unit || "",
+              invoiceSub_item_packing_no: sub.contractSub_item_packing_no || "",
+              invoiceSub_item_rate_per_pc:
+                sub.contractSub_item_rate_per_pc || "",
+              invoiceSub_item_box_size: sub.contractSub_item_box_size || "",
+              invoiceSub_item_box_wt: sub.contractSub_item_box_wt || "",
+              invoiceSub_item_gross_wt: sub.contractSub_item_gross_wt || "",
+              invoiceSub_item_barcode: sub.contractSub_item_barcode || "",
+              invoiceSub_item_hsnCode: sub.contractSub_item_hsnCode || "",
+              invoiceSub_ctns: sub.contractSub_ctns || "",
+              invoiceSub_ct: "", // as there's no corresponding field in sub, default remains empty
             }));
+
             setInvoiceData(mappedInvoiceData);
           });
         }
@@ -739,18 +589,18 @@ const InvoiceAdd = () => {
       formData,
     ]
   );
-
+  //done
   const handleRowDataChange = useCallback(
     (rowIndex, field, value) => {
       const digitOnlyFields = [
-        "contractSub_ctns",
-        "contractSub_item_packing",
-        "contractSub_item_packing_no",
-        "contractSub_item_rate_per_pc",
-        "contractSub_item_box_size",
+        "invoiceSub_ctns",
+        "invoiceSub_item_packing",
+        "invoiceSub_item_packing_no",
+        "invoiceSub_item_rate_per_pc",
+        "invoiceSub_item_box_size",
       ];
 
-      if (field === "contractSub_item_code") {
+      if (field === "invoiceSub_item_code") {
         const selectedItem = itemData?.item?.find(
           (item) => item.item_code === value
         );
@@ -760,18 +610,18 @@ const InvoiceAdd = () => {
             const newData = [...prev];
             newData[rowIndex] = {
               ...newData[rowIndex],
-              contractSub_item_code: selectedItem.item_code || "",
-              contractSub_item_description: selectedItem.item_description || "",
-              contractSub_item_packing: selectedItem.item_packing || "",
-              contractSub_item_packing_unit:
+              invoiceSub_item_code: selectedItem.item_code || "",
+              invoiceSub_item_description: selectedItem.item_description || "",
+              invoiceSub_item_packing: selectedItem.item_packing || "",
+              invoiceSub_item_packing_unit:
                 selectedItem.item_packing_unit || "",
-              contractSub_item_packing_no: selectedItem.item_packing_no || "",
-              contractSub_item_rate_per_pc: selectedItem.item_rate_per_pc || "",
-              contractSub_item_box_size: selectedItem.item_box_size || "",
-              contractSub_item_box_wt: selectedItem.item_box_weight || "",
-              contractSub_item_gross_wt: selectedItem.item_gross_wt || "",
-              contractSub_item_barcode: selectedItem.item_barcode || "",
-              contractSub_item_hsnCode: selectedItem.item_hsnCode || "",
+              invoiceSub_item_packing_no: selectedItem.item_packing_no || "",
+              invoiceSub_item_rate_per_pc: selectedItem.item_rate_per_pc || "",
+              invoiceSub_item_box_size: selectedItem.item_box_size || "",
+              invoiceSub_item_box_wt: selectedItem.item_box_weight || "",
+              invoiceSub_item_gross_wt: selectedItem.item_gross_wt || "",
+              invoiceSub_item_barcode: selectedItem.item_barcode || "",
+              invoiceSub_item_hsnCode: selectedItem.item_hsnCode || "",
             };
             return newData;
           });
@@ -1172,27 +1022,45 @@ const InvoiceAdd = () => {
                       placeholder="Select Containers/Size"
                     />
                   </div>
-
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        Product <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      key={formData.invoice_product}
+                      value={formData.invoice_product}
+                      onChange={(value) =>
+                        handleSelectChange("invoice_product", value)
+                      }
+                      options={
+                        productData?.product?.map((product) => ({
+                          value: product.product_name,
+                          label: product.product_name,
+                        })) || []
+                      }
+                      placeholder="Select Product"
+                    />
+                  </div>
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
                       Custom Des <span className="text-red-500">*</span>
                     </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
+
+                    <Input
+                      className="bg-white"
+                      value={formData.invoice_product_cust_des}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "invoice_product_cust_des",
+                          e.target.value
+                        )
                       }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
                     />
                   </div>
                   <div>
@@ -1235,90 +1103,6 @@ const InvoiceAdd = () => {
                     />
                   </div>
 
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Custom Des <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
-                      }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Precarriage
-                    </label>
-                    <Input
-                      type="text"
-                      className="bg-white"
-                      placeholder="Enter Precarriage"
-                      value={formData.invoice_precarriage}
-                      onChange={(e) =>
-                        handleInputChange(e, "invoice_precarriage")
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Containers/Size <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.invoice_container_size}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_container_size", value)
-                      }
-                      options={
-                        containerSizeData?.containerSize?.map(
-                          (containerSize) => ({
-                            value: containerSize.containerSize,
-                            label: containerSize.containerSize,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Containers/Size"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Custom Des <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData?.invoice_product_cust_des}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_product_cust_des", value)
-                      }
-                      options={
-                        productCustomDescriptionData?.productSub?.map(
-                          (productSub) => ({
-                            value: productSub.product_description,
-                            label: productSub.product_description,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Custom Des"
-                    />
-                  </div>
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
@@ -1782,14 +1566,14 @@ const InvoiceAdd = () => {
         </Card>
 
         <div className="flex items-center justify-end  gap-2">
-          {createInvoiceMutation.isPending && <ProgressBar progress={70} />}
-          <Button
+          {/* {createInvoiceMutation.isPending && <ProgressBar progress={70} />} */}
+          {/* <Button
             type="submit"
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
             disabled={submitLoading}
           >
             {submitLoading ? "Creating..." : "Create & Exit"}
-          </Button>
+          </Button> */}
         </div>
       </form>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

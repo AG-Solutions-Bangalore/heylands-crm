@@ -1,6 +1,6 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import BASE_URL from "@/config/BaseUrl";
 import useApiToken from "@/components/common/useApiToken";
+import BASE_URL from "@/config/BaseUrl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const STALE_TIME = 5 * 60 * 1000;
 const CACHE_TIME = 30 * 60 * 1000;
@@ -268,4 +268,58 @@ export const useFetchSiginData = () => {
   return useQuery(
     createQueryConfig(["siginData"], "/api/panel-fetch-branches-sign-name")
   );
+};
+//fetch contract ref terms in invoive
+export const useFetchContractRef = () => {
+  return useQuery(
+    createQueryConfig(["contractRef"], "/api/panel-fetch-contract-ref")
+  );
+};
+
+// //lut code  in invoice
+export const useFetchLutCode = (value) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery(
+    createQueryConfig(
+      ["lutcode", value],
+      `/api/panel-fetch-scheme-by-value/${value}`,
+      {
+        enabled: Boolean(value),
+      }
+    )
+  );
+
+  const prefetchNextLutCode = async () => {
+    if (value) {
+      await queryClient.prefetchQuery(
+        createQueryConfig(
+          ["lutcode", value],
+          `/api/panel-fetch-scheme-by-value/${value}`
+        )
+      );
+    }
+  };
+
+  return { ...query, prefetchNextLutCode };
+};
+// //gr code  in invoice
+export const useFetchGrCode = (value) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery(
+    createQueryConfig(["grcode", value], `/api/panel-fetch-grcode/${value}`, {
+      enabled: Boolean(value),
+    })
+  );
+
+  const prefetchNextGrCode = async () => {
+    if (value) {
+      await queryClient.prefetchQuery(
+        createQueryConfig(["grcode", value], `/api/panel-fetch-grcode/${value}`)
+      );
+    }
+  };
+
+  return { ...query, prefetchNextGrCode };
 };
