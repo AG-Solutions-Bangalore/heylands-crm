@@ -141,7 +141,7 @@ function App() {
           <Route path="/tesview-contract/:id" element={<TestViewPrint />} />
           {/* Invoice  */}
           <Route path="/invoice" element={<InvoiceList />} />
-          <Route path="/create-invoice" element={<InvoiceAdd />} />
+          <Route path="/create-invoice/:id" element={<InvoiceAdd />} />
           <Route path="/edit-invoice/:id" element={<InvoiceEdit />} />
           <Route
             path="/document-edit-invoice/:id"

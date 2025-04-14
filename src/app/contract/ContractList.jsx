@@ -410,6 +410,7 @@ const ContractList = () => {
       </div>
 
       <DeleteContract
+        title={"Contract"}
         deleteConfirmOpen={deleteConfirmOpen}
         setDeleteConfirmOpen={setDeleteConfirmOpen}
         handleDelete={handleDelete}

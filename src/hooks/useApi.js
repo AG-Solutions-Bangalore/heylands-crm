@@ -275,6 +275,12 @@ export const useFetchContractRef = () => {
     createQueryConfig(["contractRef"], "/api/panel-fetch-contract-ref")
   );
 };
+//fetch contract ref terms in invoive
+export const useFetchInvoiceStatus = () => {
+  return useQuery(
+    createQueryConfig(["status"], "/api/panel-fetch-invoice-status")
+  );
+};
 
 // //lut code  in invoice
 export const useFetchLutCode = (value) => {

@@ -67,9 +67,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Page from "../dashboard/page";
 import useApiToken from "@/components/common/useApiToken";
+import DeleteContract from "../contract/DeleteContract";
 const InvoiceList = () => {
+  const [deleteItemId, setDeleteItemId] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteInoice, setDeleteInoiceid] = useState(null);
   const token = useApiToken();
   const { toast } = useToast();
   const {
@@ -90,28 +91,44 @@ const InvoiceList = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/panel-delete-invoice/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    },
-    onSuccess: () => {
-      refetch();
-      setDeleteConfirmOpen(false);
+  const handleDeleteRow = (id) => {
+    setDeleteItemId(id);
+    setDeleteConfirmOpen(true);
+  };
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}/api/panel-delete-invoice/${deleteItemId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.code == 200) {
+        toast({
+          title: "Success",
+          description: response.data.msg,
+          variant: "default",
+        });
+        refetch();
+        setDeleteItemId(null);
+        setDeleteConfirmOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.msg,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "Invoice deleted successfully",
+        title: "Error",
+        description: "Failed to delete invoice.",
+        variant: "destructive",
       });
-    },
-  });
-  const confirmDelete = () => {
-    if (deleteInoice) {
-      deleteMutation.mutate(deleteInoice);
-      setDeleteInoiceid(null);
     }
   };
+
   // State for table management
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -128,11 +145,6 @@ const InvoiceList = () => {
         const date = row.getValue("invoice_date");
         return moment(date).format("DD-MMM-YYYY");
       },
-    },
-    {
-      accessorKey: "branch_short",
-      header: "Company",
-      cell: ({ row }) => <div>{row.getValue("branch_short")}</div>,
     },
 
     {
@@ -193,17 +205,7 @@ const InvoiceList = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {/* <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate(`/view-invoice/${invoiceId}`)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button> */}
-
                   <InvoiceView
-                    // onClick={() => navigate(`/view-invoice/${invoiceId}`)}
-
                     onClick={() => {
                       const encryptedId = encryptId(invoiceId);
 
@@ -221,12 +223,13 @@ const InvoiceList = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <InvoiceEdit
-                    // onClick={() => navigate(`/edit-invoice/${invoiceId}`)}
                     onClick={() => {
                       const encryptedId = encryptId(invoiceId);
 
                       navigate(
-                        `/edit-invoice/${encodeURIComponent(encryptedId)}`
+                        `/create-invoice/${encodeURIComponent(
+                          encryptedId
+                        )}?mode=edit`
                       );
                     }}
                   ></InvoiceEdit>
@@ -238,9 +241,6 @@ const InvoiceList = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <InvoiceDocument
-                    // onClick={() =>
-                    //   navigate(`/document-edit-invoice/${invoiceId}`)
-                    // }
                     onClick={() => {
                       const encryptedId = encryptId(invoiceId);
 
@@ -260,12 +260,7 @@ const InvoiceList = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InvoiceDelete
-                    onClick={() => {
-                      setDeleteInoiceid(invoiceId);
-                      setDeleteConfirmOpen(true);
-                    }}
-                  >
+                  <InvoiceDelete onClick={() => handleDeleteRow(invoiceId)}>
                     <Trash className="h-4 w-4 text-red-500" />
                   </InvoiceDelete>
                 </TooltipTrigger>
@@ -368,7 +363,9 @@ const InvoiceList = () => {
           <div>
             <InvoiceCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-              onClick={() => navigate("/create-invoice")}
+              onClick={() => {
+                navigate(`/create-invoice/new?mode=create`);
+              }}
             ></InvoiceCreate>
           </div>
         </div>
@@ -452,26 +449,12 @@ const InvoiceList = () => {
           </div>
         </div>
       </div>
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              Invoice.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className={`${ButtonConfig.backgroundColor}  ${ButtonConfig.textColor} hover:bg-red-600`}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteContract
+        title={"Invoice"}
+        deleteConfirmOpen={deleteConfirmOpen}
+        setDeleteConfirmOpen={setDeleteConfirmOpen}
+        handleDelete={handleDelete}
+      />
     </Page>
   );
 };
