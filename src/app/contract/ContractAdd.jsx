@@ -76,7 +76,6 @@ const ContractAdd = () => {
     branch_short: "",
     branch_name: "",
     branch_address: "",
-    contract_year: "",
     contract_no: "",
     contract_year: currentYear,
     contract_date: getTodayDate(),

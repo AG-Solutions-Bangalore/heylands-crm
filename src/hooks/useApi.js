@@ -329,3 +329,30 @@ export const useFetchGrCode = (value) => {
 
   return { ...query, prefetchNextGrCode };
 };
+// //gr code  in invoice
+export const useFetchInvoice = (value) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery(
+    createQueryConfig(
+      ["invoice", value],
+      `/api/panel-fetch-invoice-by-id/${value}`,
+      {
+        enabled: Boolean(value),
+      }
+    )
+  );
+
+  const prefetchNextInvoice = async () => {
+    if (value) {
+      await queryClient.prefetchQuery(
+        createQueryConfig(
+          ["invoice", value],
+          `/api/panel-fetch-invoice-by-id/${value}`
+        )
+      );
+    }
+  };
+
+  return { ...query, prefetchNextInvoice };
+};

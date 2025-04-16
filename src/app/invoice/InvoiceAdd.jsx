@@ -92,7 +92,6 @@ const fetchContractData = async (value, token) => {
 const InvoiceAdd = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const contentRef = useRef(null);
   const token = useApiToken();
   const { id } = useParams();
   const [searchParams] = useSearchParams();

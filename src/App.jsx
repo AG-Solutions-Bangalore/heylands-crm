@@ -2,14 +2,11 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Login from "./app/auth/Login";
 import ContractAdd from "./app/contract/ContractAdd";
 import ContractList from "./app/contract/ContractList";
-import TestViewPrint from "./app/contract/TestViewPrint";
 import ViewContract from "./app/contract/ViewContract";
 import Home from "./app/home/Home";
 import InvoiceAdd from "./app/invoice/InvoiceAdd";
 import InvoiceDocumentEdit from "./app/invoice/InvoiceDocumentEdit";
-import InvoiceEdit from "./app/invoice/InvoiceEdit";
 import InvoiceList from "./app/invoice/InvoiceList";
-import InvoiceTabs from "./app/invoice/InvoiceTabs";
 import BagTypeList from "./app/master/bagType/BagTypeList";
 import BankList from "./app/master/bank/BankList";
 import BranchList from "./app/master/branch/BranchList";
@@ -66,6 +63,11 @@ import ViewCosting from "./app/costing/ViewCosting";
 import DutyDrawBackPending from "./app/dutydrawback/pending/DutyDrawBackPending";
 import DutyDrawBackReceived from "./app/dutydrawback/received/DutyDrawBackReceived";
 import BuyerList from "./app/master/buyer/BuyerList";
+import CreateItemForm from "./app/master/item/CreateItem";
+import ItemBoxList from "./app/master/itemBox/ItemBoxList";
+import ItemCategoryList from "./app/master/itemCategory/ItemCategoryList";
+import ItemPackingList from "./app/master/itemPacking/ItemPackingList";
+import OrderTypeList from "./app/master/orderType/OrderTypeList";
 import CreateMarketDispatch from "./app/purchase/market-dispatch/CreateMarketDispatch";
 import EditMarketDispatch from "./app/purchase/market-dispatch/EditMarketDispatch";
 import MarketDispatch from "./app/purchase/market-dispatch/MarketDispatch";
@@ -93,11 +95,7 @@ import Maintenance from "./components/common/Maintenance";
 import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTimeoutTracker";
 import BASE_URL from "./config/BaseUrl";
 import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
-import OrderTypeList from "./app/master/orderType/OrderTypeList";
-import ItemCategoryList from "./app/master/itemCategory/ItemCategoryList";
-import ItemPackingList from "./app/master/itemPacking/ItemPackingList";
-import ItemBoxList from "./app/master/itemBox/ItemBoxList";
-import CreateItemForm from "./app/master/item/CreateItem";
+import InvoiceTabs from "./app/invoice/InvoiceView/InvoiceTabs";
 
 function App() {
   const navigate = useNavigate();
@@ -138,11 +136,9 @@ function App() {
           <Route path="/contract" element={<ContractList />} />
           <Route path="/create-contract/:id" element={<ContractAdd />} />
           <Route path="/view-contract/:id" element={<ViewContract />} />
-          <Route path="/tesview-contract/:id" element={<TestViewPrint />} />
           {/* Invoice  */}
           <Route path="/invoice" element={<InvoiceList />} />
           <Route path="/create-invoice/:id" element={<InvoiceAdd />} />
-          <Route path="/edit-invoice/:id" element={<InvoiceEdit />} />
           <Route
             path="/document-edit-invoice/:id"
             element={<InvoiceDocumentEdit />}
