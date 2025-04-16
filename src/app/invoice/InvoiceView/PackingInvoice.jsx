@@ -1,24 +1,22 @@
-import BASE_URL from "@/config/BaseUrl";
-import { getTodayDate } from "@/utils/currentDate";
-import { Printer } from "lucide-react";
-import moment from "moment";
-import { toWords } from "number-to-words";
-import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useReactToPrint } from "react-to-print";
-import logo from "../../../assets/invoice/globe.png";
-import fssai from "../../../assets/invoice/fssai.png";
+import useApiToken from "@/components/common/useApiToken";
 import {
   WithoutErrorComponent,
   WithoutLoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
-import { decryptId } from "@/utils/encyrption/Encyrption";
-import useApiToken from "@/components/common/useApiToken";
 import { useFetchInvoice } from "@/hooks/useApi";
-const TaxInvoice = () => {
+import { decryptId } from "@/utils/encyrption/Encyrption";
+import { Printer } from "lucide-react";
+import moment from "moment";
+import { toWords } from "number-to-words";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
+import logo from "../../../assets/invoice/globe.png";
+const PackingInvoice = () => {
   const containerRef = useRef();
   const { id } = useParams();
   const decryptedId = decryptId(id);
+  const token = useApiToken();
   const [invoiceData, setInvoiceData] = useState({});
   const [branchData, setBranchData] = useState({});
   const [invoiceSubData, setInvoiceSubData] = useState([]);
@@ -27,16 +25,9 @@ const TaxInvoice = () => {
 
   const { data: fetchInvoiceData } = useFetchInvoice(decryptedId);
   useEffect(() => {
-    try {
-      setLoading(true);
-      setInvoiceData(fetchInvoiceData?.invoice);
-      setInvoiceSubData(fetchInvoiceData?.invoiceSub);
-      setBranchData(fetchInvoiceData?.branch);
-    } catch {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
+    setInvoiceData(fetchInvoiceData?.invoice);
+    setInvoiceSubData(fetchInvoiceData?.invoiceSub);
+    setBranchData(fetchInvoiceData?.branch);
   }, [fetchInvoiceData]);
   const usdToInrRate = 86.05;
 
@@ -116,10 +107,10 @@ const TaxInvoice = () => {
             <thead>
               <tr>
                 <td colSpan="100%" className="text-center py-2 p-0">
-                  <p className="font-bold">TAX INVOICE</p>
-                  <p className="font-bold">
+                  <p className="font-bold">PACKING</p>
+                  {/* <p className="font-bold">
                     SUPPLYMENT FOR EXPORT WITH PAYMENT OF IGST.
-                  </p>
+                  </p> */}
                 </td>
               </tr>
             </thead>
@@ -133,18 +124,18 @@ const TaxInvoice = () => {
                   <div className="grid grid-cols-12 w-full">
                     <div className="col-span-6 grid grid-cols-12   border-r  border-black ">
                       <div className="col-span-5">
-                        <div className="p-1 font-bold">Exporter</div>
-                        <div className="p-1 py-3">
+                        <div className="px-1 font-bold">Exporter</div>
+                        <div className="print:border-l border-black">
                           <img src={logo} alt="logo" className="w-30 h-20" />
                         </div>
                         <div>TRUST IS OUR ASSET</div>
                       </div>
 
                       <div className="col-span-7">
-                        <div className="p-1 space-y-2">
+                        <div className="p-1 space-y-1">
                           <p>{invoiceData?.branch_name},</p>
 
-                          <div className="space-y-3">
+                          <div className="space-y-1">
                             {invoiceData?.branch_address
                               ?.split("\n")
                               .map((line, index) => (
@@ -188,9 +179,12 @@ const TaxInvoice = () => {
                       </div>
 
                       <div className="px-1 pt-1">
-                        <p className="font-semibold">Other Reference(s)</p>
-                        <p>NEL/06/2025/08.01.2025</p>
-
+                        <p className="font-semibold">
+                          Other Reference(s) / Fssai No.10013042001285
+                          <p> IEC NO. : 0489011098 RBI NO.:000598</p>
+                        </p>
+                        {/* <p>NEL/06/2025/08.01.2025</p> */}
+                        {/* 
                         <div className="grid grid-cols-12 mt-1">
                           <div className="col-span-7">
                             <p className="font-semibold">
@@ -198,14 +192,7 @@ const TaxInvoice = () => {
                             </p>
                             <p className="font-semibold mt-1">RBI NO.:000598</p>
                           </div>
-                          {/* <div className="col-span-5 flex items-center space-x-2">
-                            <img
-                              src={fssai}
-                              alt="fssai"
-                              className="w-10 h-auto object-contain"
-                            />
-                            <p>No: 0127623763</p>
-                          </div> */}
+
                           <div className="col-span-5 flex items-center space-x-2 mt-auto">
                             <img
                               src={fssai}
@@ -214,7 +201,7 @@ const TaxInvoice = () => {
                             />
                             <p>No: 0127623763</p>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -328,9 +315,6 @@ const TaxInvoice = () => {
                         <p className="font-bold text-center mt-1">
                           D/P TERMS ON SIGHT{" "}
                         </p>
-                        <p className="font-bold text-center mt-1">
-                          EXCHANGE RATE USD 86.05
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -364,37 +348,13 @@ const TaxInvoice = () => {
                           rowSpan={2}
                           className="border-r border-black px-1 py-0.5 align-middle"
                         >
-                          Quantity (in kg)
+                          TOTAL CARTON
                         </th>
                         <th
-                          rowSpan={2}
-                          className="border-r border-black px-1 py-0.5 align-middle"
+                          className="border-b border-black px-1 py-0.5 align-middle"
+                          colSpan={2}
                         >
-                          Rate (Per kg)
-                        </th>
-                        <th
-                          rowSpan={2}
-                          className="border-r border-black px-1 py-0.5 align-middle"
-                        >
-                          Amount (in USD)
-                        </th>
-                        <th
-                          rowSpan={2}
-                          className="border-r border-black px-1 py-0.5 align-middle"
-                        >
-                          Amount (in INR)
-                        </th>
-                        <th
-                          rowSpan={2}
-                          className="border-r border-black px-1 py-0.5 align-middle"
-                        >
-                          TAX IGST 5%
-                        </th>
-                        <th
-                          rowSpan={2}
-                          className="border-black px-1 py-0.5 align-middle"
-                        >
-                          TOTAL AMOUNT (IN INR)
+                          Remarks
                         </th>
                       </tr>
                       <tr>
@@ -407,13 +367,17 @@ const TaxInvoice = () => {
                               ]?.invoiceSub_ct?.split("-")[1]
                             : ""}
                         </th>
+
+                        <th className="border-r border-black px-1 py-0.5 ">
+                          Nt.Wt.{" "}
+                        </th>
+                        <th className="border-b border-black px-1 py-0.5 ">
+                          Gr.Wt.{" "}
+                        </th>
                       </tr>
                       <tr>
                         <td className="text-center">CTN/BAG NO:</td>
                         <td className="border-r border-black text-left"></td>
-                        <td className="border-t border-r border-black text-left"></td>
-                        <td className="border-t border-r border-black text-left"></td>
-                        <td className="border-t border-r border-black text-left"></td>
                         <td className="border-t border-r border-black text-left"></td>
                         <td className="border-t border-r border-black text-left"></td>
                         <td className="border-t border-r border-black text-left"></td>
@@ -450,48 +414,14 @@ const TaxInvoice = () => {
                             {item?.invoiceSub_item_packing_no *
                               item?.invoiceSub_ctns}{" "}
                           </td>
-                          <td className=" border-r border-black px-1">
-                            {item?.invoiceSub_item_rate_per_pc}
-                          </td>
-                          <td className=" border-r border-black px-1 ">
-                            {(
-                              Number(item?.invoiceSub_item_packing_no) *
-                              Number(item?.invoiceSub_ctns) *
-                              Number(item?.invoiceSub_item_rate_per_pc)
-                            ).toFixed(2)}{" "}
-                          </td>
-                          <td className=" border-r border-black px-1 ">
-                            {(
-                              Number(item?.invoiceSub_item_packing_no) *
-                              Number(item?.invoiceSub_ctns) *
-                              Number(item?.invoiceSub_item_rate_per_pc) *
-                              usdToInrRate
-                            ).toFixed(2)}{" "}
-                          </td>
-                          <td className=" border-r border-black px-1">
-                            {(
-                              Number(item?.invoiceSub_item_packing_no) *
-                              Number(item?.invoiceSub_ctns) *
-                              Number(item?.invoiceSub_item_rate_per_pc) *
-                              usdToInrRate *
-                              0.05
-                            ).toFixed(2)}{" "}
+                          <td className="  border-r border-black px-1">
+                            <div>Nt.Wt. </div>
                           </td>
                           <td className="px-1">
-                            {(
-                              Number(item?.invoiceSub_item_packing_no) *
-                              Number(item?.invoiceSub_ctns) *
-                              Number(item?.invoiceSub_item_rate_per_pc) *
-                              (Number(item?.invoiceSub_item_packing_no) *
-                                Number(item?.invoiceSub_ctns) *
-                                Number(item?.invoiceSub_item_rate_per_pc) *
-                                usdToInrRate *
-                                0.05)
-                            ).toFixed(2)}
+                            <div>Gr.Wt. </div>{" "}
                           </td>
                         </tr>
                       ))}
-                      
                       <tr className="font-semibold ">
                         <td
                           colSpan={2}
@@ -508,7 +438,6 @@ const TaxInvoice = () => {
                             0
                           )}
                         </td>
-                        <td className="border-r border-black px-1"></td>
                         <td className="border-t  border-r border-black px-1">
                           {invoiceSubData
                             ?.reduce((acc, item) => {
@@ -520,44 +449,14 @@ const TaxInvoice = () => {
                             }, 0)
                             .toFixed(2)}
                         </td>
-                        <td className="border-t border-r  border-black px-1">
+                        <td className="border-t  border-black px-1">
                           {invoiceSubData
                             ?.reduce((acc, item) => {
-                              const totalInr =
+                              const total =
                                 Number(item.invoiceSub_item_packing_no) *
                                 Number(item.invoiceSub_ctns) *
-                                Number(item.invoiceSub_item_rate_per_pc) *
-                                usdToInrRate;
-                              return acc + totalInr;
-                            }, 0)
-                            .toFixed(2)}
-                        </td>
-                        <td className="border-t border-r  border-black px-1">
-                          {invoiceSubData
-                            ?.reduce((acc, item) => {
-                              const totalFee =
-                                Number(item.invoiceSub_item_packing_no) *
-                                Number(item.invoiceSub_ctns) *
-                                Number(item.invoiceSub_item_rate_per_pc) *
-                                usdToInrRate *
-                                0.05;
-                              return acc + totalFee;
-                            }, 0)
-                            .toFixed(2)}
-                        </td>
-                        <td className="border-t   border-black px-1">
-                          {invoiceSubData
-                            ?.reduce((acc, item) => {
-                              const totalProduct =
-                                Number(item.invoiceSub_item_packing_no) *
-                                Number(item.invoiceSub_ctns) *
-                                Number(item.invoiceSub_item_rate_per_pc) *
-                                (Number(item.invoiceSub_item_packing_no) *
-                                  Number(item.invoiceSub_ctns) *
-                                  Number(item.invoiceSub_item_rate_per_pc) *
-                                  usdToInrRate *
-                                  0.05);
-                              return acc + totalProduct;
+                                Number(item.invoiceSub_item_rate_per_pc);
+                              return acc + total;
                             }, 0)
                             .toFixed(2)}
                         </td>
@@ -566,7 +465,6 @@ const TaxInvoice = () => {
                   </table>
                 </td>
               </tr>
-              
               <tr className="print-section">
                 <td
                   colSpan="100%"
@@ -625,4 +523,4 @@ const TaxInvoice = () => {
   );
 };
 
-export default TaxInvoice;
+export default PackingInvoice;

@@ -593,7 +593,7 @@ const InvoiceView = () => {
                         <p className="font-bold leading-none mb-6">
                           For HEYLANDS EXPORTS PRIVATE LIMITED
                         </p>
-                        <div className="flex flex-col items-center justify-center font-bold">
+                        <div className="flex flex-col items-center justify-center font-bold mt-16">
                           <p>A.RAJENDRAN</p>
                           <p>PURCHASE MANAGER</p>
                         </div>

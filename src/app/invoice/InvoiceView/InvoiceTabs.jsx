@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import Page from "../../dashboard/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StepBack, StepForward } from "lucide-react";
-import PreshimentInvoice from "./PreshimentInvoice";
-import TaxInvoice from "./TaxInvoice";
+import { useState } from "react";
+import Page from "../../dashboard/page";
 import InvoiceView from "./InvoiceView";
+import PackingInvoice from "./PackingInvoice";
+import TaxInvoice from "./TaxInvoice";
 const TABS = [
   { value: "invoice", label: "Invoice", component: InvoiceView },
   { value: "taxinvoice", label: "Tax Invoice", component: TaxInvoice },
-  { value: "preshipment", label: "Pre_Shipment", component: PreshimentInvoice },
+  { value: "packing", label: "Packing", component: PackingInvoice },
 ];
 
 const InvoiceTabs = () => {
@@ -82,7 +82,6 @@ const InvoiceTabs = () => {
         >
           {sidebarOpen ? <StepForward /> : <StepBack />}
         </div>
-
       </div>
     </Page>
   );

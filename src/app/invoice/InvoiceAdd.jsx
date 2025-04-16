@@ -173,6 +173,7 @@ const InvoiceAdd = () => {
     invoice_position: "",
     invoice_precarriage: "",
     invoice_status: isEditMode ? "" : null,
+    invoice_currency_rate: "",
   });
   const fetchInvoiceData = async () => {
     try {
@@ -225,6 +226,7 @@ const InvoiceAdd = () => {
         invoice_sign: invoice.invoice_sign || "",
         invoice_position: invoice.invoice_position || "",
         invoice_precarriage: invoice.invoice_precarriage || "",
+        invoice_currency_rate: invoice.invoice_currency_rate || "",
         invoice_status: invoice.invoice_status || "",
       });
 
@@ -410,8 +412,9 @@ const InvoiceAdd = () => {
               invoice_insurance: contract.contract_insurance,
               invoice_packing: contract.contract_packing,
 
-              invoice_precarriage: contract.contract_position,
               invoice_currency: contract.contract_currency,
+              invoice_currency_rate: contract.contract_currency_rate,
+              invoice_precarriage: contract.contract_prereceipts,
               invoice_sign: contract.contract_sign,
               invoice_position: contract.contract_position,
             };
@@ -463,15 +466,28 @@ const InvoiceAdd = () => {
           if (selectedCompanySort) {
             updatedFormData.branch_name = selectedCompanySort.branch_name;
             updatedFormData.branch_address = selectedCompanySort.branch_address;
+
             updatedFormData.invoice_prereceipts =
               selectedCompanySort.branch_prereceipts;
 
+            updatedFormData.invoice_loading_port =
+              selectedBranch.branch_port_of_loading;
             const selectedBuyer = buyerData?.buyer?.find(
               (buyer) => buyer.buyer_name == prev.invoice_buyer
+            );
+
+            const selectedPort = portofLoadingData?.portofLoading?.find(
+              (portofLoading) =>
+                portofLoading.portofLoading ===
+                updatedFormData.invoice_loading_port
             );
             if (selectedBuyer) {
               const invoiceRef = `${selectedCompanySort.branch_name_short}${prev.invoice_no}/${prev.invoice_year}`;
               updatedFormData.invoice_ref = invoiceRef;
+            }
+            if (selectedPort) {
+              updatedFormData.invoice_loading_country =
+                selectedPort.portofLoadingCountry;
             }
           }
         }
@@ -492,10 +508,22 @@ const InvoiceAdd = () => {
             (sigin) => sigin.branch_sign === value
           );
           if (selectedSigner) {
-            updated.invoice_position = selectedSigner.branch_sign_position;
+            updatedFormData.invoice_position =
+              selectedSigner.branch_sign_position;
           }
         }
-
+        if (field === "invoice_loading_port") {
+          const selectedPort = portofLoadingData?.portofLoading?.find(
+            (portofLoading) =>
+              portofLoading.portofLoading ===
+              updatedFormData.invoice_loading_port
+          );
+          console.log(selectedPort, "selectedPort");
+          if (selectedPort) {
+            updatedFormData.invoice_loading_country =
+              selectedPort.portofLoadingCountry;
+          }
+        }
         return updatedFormData;
       });
     },
@@ -507,7 +535,7 @@ const InvoiceAdd = () => {
       formData,
     ]
   );
-  console.log(formData.invoice_ref);
+
   //done
   const handleRowDataChange = useCallback(
     (rowIndex, field, value) => {
@@ -647,8 +675,18 @@ const InvoiceAdd = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const excludedFormKeys = [
+      "invoice_status",
+      "invoice_container_size",
+      "invoice_payment_terms",
+      "invoice_delivery_terms",
+      "invoice_validity",
+      "invoice_marking",
+    ];
+
     const requiredFormFields = Object.keys(formData).filter(
-      (key) => isEditMode || key !== "invoice_status"
+      (key) => isEditMode || !excludedFormKeys.includes(key)
     );
 
     const requiredContractFields = Object.keys(invoiceData[0]).filter(
@@ -667,7 +705,7 @@ const InvoiceAdd = () => {
 
         const isMissing =
           key === "invoiceSub_packings"
-            ? value === "" // empty string should error; 0 is allowed
+            ? value === ""
             : value === undefined ||
               value === null ||
               value === "" ||
@@ -757,6 +795,7 @@ const InvoiceAdd = () => {
             invoice_sign: "",
             invoice_position: "",
             invoice_precarriage: "",
+            invoice_currency_rate: "",
             invoice_status: "",
           });
           setInvoiceData([
@@ -1007,151 +1046,166 @@ const InvoiceAdd = () => {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="mb-3">
-                {!isEditMode && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract Ref. <span className="text-red-500">*</span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.contract_ref}
-                        onChange={(value) =>
-                          handleSelectChange("contract_ref", value)
-                        }
-                        options={
-                          contractRefsData?.contractRef?.map((contractRef) => ({
-                            value: contractRef.contract_ref,
-                            label: contractRef.contract_ref,
-                          })) || []
-                        }
-                        placeholder="Select Contract Ref."
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Company <span className="text-red-500">*</span>
-                      </label>
-                      <MemoizedSelect
-                        value={formData.branch_short}
-                        onChange={(value) =>
-                          handleSelectChange("branch_short", value)
-                        }
-                        options={
-                          branchData?.branch?.map((branch) => ({
-                            value: branch.branch_short,
-                            label: branch.branch_short,
-                          })) || []
-                        }
-                        placeholder="Select Company"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-3">
+                  {!isEditMode && (
+                    <>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract Ref. <span className="text-red-500">*</span>
+                        </label>
+                        <MemoizedSelect
+                          value={formData.contract_ref}
+                          onChange={(value) =>
+                            handleSelectChange("contract_ref", value)
+                          }
+                          options={
+                            contractRefsData?.contractRef?.map(
+                              (contractRef) => ({
+                                value: contractRef.contract_ref,
+                                label: contractRef.contract_ref,
+                              })
+                            ) || []
+                          }
+                          placeholder="Select Contract Ref."
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Company <span className="text-red-500">*</span>
+                        </label>
+                        <MemoizedSelect
+                          value={formData.branch_short}
+                          onChange={(value) =>
+                            handleSelectChange("branch_short", value)
+                          }
+                          options={
+                            branchData?.branch?.map((branch) => ({
+                              value: branch.branch_short,
+                              label: branch.branch_short,
+                            })) || []
+                          }
+                          placeholder="Select Company"
+                        />
+                      </div>
 
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Invoice No <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="Enter Invoice No"
-                        className="bg-white"
-                        value={formData.invoice_no}
-                        onChange={(e) => handleInputChange(e, "invoice_no")}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Invoice Date <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="date"
-                        value={formData.invoice_date}
-                        className="bg-white"
-                        onChange={(e) => handleInputChange(e, "invoice_date")}
-                      />
-                    </div>
-                    <div
-                      style={{ textAlign: "center" }}
-                      className="bg-white rounded-md"
-                    >
-                      <span style={{ fontSize: "12px" }}>
-                        {formData.branch_name}
-                      </span>
-                      <br />
-                      <span style={{ fontSize: "9px", display: "block" }}>
-                        {formData.branch_address}
-                      </span>
-                    </div>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Invoice No <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Invoice No"
+                          className="bg-white"
+                          value={formData.invoice_no}
+                          onChange={(e) => handleInputChange(e, "invoice_no")}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
 
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract Ref. <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        className="bg-white"
-                        placeholder="Enter Contract Ref"
-                        value={formData.contract_ref}
-                        disabled
-                        onChange={(e) => handleInputChange(e, "contract_ref")}
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract PONO. <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        className="bg-white"
-                        placeholder="Enter Contract PoNo"
-                        value={formData.contract_pono}
-                        disabled
-                        onChange={(e) => handleInputChange(e, "contract_pono")}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Contract Date <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="date"
-                        className="bg-white"
-                        value={formData.contract_date}
-                        onChange={(e) => handleInputChange(e, "contract_date")}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                      >
-                        Invoice Ref. <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="Enter Invoice Ref"
-                        className="bg-white"
-                        value={formData.invoice_ref}
-                        disabled
-                        onChange={(e) => handleInputChange(e, "invoice_ref")}
-                      />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3  gap-4 mb-2">
+                  <div
+                    style={{ textAlign: "center" }}
+                    className="bg-white rounded-md lg:col-span-2"
+                  >
+                    <span style={{ fontSize: "12px" }}>
+                      {formData.branch_name}
+                    </span>
+                    <br />
+                    <span style={{ fontSize: "9px", display: "block" }}>
+                      {formData.branch_address}
+                    </span>
                   </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Invoice Date <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="date"
+                      value={formData.invoice_date}
+                      className="bg-white"
+                      onChange={(e) => handleInputChange(e, "invoice_date")}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2  gap-4 mb-2">
+                  {!isEditMode && (
+                    <>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract Ref. <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          className="bg-white"
+                          placeholder="Enter Contract Ref"
+                          value={formData.contract_ref}
+                          disabled
+                          onChange={(e) => handleInputChange(e, "contract_ref")}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract PONO. <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          className="bg-white"
+                          placeholder="Enter Contract PoNo"
+                          value={formData.contract_pono}
+                          disabled
+                          onChange={(e) =>
+                            handleInputChange(e, "contract_pono")
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Contract Date <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="date"
+                          className="bg-white"
+                          value={formData.contract_date}
+                          onChange={(e) =>
+                            handleInputChange(e, "contract_date")
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                        >
+                          Invoice Ref. <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Invoice Ref"
+                          className="bg-white"
+                          value={formData.invoice_ref}
+                          disabled
+                          onChange={(e) => handleInputChange(e, "invoice_ref")}
+                        />
+                      </div>
+                    </>
+                  )}
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
@@ -1221,7 +1275,9 @@ const InvoiceAdd = () => {
                       }
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
@@ -1255,7 +1311,7 @@ const InvoiceAdd = () => {
                     <MemoizedSelect
                       value={formData.invoice_loading_port}
                       onChange={(value) =>
-                        handleSelectChange("invoice_loading", value)
+                        handleSelectChange("invoice_loading_port", value)
                       }
                       options={
                         portofLoadingData?.portofLoading?.map(
@@ -1266,6 +1322,50 @@ const InvoiceAdd = () => {
                         ) || []
                       }
                       placeholder="Select Port of Loading"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                    >
+                      <span>
+                        {" "}
+                        Country <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+
+                    <Input
+                      type="text"
+                      className="bg-white"
+                      placeholder="Enter Country"
+                      disabled
+                      value={formData.invoice_loading_country}
+                      onChange={(e) =>
+                        handleInputChange(e, "invoice_loading_country")
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                    >
+                      Containers/Size
+                    </label>
+                    <MemoizedSelect
+                      value={formData.invoice_container_size}
+                      onChange={(value) =>
+                        handleSelectChange("invoice_container_size", value)
+                      }
+                      options={
+                        containerSizeData?.containerSize?.map(
+                          (containerSize) => ({
+                            value: containerSize.containerSize,
+                            label: containerSize.containerSize,
+                          })
+                        ) || []
+                      }
+                      placeholder="Select Containers/Size"
                     />
                   </div>
                   <div>
@@ -1315,28 +1415,9 @@ const InvoiceAdd = () => {
                       placeholder="Select Dest. Country "
                     />
                   </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Containers/Size <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.invoice_container_size}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_container_size", value)
-                      }
-                      options={
-                        containerSizeData?.containerSize?.map(
-                          (containerSize) => ({
-                            value: containerSize.containerSize,
-                            label: containerSize.containerSize,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Containers/Size"
-                    />
-                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2  gap-4 mb-2">
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
@@ -1370,6 +1451,7 @@ const InvoiceAdd = () => {
                     <Input
                       className="bg-white"
                       value={formData.invoice_product_cust_des}
+                      disabled
                       onChange={(e) =>
                         handleInputChange(
                           "invoice_product_cust_des",
@@ -1388,33 +1470,11 @@ const InvoiceAdd = () => {
                       type="text"
                       className="bg-white"
                       placeholder="Enter Precarriage"
+                      disabled
                       value={formData.invoice_precarriage}
                       onChange={(e) =>
                         handleInputChange(e, "invoice_precarriage")
                       }
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Containers/Size <span className="text-red-500">*</span>
-                    </label>
-                    <MemoizedSelect
-                      value={formData.invoice_container_size}
-                      onChange={(value) =>
-                        handleSelectChange("invoice_container_size", value)
-                      }
-                      options={
-                        containerSizeData?.containerSize?.map(
-                          (containerSize) => ({
-                            value: containerSize.containerSize,
-                            label: containerSize.containerSize,
-                          })
-                        ) || []
-                      }
-                      placeholder="Select Containers/Size"
                     />
                   </div>
 
@@ -1482,27 +1542,30 @@ const InvoiceAdd = () => {
                       placeholder="Select Payment Terms"
                     />
                   </div>
+                </div>
+                <div className="mb-2">
+                  <label
+                    className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                  >
+                    Delivery Term
+                  </label>
+                  <Textarea
+                    type="text"
+                    className="  bg-white border-none hover:border-none"
+                    placeholder="Enter  Delivery Term"
+                    value={formData.invoice_delivery_terms}
+                    onChange={(e) =>
+                      handleInputChange(e, "invoice_delivery_terms")
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2  gap-4 mb-2">
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
-                      Delivery Term
-                    </label>
-                    <Textarea
-                      type="text"
-                      className="  bg-white border-none hover:border-none"
-                      placeholder="Enter Remarks"
-                      value={formData.invoice_delivery_terms}
-                      onChange={(e) =>
-                        handleInputChange(e, "invoice_delivery_terms")
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
-                    >
-                      Quantity INMT
+                      Quantity in MT<span className="text-red-500">*</span>
                     </label>
                     <Input
                       className="bg-white"
@@ -1532,10 +1595,7 @@ const InvoiceAdd = () => {
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
                     >
-                      <span>
-                        {" "}
-                        Marking <span className="text-red-500">*</span>
-                      </span>
+                      <span> Marking</span>
                     </label>
                     <MemoizedSelect
                       value={formData.invoice_marking}
@@ -1576,7 +1636,21 @@ const InvoiceAdd = () => {
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                     >
-                      <span>Packing Type</span>
+                      Packing<span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.invoice_packing}
+                      onChange={(e) =>
+                        handleInputChange("invoice_packing", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Packing Type<span className="text-red-500">*</span>
                     </label>
                     <MemoizedSelect
                       className="bg-white"
@@ -1593,26 +1667,12 @@ const InvoiceAdd = () => {
                       placeholder="Select Packing Type"
                     />
                   </div>
-                  <div>
-                    <label
-                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                    >
-                      Packing
-                    </label>
-                    <Input
-                      className="bg-white"
-                      value={formData.invoice_packing}
-                      onChange={(e) =>
-                        handleInputChange("invoice_packing", e.target.value)
-                      }
-                    />
-                  </div>
 
                   <div>
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                     >
-                      <span>Currency</span>
+                      Currency<span className="text-red-500">*</span>
                     </label>
                     <MemoizedSelect
                       className="bg-white"
@@ -1627,6 +1687,23 @@ const InvoiceAdd = () => {
                         })) || []
                       }
                       placeholder="Select Packing Type"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Currency Rate <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.invoice_currency_rate}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "invoice_currency_rate",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                   <div>
