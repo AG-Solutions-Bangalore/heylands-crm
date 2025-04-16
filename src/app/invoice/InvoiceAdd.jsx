@@ -652,10 +652,9 @@ const InvoiceAdd = () => {
     );
 
     const requiredContractFields = Object.keys(invoiceData[0]).filter(
-      (key) => key !== "id"
+      (key) => !["id", "invoiceSub_item_barcode"].includes(key)
     );
 
-    // Now do the validation checks
     const missingFormFields = requiredFormFields.filter(
       (key) => !formData[key]?.toString().trim()
     );
@@ -668,7 +667,7 @@ const InvoiceAdd = () => {
 
         const isMissing =
           key === "invoiceSub_packings"
-            ? Number(value) === 0 || value === ""
+            ? value === "" // empty string should error; 0 is allowed
             : value === undefined ||
               value === null ||
               value === "" ||

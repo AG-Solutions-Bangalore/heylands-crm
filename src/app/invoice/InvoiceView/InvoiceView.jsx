@@ -21,6 +21,7 @@ const InvoiceView = () => {
   const decryptedId = decryptId(id);
   const token = useApiToken();
   const [invoiceData, setInvoiceData] = useState({});
+  const [branchData, setBranchData] = useState({});
   const [invoiceSubData, setInvoiceSubData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,8 +30,29 @@ const InvoiceView = () => {
   useEffect(() => {
     setInvoiceData(fetchInvoiceData?.invoice);
     setInvoiceSubData(fetchInvoiceData?.invoiceSub);
+    setBranchData(fetchInvoiceData?.branch);
   }, [fetchInvoiceData]);
+  const usdToInrRate = 86.05;
 
+  const totalAmount =
+    invoiceSubData?.reduce((acc, item) => {
+      const totalProduct =
+        Number(item.invoiceSub_item_packing_no) *
+        Number(item.invoiceSub_ctns) *
+        Number(item.invoiceSub_item_rate_per_pc) *
+        (Number(item.invoiceSub_item_packing_no) *
+          Number(item.invoiceSub_ctns) *
+          Number(item.invoiceSub_item_rate_per_pc) *
+          usdToInrRate *
+          0.05);
+      return acc + totalProduct;
+    }, 0) || 0;
+
+  const [rupees, paise] = totalAmount?.toFixed(2).split(".");
+
+  const totalInWords = `${toWords(Number(rupees))} Rupees${
+    paise !== "00" ? ` and ${toWords(Number(paise))} Paise` : ""
+  }`;
   const handlPrintPdf = useReactToPrint({
     content: () => containerRef.current,
     documentTitle: "invoice",
@@ -87,7 +109,7 @@ const InvoiceView = () => {
           <table className="w-full table-fixed">
             <thead>
               <tr>
-                <td colSpan="100%" className="text-center py-2">
+                <td colSpan="100%" className="text-center py-2 p-0">
                   <p className="font-bold">INVOICE</p>
                   <p className="font-bold">
                     SUPPLYMENT FOR EXPORT WITH PAYMENT OF IGST.
@@ -99,27 +121,36 @@ const InvoiceView = () => {
             <tbody>
               <tr className="print-section">
                 <td
-                  className="print-body text-[10px] border border-black"
+                  className="print-body text-[10px] border border-black p-0"
                   colSpan="100%"
                 >
                   <div className="grid grid-cols-12 w-full">
                     <div className="col-span-6 grid grid-cols-12   border-r  border-black ">
                       <div className="col-span-5">
-                        <div className="p-1 font-bold">Exporter</div>
-                        <div className="p-1 py-4">
-                          <img src={logo} alt="logo" className="w-30 h-24" />
+                        <div className="px-1 font-bold">Exporter</div>
+                        <div className="print:border-l border-black">
+                          <img src={logo} alt="logo" className="w-30 h-20" />
                         </div>
                         <div>TRUST IS OUR ASSET</div>
                       </div>
 
-                      <div className="col-span-7 ">
-                        <div className="p-1 space-y-3">
-                          <p> HEYLANDS EXPORTS PRIVATE LIMITED,</p>
-                          <p>No. 8, PERIYA COLONY EXTN. ROAD,</p>
-                          <p>ATHIPET, CHENNAI - 600 058.</p>
+                      <div className="col-span-7">
+                        <div className="p-1 space-y-1">
+                          <p>{invoiceData?.branch_name},</p>
+
+                          <div className="space-y-1">
+                            {invoiceData?.branch_address
+                              ?.split("\n")
+                              .map((line, index) => (
+                                <div key={index}>
+                                  <span>{line}</span>
+                                </div>
+                              ))}
+                          </div>
+
                           <p>CIN: U52110TN1987PTC015202</p>
-                          <p>GST NO: 33AAACH2132D1ZF</p>
-                          <p>EMAIL: admin@heylandsexports.com</p>
+                          <p>GST NO: {branchData?.branch_gst}</p>
+                          <p>EMAIL: {branchData?.branch_email_id}</p>
                         </div>
                       </div>
                     </div>
@@ -128,7 +159,14 @@ const InvoiceView = () => {
                       <div className="grid grid-cols-12 border-b border-black">
                         <div className="col-span-5 border-r border-black p-1">
                           <p className="font-semibold">Invoice No. & Date</p>
-                          <p>NEL/06/2025/08.01.2025</p>
+                          <p>
+                            {invoiceData?.invoice_no}/{" "}
+                            {invoiceData?.contract_date
+                              ? moment(invoiceData?.contract_date).format(
+                                  "DD-MM-YYYY"
+                                )
+                              : ""}
+                          </p>
                         </div>
                         <div className="col-span-7 p-1">
                           <p className="font-semibold">Exporter's Ref.</p>
@@ -143,10 +181,13 @@ const InvoiceView = () => {
                         <p>NEL/06/2025/08.01.2025</p>
                       </div>
 
-                      <div className="p-1">
-                        <p className="font-semibold">Other Reference(s)</p>
-                        <p>NEL/06/2025/08.01.2025</p>
-
+                      <div className="px-1 pt-1">
+                        <p className="font-semibold">
+                          Other Reference(s) / Fssai No.10013042001285
+                          <p> IEC NO. : 0489011098 RBI NO.:000598</p>
+                        </p>
+                        {/* <p>NEL/06/2025/08.01.2025</p> */}
+                        {/* 
                         <div className="grid grid-cols-12 mt-1">
                           <div className="col-span-7">
                             <p className="font-semibold">
@@ -154,7 +195,8 @@ const InvoiceView = () => {
                             </p>
                             <p className="font-semibold mt-1">RBI NO.:000598</p>
                           </div>
-                          <div className="col-span-5 flex items-center space-x-2">
+
+                          <div className="col-span-5 flex items-center space-x-2 mt-auto">
                             <img
                               src={fssai}
                               alt="fssai"
@@ -162,7 +204,7 @@ const InvoiceView = () => {
                             />
                             <p>No: 0127623763</p>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -170,7 +212,7 @@ const InvoiceView = () => {
               </tr>
               <tr className="print-section">
                 <td
-                  className="print-body text-[10px] border border-black"
+                  className="print-body text-[10px] border border-black p-0"
                   colSpan="100%"
                 >
                   {" "}
@@ -178,11 +220,17 @@ const InvoiceView = () => {
                     <div>
                       <div className="border-r border-black p-1 space-y-2">
                         <p>Consignee</p>
-                        <p> M/S. NIRU (EUROPE) LIMITED</p>
-                        <p> UNIT 11, MITCHAM INDL.ESTATE,</p>
-                        <p> 85, STREATHAM ROAD, MITCHAM SURREY,</p>
-                        <p> CR4 2AP,</p>
-                        <p> UNITED KINGDOM</p>
+                        <p> {invoiceData?.invoice_consignee}</p>
+
+                        <div className="space-y-2">
+                          {invoiceData?.invoice_consignee_add
+                            ?.split("\n")
+                            .map((line, index) => (
+                              <div key={index}>
+                                <span>{line}</span>
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </div>
                     <div>
@@ -196,7 +244,7 @@ const InvoiceView = () => {
               </tr>
               <tr className="print-section">
                 <td
-                  className="print-body text-[10px] border border-black"
+                  className="print-body text-[10px] border border-black p-0"
                   colSpan="100%"
                 >
                   {" "}
@@ -232,7 +280,7 @@ const InvoiceView = () => {
 
               <tr className="print-section">
                 <td
-                  className="print-body text-[10px] border border-black"
+                  className="print-body text-[10px] border border-black p-0"
                   colSpan="100%"
                 >
                   {" "}
@@ -270,387 +318,288 @@ const InvoiceView = () => {
                         <p className="font-bold text-center mt-1">
                           D/P TERMS ON SIGHT{" "}
                         </p>
-                        <p className="font-bold text-center mt-1">
+                        {/* <p className="font-bold text-center mt-1">
                           EXCHANGE RATE USD 86.05
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
 
-              {/* <tr className="print-section">
-                <td
-                  className="print-body text-[10px] border border-black p-0"
-                  colSpan="100%"
-                >
-                  <table className="min-w-full text-xs text-center ">
-                    <thead>
-                      <tr>
-                        <th>
-                          <p className="border-b border-black text-[8px] p-0">
-                            Marks & Nos. /No. & Kind of Pkgs.
-                          </p>
-                          <p> TOTAL PACKAGES :- 1075</p>
-                        </th>
-                        <th className="border-r border-black p-0">
-                          <p className="border-b border-black  text-[8px]">
-                            Description
-                          </p>
-                          <p> TOTAL PACKAGES :- 1075</p>
-                        </th>
-                        <th className=" px-1">Pack</th>
-                        <th className="border-r border-black px-1">HSN</th>
-                        <th className="border-r border-black px-1">Qty (kg)</th>
-                        <th className="border-r border-black px-1">Rate</th>
-                        <th className="border-r border-black px-1">USD</th>
-                        <th className="border-r border-black px-1">INR</th>
-                        <th className="border-r border-black px-1">Tax 5%</th>
-                        <th className=" px-1">Total INR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        [
-                          "1-50",
-                          "SURYAA ROASTED CURRY POWDER EXT.HOT",
-                          "4X3 KG",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "51-150",
-                          "SURYAA ROASTED CURRY POWDER EXT.HOT",
-                          "12X500 GM",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "151-250",
-                          "SURYAA ROASTED CURRY POWDER HOT",
-                          "12X500 GM",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "251-500",
-                          "RUS-C ROASTED RICE FLOUR",
-                          "20X1 KG",
-                          "11029090",
-                          5000,
-                          0.5,
-                          2500,
-                          215125,
-                          10756.25,
-                          225881.25,
-                        ],
-                        [
-                          "501-700",
-                          "RUS-C ROASTED RICE FLOUR",
-                          "10X2 KG",
-                          "11029090",
-                          4000,
-                          0.5,
-                          2000,
-                          172100,
-                          8605,
-                          180705,
-                        ],
-                        [
-                          "701-800",
-                          "NIRU ROASTED RED RICE FLOUR",
-                          "6X3.6 KG",
-                          "11029090",
-                          2160,
-                          0.5,
-                          1080,
-                          92934,
-                          4646.7,
-                          97580.7,
-                        ],
-                        [
-                          "801-950",
-                          "NIRU SEMIA",
-                          "40X200 GM",
-                          "19024090",
-                          1200,
-                          0.5,
-                          600,
-                          51630,
-                          2581.5,
-                          54211.5,
-                        ],
-                        [
-                          "951-1025",
-                          "NIRU VADAGAM",
-                          "55X75 GM",
-                          "19059090",
-                          309.375,
-                          0.5,
-                          154.69,
-                          13310.86,
-                          665.54,
-                          13976.4,
-                        ],
-                        [
-                          "1026-1075",
-                          "NIRU RICE FLAKES WHITE",
-                          "28X400 GM",
-                          "19041090",
-                          560,
-                          0.5,
-                          280,
-                          24094,
-                          1204.7,
-                          25298.7,
-                        ],
-                      ].map((row, i) => (
-                        <tr key={i}>
-                          {row.map((cell, j) => (
-                            <td
-                              key={j}
-                              className="border-t border-black py-0.5"
-                            >
-                              {typeof cell === "number"
-                                ? cell.toLocaleString("en-IN")
-                                : cell}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                      <tr className="font-semibold ">
-                        <td
-                          colSpan={4}
-                          className="border-t border-black px-1 py-0.5 text-right"
-                        >
-                          Total
-                        </td>
-                        <td className="border-r border-t border-black px-1">
-                          15,029.375
-                        </td>
-                        <td className="border-r border-t border-black px-1">
-                          —
-                        </td>
-                        <td className="border-r border-t border-black px-1">
-                          7,514.688
-                        </td>
-                        <td className="border-r border-t border-black px-1">
-                          6,46,638.859
-                        </td>
-                        <td className="border-r border-t border-black px-1">
-                          32,331.943
-                        </td>
-                        <td className=" border-t border-black px-1">
-                          6,78,970.802
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr> */}
               <tr className="print-section">
                 <td
                   colSpan="100%"
                   className="border border-black text-[10px] p-0"
                 >
                   <table className="min-w-full text-[10px] text-center border-collapse">
-                    <thead className="bg-gray-100">
+                    <thead className=" text-center text-[10px]">
                       <tr>
-                        <th>
-                          <p className="border-b border-black text-[8px]">
+                        <th className="border-r border-b border-black px-1 py-0.5">
+                          <div className="text-[8px]">
                             Marks & Nos. / No. & Kind of Pkgs.
-                          </p>
-                          <p className="text-[10px] font-semibold">
-                            TOTAL PACKAGES: 1075
-                          </p>
+                          </div>
                         </th>
-                        <th>
-                          <p className="border-b border-black text-[8px]">
-                            Description
-                          </p>
-                          <p className="text-[10px] font-semibold">
-                            TOTAL PACKAGES: 1075
-                          </p>
+                        <th className="border-r border-b border-black px-1 py-0.5 w-[30%]">
+                          <div className="text-[8px]">Description</div>
                         </th>
-                        <th className="border border-black px-1 py-0.5">
-                          Pack
+
+                        <th
+                          rowSpan={2}
+                          className="border-r border-black px-1 py-0.5 align-middle"
+                        >
+                          HSN CODE
                         </th>
-                        <th className="border border-black px-1 py-0.5">HSN</th>
-                        <th className="border border-black px-1 py-0.5">
-                          Qty (kg)
+                        <th
+                          rowSpan={2}
+                          className="border-r border-black px-1 py-0.5 align-middle"
+                        >
+                          Quantity (in kg)
                         </th>
-                        <th className="border border-black px-1 py-0.5">
-                          Rate
+                        <th
+                          rowSpan={2}
+                          className="border-r border-black px-1 py-0.5 align-middle"
+                        >
+                          Rate (Per kg)
                         </th>
-                        <th className="border border-black px-1 py-0.5">USD</th>
-                        <th className="border border-black px-1 py-0.5">INR</th>
-                        <th className="border border-black px-1 py-0.5">
-                          Tax 5%
+                        <th rowSpan={2} className="px-1 py-0.5 align-middle">
+                          Amount (in USD)
                         </th>
-                        <th className="border border-black px-1 py-0.5">
-                          Total INR
+                        {/* <th
+                          rowSpan={2}
+                          className="border-r border-black px-1 py-0.5 align-middle"
+                        >
+                          Amount (in INR)
+                        </th>
+                        <th
+                          rowSpan={2}
+                          className="border-r border-black px-1 py-0.5 align-middle"
+                        >
+                          TAX IGST 5%
+                        </th>
+                        <th
+                          rowSpan={2}
+                          className="border-black px-1 py-0.5 align-middle"
+                        >
+                          TOTAL AMOUNT (IN INR)
+                        </th> */}
+                      </tr>
+                      <tr>
+                        <th className=" px-1 py-0.5 font-mono">NIRU/HEY/LON</th>
+                        <th className="border-r border-black px-1 py-0.5 font-mono underline">
+                          TOTAL PACKAGES:{" "}
+                          {invoiceSubData?.length
+                            ? invoiceSubData[
+                                invoiceSubData.length - 1
+                              ]?.invoiceSub_ct?.split("-")[1]
+                            : ""}
                         </th>
                       </tr>
+                      <tr>
+                        <td className="text-center">CTN/BAG NO:</td>
+                        <td className="border-r border-black text-left"></td>
+                        <td className="border-t border-r border-black text-left"></td>
+                        <td className="border-t border-r border-black text-left"></td>
+                        <td className="border-t border-r border-black text-left"></td>
+                        <td className="border-t  border-black text-left"></td>
+                        {/* <td className="border-t border-r border-black text-left"></td>
+                        <td className="border-t border-r border-black text-left"></td>
+                        <td className="border-t  border-black text-left"></td> */}
+                      </tr>
                     </thead>
+
                     <tbody>
-                      {[
-                        [
-                          "1-50",
-                          "SURYAA ROASTED CURRY POWDER EXT.HOT",
-                          "4X3 KG",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "51-150",
-                          "SURYAA ROASTED CURRY POWDER EXT.HOT",
-                          "12X500 GM",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "151-250",
-                          "SURYAA ROASTED CURRY POWDER HOT",
-                          "12X500 GM",
-                          "09109100",
-                          600,
-                          0.5,
-                          300,
-                          25815,
-                          1290.75,
-                          27105.75,
-                        ],
-                        [
-                          "251-500",
-                          "RUS-C ROASTED RICE FLOUR",
-                          "20X1 KG",
-                          "11029090",
-                          5000,
-                          0.5,
-                          2500,
-                          215125,
-                          10756.25,
-                          225881.25,
-                        ],
-                        [
-                          "501-700",
-                          "RUS-C ROASTED RICE FLOUR",
-                          "10X2 KG",
-                          "11029090",
-                          4000,
-                          0.5,
-                          2000,
-                          172100,
-                          8605,
-                          180705,
-                        ],
-                        [
-                          "701-800",
-                          "NIRU ROASTED RED RICE FLOUR",
-                          "6X3.6 KG",
-                          "11029090",
-                          2160,
-                          0.5,
-                          1080,
-                          92934,
-                          4646.7,
-                          97580.7,
-                        ],
-                        [
-                          "801-950",
-                          "NIRU SEMIA",
-                          "40X200 GM",
-                          "19024090",
-                          1200,
-                          0.5,
-                          600,
-                          51630,
-                          2581.5,
-                          54211.5,
-                        ],
-                        [
-                          "951-1025",
-                          "NIRU VADAGAM",
-                          "55X75 GM",
-                          "19059090",
-                          309.375,
-                          0.5,
-                          154.69,
-                          13310.86,
-                          665.54,
-                          13976.4,
-                        ],
-                        [
-                          "1026-1075",
-                          "NIRU RICE FLAKES WHITE",
-                          "28X400 GM",
-                          "19041090",
-                          560,
-                          0.5,
-                          280,
-                          24094,
-                          1204.7,
-                          25298.7,
-                        ],
-                      ].map((row, i) => (
-                        <tr key={i}>
-                          {row.map((cell, j) => (
-                            <td
-                              key={j}
-                              className="border-b border-black px-1 py-0.5"
-                            >
-                              {typeof cell === "number"
-                                ? cell.toLocaleString("en-IN")
-                                : cell}
-                            </td>
-                          ))}
+                      {invoiceSubData?.map((item, key) => (
+                        <tr className="font-semibold ">
+                          <td className="px-2 text-left">
+                            {item?.invoiceSub_ct}
+                          </td>
+                          <td className="border-r border-black px-1 text-left w-[30%]">
+                            <table className="w-full">
+                              <tbody>
+                                <tr>
+                                  <td className="print:text-[8px] text-left">
+                                    {item?.invoiceSub_item_description}
+                                  </td>
+                                  <td className="print:text-[8px] text-right">
+                                    {item?.invoiceSub_item_box_size}
+                                    {item?.invoiceSub_item_packing_unit}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+
+                          <td className="  border-r border-black px-1">
+                            {item?.invoiceSub_item_hsnCode}
+                          </td>
+                          <td className=" border-r border-black px-1">
+                            {item?.invoiceSub_item_packing_no *
+                              item?.invoiceSub_ctns}{" "}
+                          </td>
+                          <td className=" border-r border-black px-1">
+                            {item?.invoiceSub_item_rate_per_pc}
+                          </td>
+                          <td className=" px-1 ">
+                            {(
+                              Number(item?.invoiceSub_item_packing_no) *
+                              Number(item?.invoiceSub_ctns) *
+                              Number(item?.invoiceSub_item_rate_per_pc)
+                            ).toFixed(2)}{" "}
+                          </td>
+                          {/* <td className=" border-r border-black px-1 ">
+                            {(
+                              Number(item?.invoiceSub_item_packing_no) *
+                              Number(item?.invoiceSub_ctns) *
+                              Number(item?.invoiceSub_item_rate_per_pc) *
+                              usdToInrRate
+                            ).toFixed(2)}{" "}
+                          </td>
+                          <td className=" border-r border-black px-1">
+                            {(
+                              Number(item?.invoiceSub_item_packing_no) *
+                              Number(item?.invoiceSub_ctns) *
+                              Number(item?.invoiceSub_item_rate_per_pc) *
+                              usdToInrRate *
+                              0.05
+                            ).toFixed(2)}{" "}
+                          </td>
+                          <td className="px-1">
+                            {(
+                              Number(item?.invoiceSub_item_packing_no) *
+                              Number(item?.invoiceSub_ctns) *
+                              Number(item?.invoiceSub_item_rate_per_pc) *
+                              (Number(item?.invoiceSub_item_packing_no) *
+                                Number(item?.invoiceSub_ctns) *
+                                Number(item?.invoiceSub_item_rate_per_pc) *
+                                usdToInrRate *
+                                0.05)
+                            ).toFixed(2)}
+                          </td> */}
                         </tr>
                       ))}
-                      <tr className="font-semibold bg-gray-200">
+                      <tr className="font-semibold ">
                         <td
-                          colSpan={4}
-                          className="border border-black text-right px-1 py-0.5"
-                        >
-                          Total
+                          colSpan={2}
+                          className="border-r border-black text-right px-1 py-0.5"
+                        ></td>
+
+                        <td className="border-r border-black px-1"></td>
+                        <td className="border-t  border-r border-black px-1">
+                          {invoiceSubData?.reduce(
+                            (acc, item) =>
+                              acc +
+                              (item?.invoiceSub_item_packing_no *
+                                item?.invoiceSub_ctns || 0),
+                            0
+                          )}
                         </td>
-                        <td className="border border-black px-1">15,029.375</td>
-                        <td className="border border-black px-1">—</td>
-                        <td className="border border-black px-1">7,514.688</td>
-                        <td className="border border-black px-1">
-                          6,46,638.859
+                        <td className="border-r border-black px-1"></td>
+                        <td className="border-t  border-black px-1">
+                          {invoiceSubData
+                            ?.reduce((acc, item) => {
+                              const total =
+                                Number(item.invoiceSub_item_packing_no) *
+                                Number(item.invoiceSub_ctns) *
+                                Number(item.invoiceSub_item_rate_per_pc);
+                              return acc + total;
+                            }, 0)
+                            .toFixed(2)}
                         </td>
-                        <td className="border border-black px-1">32,331.943</td>
-                        <td className="border border-black px-1">
-                          6,78,970.802
+                        {/* <td className="border-t border-r  border-black px-1">
+                          {invoiceSubData
+                            ?.reduce((acc, item) => {
+                              const totalInr =
+                                Number(item.invoiceSub_item_packing_no) *
+                                Number(item.invoiceSub_ctns) *
+                                Number(item.invoiceSub_item_rate_per_pc) *
+                                usdToInrRate;
+                              return acc + totalInr;
+                            }, 0)
+                            .toFixed(2)}
                         </td>
+                        <td className="border-t border-r  border-black px-1">
+                          {invoiceSubData
+                            ?.reduce((acc, item) => {
+                              const totalFee =
+                                Number(item.invoiceSub_item_packing_no) *
+                                Number(item.invoiceSub_ctns) *
+                                Number(item.invoiceSub_item_rate_per_pc) *
+                                usdToInrRate *
+                                0.05;
+                              return acc + totalFee;
+                            }, 0)
+                            .toFixed(2)}
+                        </td>
+                        <td className="border-t   border-black px-1">
+                          {invoiceSubData
+                            ?.reduce((acc, item) => {
+                              const totalProduct =
+                                Number(item.invoiceSub_item_packing_no) *
+                                Number(item.invoiceSub_ctns) *
+                                Number(item.invoiceSub_item_rate_per_pc) *
+                                (Number(item.invoiceSub_item_packing_no) *
+                                  Number(item.invoiceSub_ctns) *
+                                  Number(item.invoiceSub_item_rate_per_pc) *
+                                  usdToInrRate *
+                                  0.05);
+                              return acc + totalProduct;
+                            }, 0)
+                            .toFixed(2)}
+                        </td> */}
                       </tr>
                     </tbody>
                   </table>
+                </td>
+              </tr>
+              <tr className="print-section">
+                <td
+                  colSpan="100%"
+                  className="border border-black text-[10px] p-0"
+                >
+                  <div className="p-2">
+                    <p className="font-bold">
+                      Amount Chargeable
+                      <span className="font-mono uppercase">
+                        {" "}
+                        TOTAL INR IN {totalInWords}
+                      </span>
+                      (in words)
+                      <span className=" font-semibold ml-3"></span>
+                    </p>
+                  </div>
+
+                  <div className="text-[10px] ">
+                    <p className="flex p-2"></p>
+
+                    <p className="block font-semibold ml-4"></p>
+                    <p className="block font-semibold ml-4 "></p>
+                  </div>
+                  <div className="grid grid-cols-12  text-[10px] mt-3">
+                    <div className="col-span-8">
+                      <div className=" px-2  mt-4">
+                        <span className="underline"> Declaration:</span>
+                        <p className="font-bold">
+                          {" "}
+                          We declare that this invoice shows the actual price of
+                          the goods described and that all particulars are true
+                          and correct.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="col-span-4">
+                      <div className="border-t border-l border-black pt-4  px-4 h-full">
+                        <p className="font-bold leading-none mb-6">
+                          For HEYLANDS EXPORTS PRIVATE LIMITED
+                        </p>
+                        <div className="flex flex-col items-center justify-center font-bold">
+                          <p>A.RAJENDRAN</p>
+                          <p>PURCHASE MANAGER</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
