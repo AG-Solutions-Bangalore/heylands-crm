@@ -24,6 +24,8 @@ import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
+import MemoizedSelect from "@/components/common/MemoizedSelect";
 
 const DocumentHeader = ({ documentDetails }) => {
   return (
@@ -54,96 +56,9 @@ const DocumentHeader = ({ documentDetails }) => {
   );
 };
 
-const MemoizedSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronsUpDown className="h-3 w-3 mr-3 text-gray-400" />
-        </div>
-      );
-    };
-
-    return (
-      <ReactSelect
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-        // menuPortalTarget={document.body}
-        //   menuPosition="fixed"
-      />
-    );
-  }
-);
 const InvoiceDocumentEdit = () => {
+  const token = useApiToken();
   const updateBranch = async ({ decryptedId, data }) => {
-    const token = localStorage.getItem("token");
     if (!token) throw new Error("No authentication token found");
 
     const response = await fetch(
@@ -168,7 +83,6 @@ const InvoiceDocumentEdit = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [expectedFob, setExpectedFob] = useState(0);
-  console.log(expectedFob, "expectedFob");
   const [formData, setFormData] = useState({
     invoice_ref: "",
     invoice_bl_no: "",
@@ -188,14 +102,13 @@ const InvoiceDocumentEdit = () => {
     invoice_exch_rate: "",
     invoice_let_exports_date: "",
     invoice_vessel: "",
-    invoice_insurance: "",
+    invoice_insurance_amt: "",
     invoice_freight: "",
   });
   console.log(formData.invoice_fob_usd, "formData.invoice_fob_usd");
 
   const { data: vesselData } = useFetchVessel();
   const { data: shipperData } = useFetchShipper();
-  // Fetch branch data by ID
   const {
     data: documentDetails,
     isLoading,
@@ -204,7 +117,6 @@ const InvoiceDocumentEdit = () => {
   } = useQuery({
     queryKey: ["documentData", decryptedId],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await fetch(
         `${BASE_URL}/api/panel-fetch-invoice-document-by-id/${decryptedId}`,
         {
@@ -318,7 +230,7 @@ const InvoiceDocumentEdit = () => {
   };
   const usd_value = Number(formData.invoice_i_value_usd);
   const freight_value = Number(formData.invoice_freight);
-  const insurance_value = Number(formData.invoice_insurance);
+  const insurance_value = Number(formData.invoice_insurance_amt);
   const exchange_value = Number(formData?.invoice_exch_rate);
   const inr_value = Number(formData.invoice_i_value_inr);
 
@@ -454,32 +366,11 @@ const InvoiceDocumentEdit = () => {
                   Vessel
                 </label>
 
-                {/* <Select
-                  value={formData.invoice_vessel}
-                  onValueChange={(value) =>
-                    handleInputChange({ target: { value } }, "invoice_vessel")
-                  }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select Vessel" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white h-56">
-                    {vesselData?.vessel.map((item, key) => (
-                      <SelectItem key={key} value={item.vessel_name}>
-                        {item.vessel_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select> */}
-
                 <MemoizedSelect
                   value={formData.invoice_vessel}
                   onChange={(value) =>
                     handleInputChange({ target: { value } }, "invoice_vessel")
                   }
-                  // onValueChange={(value) =>
-                  //   handleInputChange({ target: { value } }, "invoice_vessel")
-                  // }
                   options={
                     vesselData?.vessel?.map((item, key) => ({
                       key: key,
@@ -569,9 +460,9 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_insurance}
+                  value={formData.invoice_insurance_amt}
                   onChange={(e) =>
-                    handleDecimalInputChange(e, "invoice_insurance")
+                    handleDecimalInputChange(e, "invoice_insurance_amt")
                   }
                   placeholder="Enter Insurance"
                 />

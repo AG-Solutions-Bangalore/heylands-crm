@@ -1,57 +1,26 @@
-import React, { useState } from "react";
-import PreshipmentDetails from "./PreshipmentDetails";
-import InvoiceView from "./InvoiceView";
-import Page from "../dashboard/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import InvoiceSpiceBoard from "./InvoiceSpiceBoard";
-import InvoiceApta from "./InvoiceApta";
-import InvoiceCertificateOrigin from "./InvoiceCertificateOrigin";
-import InvoiceGst from "./InvoiceGst";
-import BuyerInvoice from "./BuyerInvoice";
-import PerfomaInvoice from "./PerfomaInvoice";
-import BlDraft from "./BlDraft";
-import InvoicePytho from "./InvoicePytho";
-import InvoiceTripartite from "./InvoiceTripartite";
 import { StepBack, StepForward } from "lucide-react";
-
-
+import { useState } from "react";
+import Page from "../../dashboard/page";
+import InvoiceView from "./InvoiceView";
+import PackingInvoice from "./PackingInvoice";
+import TaxInvoice from "./TaxInvoice";
 const TABS = [
-  { value: "pending", label: "Pre_Shipment", component: PreshipmentDetails },
-  { 
-    value: "invoice_packing",
-    label: "Invoice Packing ECGC",
-    component: InvoiceView,
-  },
-  { value: "spice_board", label: "Spice Board", component: InvoiceSpiceBoard },
-  { value: "apta", label: "Apta", component: InvoiceApta },
-  {
-    value: "certificate_origin",
-    label: "Cer. Origin",
-    component: InvoiceCertificateOrigin,
-  },
-  { value: "invoice_gst", label: "Invoice Gsts", component: InvoiceGst },
-  { value: "tripartite", label: "Tripartite", component: InvoiceTripartite },
-  { value: "bldraft", label: "Bl Draft", component: BlDraft },
-  { value: "buyerinvoice", label: "Buyer Invoice", component: BuyerInvoice },
-  {
-    value: "performainvoice",
-    label: "Performa Invoice",
-    component: PerfomaInvoice,
-  },
-  { value: "pytho", label: "Pytho", component: InvoicePytho },
- 
+  { value: "invoice", label: "Invoice", component: InvoiceView },
+  { value: "taxinvoice", label: "Tax Invoice", component: TaxInvoice },
+  { value: "packing", label: "Packing", component: PackingInvoice },
 ];
 
 const InvoiceTabs = () => {
-  const [activeTab, setActiveTab] = useState("pending");
-  const [sidebarOpen, setSidebarOpen] = useState(true); 
+  const [activeTab, setActiveTab] = useState("invoice");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
   };
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen); 
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
@@ -79,13 +48,11 @@ const InvoiceTabs = () => {
           </div>
         </div>
 
-        {/* Right Sidebar - 15% width */}
         <div
           className={`fixed right-0 top-20 h-[90vh]  bg-white  rounded-lg transition-all duration-300 ${
             sidebarOpen ? "w-[15%] p-2 border border-gray-200" : "w-0 p-0"
           }`}
         >
-          
           <div className="flex flex-col h-full overflow-hidden">
             <Tabs
               value={activeTab}
@@ -93,7 +60,6 @@ const InvoiceTabs = () => {
               orientation="vertical"
               className="w-full h-full"
             >
-              
               <TabsList className="flex flex-col w-full h-full space-y-2 overflow-y-auto justify-start">
                 {TABS.map(({ value, label }) => (
                   <TabsTrigger
@@ -116,8 +82,6 @@ const InvoiceTabs = () => {
         >
           {sidebarOpen ? <StepForward /> : <StepBack />}
         </div>
-
-        {/* <div className="w-[15%]" /> */}
       </div>
     </Page>
   );

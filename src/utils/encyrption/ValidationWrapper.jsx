@@ -89,9 +89,9 @@ const ValidationWrapper = ({ children }) => {
         }
       } catch (error) {
         console.error("❌ Validation Error:", error.message);
-        if (token) {
+        // if (token) {
           handleLogout();
-        }
+        // }
         toast({
           title: "Environment Error",
           description: "Environment validation failed. Redirecting...",

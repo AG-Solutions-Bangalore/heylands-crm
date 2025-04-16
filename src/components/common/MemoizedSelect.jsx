@@ -3,7 +3,7 @@ import React from "react";
 import Select from "react-select";
 
 const MemoizedSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
+  ({ value, onChange, options, placeholder, disabled }) => {
     const selectOptions = options.map((option) => ({
       value: option.value,
       label: option.label,
@@ -83,6 +83,7 @@ const MemoizedSelect = React.memo(
           IndicatorSeparator: () => null,
           DropdownIndicator,
         }}
+        isDisabled={disabled}
       />
     );
   }
