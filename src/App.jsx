@@ -40,8 +40,7 @@ import ContractForm from "./app/reports/contract/ContractForm";
 import ContractReport from "./app/reports/contract/ContractReport";
 import SalesAccountForm from "./app/reports/salesAccount/SalesAccountForm";
 import SalesAccountReport from "./app/reports/salesAccount/SalesAccountReport";
-import SalesDataForm from "./app/reports/salesData/SalesDataForm";
-import SalesDataReport from "./app/reports/salesData/SalesDataReport";
+
 import CreateButton from "./app/userManagement/CreateButton";
 import CreatePage from "./app/userManagement/CreatePage";
 import ManagementDashboard from "./app/userManagement/ManagementDashboard";
@@ -312,12 +311,6 @@ function App() {
           <Route
             path="/report/sales-account-report"
             element={<SalesAccountReport />}
-          />
-          {/* report sales data  */}
-          <Route path="/report/sales-data-form" element={<SalesDataForm />} />
-          <Route
-            path="/report/sales-data-report"
-            element={<SalesDataReport />}
           />
 
           {/* report monthwise purchase  */}

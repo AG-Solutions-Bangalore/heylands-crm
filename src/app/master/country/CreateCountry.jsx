@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, SquarePlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import BASE_URL from "@/config/BaseUrl";
@@ -27,6 +27,7 @@ import {
   CountryEdit,
 } from "@/components/buttonIndex/ButtonComponents";
 import useApiToken from "@/components/common/useApiToken";
+import { useLocation } from "react-router-dom";
 
 const CountryForm = ({ countryId }) => {
   const [open, setOpen] = useState(false);
@@ -37,6 +38,8 @@ const CountryForm = ({ countryId }) => {
     country_da: "",
     country_pol: "",
   });
+  const { pathname } = useLocation();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -174,17 +177,28 @@ const CountryForm = ({ countryId }) => {
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
               {isEditMode ? (
-                <CountryEdit
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                />
-              ) : (
-                <CountryCreate
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  className={` ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                />
-              )}
+                <div>
+                  <CountryEdit
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  />{" "}
+                </div>
+              ) : pathname === "/master/country" ? (
+                <div>
+                  <CountryCreate
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    className={` ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+                  />
+                </div>
+              ) : pathname === "/create-contract/new" ||
+                pathname === "/create-invoice/new" ? (
+                <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
+                  <span className="flex items-center flex-row gap-1">
+                    <SquarePlus className="w-4 h-4" /> <span>Add</span>
+                  </span>
+                </p>
+              ) : null}
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>

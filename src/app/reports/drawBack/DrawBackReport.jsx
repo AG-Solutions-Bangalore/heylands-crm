@@ -9,6 +9,7 @@ import { Download, Printer } from "lucide-react";
 import BASE_URL from "@/config/BaseUrl";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import useApiToken from "@/components/common/useApiToken";
 
 const DrawBackReport = () => {
   const { toast } = useToast();
@@ -16,7 +17,6 @@ const DrawBackReport = () => {
   const containerRef = useRef();
   const reportData = location.state?.reportData;
   const formData = location.state?.formData;
-  console.log(formData);
   if (!reportData || !reportData.drawback) {
     return (
       <Page>
@@ -24,7 +24,7 @@ const DrawBackReport = () => {
       </Page>
     );
   }
-
+  const token = useApiToken();
   const groupedData = reportData.drawback.reduce((acc, item) => {
     acc[item.branch_name] = acc[item.branch_name] || [];
     acc[item.branch_name].push(item);
@@ -82,7 +82,7 @@ const DrawBackReport = () => {
         method: "POST",
         data: formData,
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         responseType: "blob",
       });

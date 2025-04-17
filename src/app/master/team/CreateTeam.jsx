@@ -128,7 +128,7 @@ const CreateTeam = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-   
+
       const response = await axios.post(
         `${BASE_URL}/api/panel-create-team`,
         formData,
@@ -196,7 +196,7 @@ const CreateTeam = () => {
         ) : null}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
         </DialogHeader>

@@ -14,7 +14,7 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
@@ -164,10 +164,12 @@ const MarkingForm = ({ markingId }) => {
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             ></MarkingCreate>
           </div>
-        ) : pathname === "/create-contract" ||
-          pathname === "/create-invoice" ? (
-          <p className="text-sm text-blue-600  hover:text-red-800 cursor-pointer">
-            Create Marking
+        ) : pathname === "/create-contract/new" ||
+          pathname === "/create-invoice/new" ? (
+          <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
+            <span className="flex items-center flex-row gap-1">
+              <SquarePlus className="w-4 h-4" /> <span>Add</span>
+            </span>
           </p>
         ) : null}
       </PopoverTrigger>

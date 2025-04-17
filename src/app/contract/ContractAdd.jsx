@@ -16,6 +16,9 @@ import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 
+import MemoizedProductSelect from "@/components/common/MemoizedProductSelect";
+import MemoizedSelect from "@/components/common/MemoizedSelect";
+import { ProgressBar } from "@/components/spinner/ProgressBar";
 import {
   useFetchBagsTypes,
   useFetchBuyers,
@@ -47,13 +50,11 @@ import {
   MinusCircle,
   Package,
   PlusCircle,
+  SquarePlus,
   TestTubes,
   Trash2,
   Truck,
 } from "lucide-react";
-import MemoizedProductSelect from "@/components/common/MemoizedProductSelect";
-import MemoizedSelect from "@/components/common/MemoizedSelect";
-import { ProgressBar } from "@/components/spinner/ProgressBar";
 import moment from "moment";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -61,7 +62,16 @@ import Currency from "../../components/json/contractCurrency.json";
 import Insurance from "../../components/json/contractInsurance.json";
 import Status from "../../components/json/contractstatus.json";
 import Page from "../dashboard/page";
+import BuyerForm from "../master/buyer/CreateBuyer";
 import DeleteContract from "./DeleteContract";
+import CreateOrderTypeForm from "../master/orderType/CreateOrderTypeForm";
+import ContainerSizeForm from "../master/ContainerSize/CreateContainerSize";
+import CreateProductForm from "../master/product/CreateProduct";
+import PortofLoadingForm from "../master/portofLoading/CreatePortofLoading";
+import CountryForm from "../master/country/CreateCountry";
+import PaymentTermForm from "../master/paymentTermC/CreatePaymentTermC";
+import MarkingForm from "../master/marking/CreateMarking";
+import CreateItemPackingForm from "../master/itemPacking/CreateItemPackingForm";
 
 const ContractAdd = () => {
   const { toast } = useToast();
@@ -858,6 +868,9 @@ const ContractAdd = () => {
                       <span>
                         Buyer <span className="text-red-500">*</span>
                       </span>
+                      <span>
+                        <BuyerForm />
+                      </span>
                     </label>
                     <MemoizedSelect
                       value={formData.contract_buyer}
@@ -994,9 +1007,14 @@ const ContractAdd = () => {
                       </div>
                       <div>
                         <label
-                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                          className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                         >
-                          Order Type <span className="text-red-500">*</span>
+                          <span>
+                            Order Type <span className="text-red-500">*</span>
+                          </span>
+                          <span>
+                            <CreateOrderTypeForm />
+                          </span>
                         </label>
                         <MemoizedSelect
                           value={formData.contract_order_type}
@@ -1032,9 +1050,12 @@ const ContractAdd = () => {
                   )}
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
-                      Containers/Size
+                      <span>Containers/Size</span>
+                      <span>
+                        <ContainerSizeForm />
+                      </span>
                     </label>
                     <MemoizedSelect
                       value={formData.contract_container_size}
@@ -1054,10 +1075,13 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>
                         Product <span className="text-red-500">*</span>
+                      </span>
+                      <span>
+                        <CreateProductForm />
                       </span>
                     </label>
                     <MemoizedSelect
@@ -1079,8 +1103,10 @@ const ContractAdd = () => {
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>
-                        {" "}
                         Port of Loading <span className="text-red-500">*</span>
+                      </span>
+                      <span>
+                        <PortofLoadingForm />
                       </span>
                     </label>
                     <MemoizedSelect
@@ -1125,8 +1151,10 @@ const ContractAdd = () => {
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>
-                        {" "}
                         Destination Port <span className="text-red-500">*</span>
+                      </span>
+                      <span>
+                        <CountryForm />
                       </span>
                     </label>
                     <MemoizedSelect
@@ -1145,11 +1173,11 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>
                         {" "}
-                        Dest. Country <span className="text-red-500">*</span>
+                        Dest. Country<span className="text-red-500">*</span>
                       </span>
                     </label>
                     <MemoizedSelect
@@ -1171,9 +1199,12 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium  flex items-center justify-between`}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>Payment Terms</span>
+                      <span>
+                        <PaymentTermForm />
+                      </span>
                     </label>
                     <MemoizedSelect
                       className="bg-white"
@@ -1242,9 +1273,12 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
-                      <span> Marking</span>
+                      <span>Marking</span>
+                      <span>
+                        <MarkingForm />
+                      </span>
                     </label>
                     <MemoizedSelect
                       value={formData.contract_marking}
@@ -1283,11 +1317,16 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
-                      <span>Packing Type</span>{" "}
-                      <span className="text-red-500">*</span>
+                      <span>
+                        Packing Type<span className="text-red-500">*</span>
+                      </span>
+                      <span>
+                        <CreateItemPackingForm />
+                      </span>
                     </label>
+
                     <MemoizedSelect
                       className="bg-white"
                       value={formData.contract_pack_type}
@@ -1402,21 +1441,27 @@ const ContractAdd = () => {
                   <Table className="text-xs">
                     <TableHeader>
                       <TableRow className="bg-gray-100">
-                        {[
-                          "Item (Code - Desc)",
-                          "Packing",
-                          "Mes",
-                          "Unit",
-                          "Rate",
-                          "Carton",
-                        ].map((title, i) => (
-                          <TableHead
-                            key={i}
-                            className="p-1 text-center border font-medium whitespace-nowrap"
+                        <TableHead className="p-1 text-center border font-medium whitespace-nowrap">
+                          <div
+                            className="flex items-center justify-center gap-1 text-blue-600 hover:text-red-800 cursor-pointer"
+                            onClick={() => {
+                              navigate(`/master/item-form/new?mode=create`);
+                            }}
                           >
-                            {title}
-                          </TableHead>
-                        ))}
+                            <span>Item (Code - Desc)</span>
+                          </div>
+                        </TableHead>
+
+                        {["Packing", "Mes", "Unit", "Rate", "Carton"].map(
+                          (title, i) => (
+                            <TableHead
+                              key={i}
+                              className="p-1 text-center border font-medium whitespace-nowrap"
+                            >
+                              {title}
+                            </TableHead>
+                          )
+                        )}
 
                         <TableHead className="p-1 text-center border font-medium whitespace-nowrap">
                           <Button

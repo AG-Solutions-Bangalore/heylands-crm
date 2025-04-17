@@ -24,8 +24,9 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const CreateItemPackingForm = ({ itemId = null }) => {
   const [open, setOpen] = useState(false);
@@ -40,6 +41,8 @@ const CreateItemPackingForm = ({ itemId = null }) => {
     item_packing_no: isEditMode ? null : "",
     item_packing_status: isEditMode ? "Active" : null,
   });
+  const { pathname } = useLocation();
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const token = useApiToken();
@@ -87,7 +90,7 @@ const CreateItemPackingForm = ({ itemId = null }) => {
     // Identify missing fields
     const missingFields = Object.entries(requiredFields).filter(
       ([label, field]) =>
-        !formData[field]?.trim() && (!isEditMode || field !== "item_category") 
+        !formData[field]?.trim() && (!isEditMode || field !== "item_category")
     );
 
     if (missingFields.length > 0) {
@@ -171,13 +174,20 @@ const CreateItemPackingForm = ({ itemId = null }) => {
           <div>
             <ItemPackingEdit />
           </div>
-        ) : (
+        ) : pathname === "/master/item-packing" ? (
           <div>
             <ItemPackingCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
-        )}
+        ) : pathname === "/create-contract/new" ||
+          pathname === "/create-invoice/new" ? (
+          <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
+            <span className="flex items-center flex-row gap-1">
+              <SquarePlus className="w-4 h-4" /> <span>Add</span>
+            </span>
+          </p>
+        ) : null}
       </PopoverTrigger>
 
       <PopoverContent className="w-80">

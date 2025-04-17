@@ -9,6 +9,7 @@ import { Download, Printer } from "lucide-react";
 import BASE_URL from "@/config/BaseUrl";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import useApiToken from "@/components/common/useApiToken";
 
 const SalesAccountReport = () => {
   const { toast } = useToast();
@@ -16,7 +17,7 @@ const SalesAccountReport = () => {
   const containerRef = useRef();
   const reportData = location.state?.reportData;
   const formData = location.state?.formData;
-  console.log(formData);
+  const token = useApiToken();
   if (!reportData || !reportData.sales_account) {
     return (
       <Page>
@@ -80,7 +81,7 @@ const SalesAccountReport = () => {
         method: "POST",
         data: formData,
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         responseType: "blob",
       });
@@ -135,21 +136,16 @@ const SalesAccountReport = () => {
           {Object.entries(groupedData).map(([branchName, invoices]) => (
             <div
               key={branchName}
-              className="mb-6 border-t mt-6  border-l border-r border-black text-[10px]"
+              className="mb-6  mt-6  border border-black text-[10px]"
             >
               <h2 className="p-2 bg-gray-200 font-bold ">{branchName}</h2>
               <div
                 className="grid bg-white"
-                // style={{
-                //   gridTemplateColumns:
-                //     "minmax(30px, auto) minmax(150px, auto) minmax(110px, auto) minmax(90px, auto) minmax(60px, auto) minmax(100px, auto) minmax(110px, auto) minmax(110px, auto) minmax(70px, auto) minmax(100px, auto) ",
-                // }}
                 style={{
                   gridTemplateColumns:
-                    "0.5fr 1fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                    "1fr 1fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr",
                 }}
               >
-                {/* Header */}
                 {[
                   "Invoice No",
                   "Buyer",
@@ -201,7 +197,7 @@ const SalesAccountReport = () => {
                     <div className="p-2 border-b border-r border-black text-right">
                       {item.invoice_fob_usd}
                     </div>
-                    <div className="p-2 border-b  border-black text-right">
+                    <div className="p-2 border-b   border-black text-right">
                       {item.invoice_fob_inr}
                     </div>
                   </React.Fragment>
@@ -241,7 +237,7 @@ const SalesAccountReport = () => {
                     )
                     .toFixed(2)}
                 </div>
-                <div className="p-2 border-b  font-bold border-black text-right">
+                <div className="p-2 border-b font-bold border-black text-right">
                   {invoices
                     .reduce(
                       (sum, item) => sum + Number(item.invoice_fob_inr || 0),

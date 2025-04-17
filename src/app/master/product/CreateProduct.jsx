@@ -33,7 +33,7 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -227,10 +227,12 @@ const CreateProductForm = ({ productId = null }) => {
                 className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
               ></ProductCreate>
             </div>
-          ) : pathname === "/create-enquiries" ||
+          ) : pathname === "/create-contract/new" ||
             pathname === "/costing-create" ? (
-            <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
-              Create Product
+            <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
+              <span className="flex items-center flex-row gap-1">
+                <SquarePlus className="w-4 h-4" /> <span>Add</span>
+              </span>
             </p>
           ) : null}
         </DialogTrigger>

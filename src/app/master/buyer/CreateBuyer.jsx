@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFetchCountrys, useFetchPorts } from "@/hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -224,9 +224,12 @@ const BuyerForm = ({ mode = "create", buyerId = null }) => {
                 className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
               />
             </div>
-          ) : pathname === "/create-contract" ? (
-            <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
-              Create Buyer
+          ) : pathname === "/create-contract/new" ||
+            pathname === "/create-invoice/new" ? (
+            <p className="text-xs text-blue-600  hover:text-red-800 cursor-pointer">
+              <span className="flex items-center flex-row gap-1">
+                <SquarePlus className="w-4 h-4" /> <span>Add</span>
+              </span>
             </p>
           ) : null}
         </DialogTrigger>

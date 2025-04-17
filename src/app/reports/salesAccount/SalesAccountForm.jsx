@@ -23,17 +23,14 @@ import {
   SalesAccountDownload,
   SalesAccountView,
 } from "@/components/buttonIndex/ButtonComponents";
+import useApiToken from "@/components/common/useApiToken";
 
-// Form validation schema
 const salesAccountFormSchema = z.object({
   from_date: z.string().min(1, "From date is required"),
   to_date: z.string().min(1, "To Date is required"),
   branch_name: z.string().optional(),
 });
-
-// API function for creating contract
-const createContract = async (data) => {
-  const token = localStorage.getItem("token");
+const createSalesAccount = async (data, token) => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
@@ -72,6 +69,7 @@ const BranchHeader = () => (
 const SalesAccountForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const token = useApiToken();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -80,27 +78,8 @@ const SalesAccountForm = () => {
     branch_name: "",
   });
 
-  // Fetch branches query
-  const { data: branchData, isLoading: isBranchesLoading } = useQuery({
-    queryKey: ["branch"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No authentication token found");
-
-      const response = await fetch(`${BASE_URL}/api/panel-fetch-branches`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch branch data");
-      return response.json();
-    },
-  });
-
   const createSalesAccountMutation = useMutation({
-    mutationFn: createContract,
+    mutationFn: ([data, token]) => createSalesAccount(data, token),
 
     onSuccess: (data) => {
       navigate("/report/sales-account-report", {
@@ -133,12 +112,11 @@ const SalesAccountForm = () => {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const validatedData = salesAccountFormSchema.parse(formData);
-      createSalesAccountMutation.mutate(validatedData);
+      createSalesAccountMutation.mutate([validatedData, token]);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.errors.map(
@@ -167,7 +145,6 @@ const SalesAccountForm = () => {
     }
   };
 
-  // Handle download
   const handleDownload = async (e) => {
     e.preventDefault();
 
@@ -177,7 +154,7 @@ const SalesAccountForm = () => {
         method: "POST",
         data: formData,
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         responseType: "blob",
       });
@@ -240,43 +217,6 @@ const SalesAccountForm = () => {
                     onChange={(e) => handleInputChange("to_date", e)}
                     placeholder="Enter To Date"
                   />
-                </div>
-
-                <div>
-                  <label
-                    className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium`}
-                  >
-                    Company
-                  </label>
-                  <Select
-                    value={formData.branch_name}
-                    onValueChange={(value) =>
-                      handleInputChange("branch_name", value)
-                    }
-                    disabled={isBranchesLoading}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Select Company" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {/* {branchData?.branch?.map((branch, index) => (
-                        <SelectItem
-                          key={`${branch.branch_name}-${index}`} // Ensures uniqueness
-                          value={branch.branch_name}
-                        >
-                          {branch.branch_name}
-                        </SelectItem>
-                      ))} */}
-                      {branchData?.branch?.map((branch, index) => (
-                        <SelectItem
-                          key={`${branch.branch_name}-${index}`} // Adding index ensures uniqueness
-                          value={branch.branch_name}
-                        >
-                          {branch.branch_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
