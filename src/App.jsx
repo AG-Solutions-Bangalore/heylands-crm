@@ -40,8 +40,7 @@ import ContractForm from "./app/reports/contract/ContractForm";
 import ContractReport from "./app/reports/contract/ContractReport";
 import SalesAccountForm from "./app/reports/salesAccount/SalesAccountForm";
 import SalesAccountReport from "./app/reports/salesAccount/SalesAccountReport";
-import SalesDataForm from "./app/reports/salesData/SalesDataForm";
-import SalesDataReport from "./app/reports/salesData/SalesDataReport";
+
 import CreateButton from "./app/userManagement/CreateButton";
 import CreatePage from "./app/userManagement/CreatePage";
 import ManagementDashboard from "./app/userManagement/ManagementDashboard";
@@ -96,10 +95,13 @@ import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTim
 import BASE_URL from "./config/BaseUrl";
 import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
 import InvoiceTabs from "./app/invoice/InvoiceView/InvoiceTabs";
+import { useSelector } from "react-redux";
+import VersionCheck from "./components/common/VersionCheck";
 
 function App() {
   const navigate = useNavigate();
-  const time = localStorage.getItem("token-expire-time");
+  const time = useSelector((state) => state.auth.token_expire_time);
+
   const handleLogout = async () => {
     try {
       const response = await fetch(`${BASE_URL}/api/panel-logout`, {
@@ -122,6 +124,7 @@ function App() {
   return (
     <>
       <Toaster />
+      <VersionCheck />
       {/* <DisableRightClick /> */}
       <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <ValidationWrapper>
@@ -312,12 +315,6 @@ function App() {
           <Route
             path="/report/sales-account-report"
             element={<SalesAccountReport />}
-          />
-          {/* report sales data  */}
-          <Route path="/report/sales-data-form" element={<SalesDataForm />} />
-          <Route
-            path="/report/sales-data-report"
-            element={<SalesDataReport />}
           />
 
           {/* report monthwise purchase  */}

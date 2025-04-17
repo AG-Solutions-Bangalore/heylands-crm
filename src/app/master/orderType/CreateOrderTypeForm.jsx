@@ -23,8 +23,9 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, SquarePlus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const CreateOrderTypeForm = ({ orderId = null }) => {
   const [open, setOpen] = useState(false);
@@ -32,6 +33,7 @@ const CreateOrderTypeForm = ({ orderId = null }) => {
   const [isFetching, setIsFetching] = useState(false);
   const isEditMode = Boolean(orderId);
   const [originalData, setOriginalData] = useState(null);
+  const { pathname } = useLocation();
 
   const [formData, setFormData] = useState({
     order_type: isEditMode ? null : "",
@@ -155,13 +157,19 @@ const CreateOrderTypeForm = ({ orderId = null }) => {
           <div>
             <OrderTypeEdit />
           </div>
-        ) : (
+        ) : pathname === "/master/order-type" ? (
           <div>
             <OrderTypeCreate
               className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             />
           </div>
-        )}
+        ) : pathname === "/create-contract/new" ? (
+          <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
+            <span className="flex items-center flex-row gap-1">
+              <SquarePlus className="w-4 h-4" /> <span>Add</span>
+            </span>
+          </p>
+        ) : null}
       </PopoverTrigger>
 
       <PopoverContent className="w-80">

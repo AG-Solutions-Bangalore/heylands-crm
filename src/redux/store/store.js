@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../slice/authSlice";
 import pagePermissionReducer from "../slice/permissionSlice";
+import sidebarReducer from "../slice/sidebarSlice";
 // import uiReducer from "./uiSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
@@ -15,6 +16,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   permissions: pagePermissionReducer,
+  sidebar: sidebarReducer,
 });
 
 // Persisted reducer

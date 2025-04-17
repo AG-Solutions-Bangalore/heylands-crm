@@ -75,7 +75,7 @@ export default function LoginAuth() {
           return;
         }
 
-        const { UserInfo, userN, company_detils } = res.data;
+        const { UserInfo, userN, company_detils, version } = res.data;
 
         const userData = {
           token: UserInfo.token,
@@ -89,6 +89,7 @@ export default function LoginAuth() {
           company_name: company_detils?.company_name,
           email: UserInfo.user.email,
           token_expires_at: UserInfo.token_expires_at,
+          version: version.version_panel,
         };
 
         dispatch(loginSuccess(userData));

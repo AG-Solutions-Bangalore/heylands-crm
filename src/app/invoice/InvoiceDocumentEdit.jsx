@@ -105,7 +105,6 @@ const InvoiceDocumentEdit = () => {
     invoice_insurance_amt: "",
     invoice_freight: "",
   });
-  console.log(formData.invoice_fob_usd, "formData.invoice_fob_usd");
 
   const { data: vesselData } = useFetchVessel();
   const { data: shipperData } = useFetchShipper();
@@ -283,7 +282,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_bl_no}
+                  value={formData.invoice_bl_no || ""}
                   onChange={(e) => handleInputChange(e, "invoice_bl_no")}
                   placeholder="Enter  BL no"
                 />
@@ -297,7 +296,7 @@ const InvoiceDocumentEdit = () => {
                 <Input
                   type="date"
                   className="bg-white"
-                  value={formData.invoice_bl_date}
+                  value={formData.invoice_bl_date || ""}
                   onChange={(e) => handleInputChange(e, "invoice_bl_date")}
                   placeholder="Enter  Bl Date"
                 />
@@ -311,7 +310,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_sb_no}
+                  value={formData.invoice_sb_no || ""}
                   onChange={(e) => handleInputChange(e, "invoice_sb_no")}
                   placeholder="Enter  Sb No"
                 />
@@ -325,7 +324,7 @@ const InvoiceDocumentEdit = () => {
                 <Input
                   type="date"
                   className="bg-white"
-                  value={formData.invoice_sb_date}
+                  value={formData.invoice_sb_date || ""}
                   onChange={(e) => handleInputChange(e, "invoice_sb_date")}
                   placeholder="Enter  Sb Date"
                 />
@@ -339,7 +338,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_container}
+                  value={formData.invoice_container || ""}
                   onChange={(e) => handleInputChange(e, "invoice_container")}
                   placeholder="  Container"
                 />
@@ -353,7 +352,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_voyage}
+                  value={formData.invoice_voyage || ""}
                   onChange={(e) => handleInputChange(e, "invoice_voyage")}
                   placeholder="Enter  Voyage"
                 />
@@ -367,7 +366,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
 
                 <MemoizedSelect
-                  value={formData.invoice_vessel}
+                  value={formData.invoice_vessel || ""}
                   onChange={(value) =>
                     handleInputChange({ target: { value } }, "invoice_vessel")
                   }
@@ -389,7 +388,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_seal}
+                  value={formData.invoice_seal || ""}
                   onChange={(e) => handleInputChange(e, "invoice_seal")}
                   placeholder="Enter  Seal"
                 />
@@ -403,7 +402,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
 
                 <Select
-                  value={formData.invoice_shipper}
+                  value={formData.invoice_shipper || ""}
                   onValueChange={(value) =>
                     handleInputChange({ target: { value } }, "invoice_shipper")
                   }
@@ -429,7 +428,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_i_value_usd}
+                  value={formData.invoice_i_value_usd || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_i_value_usd")
                   }
@@ -444,7 +443,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_exch_rate}
+                  value={formData.invoice_exch_rate || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_exch_rate")
                   }
@@ -460,7 +459,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_insurance_amt}
+                  value={formData.invoice_insurance_amt || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_insurance_amt")
                   }
@@ -476,7 +475,7 @@ const InvoiceDocumentEdit = () => {
                 </label>
                 <Input
                   className="bg-white"
-                  value={formData.invoice_freight}
+                  value={formData.invoice_freight || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_freight")
                   }
@@ -489,11 +488,11 @@ const InvoiceDocumentEdit = () => {
                   className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 flex items-center justify-between font-medium `}
                 >
                   <span>Invoice Value</span>
-                  <span>{expectedINRValue}</span>
+                  <span>{expectedINRValue || ""}</span>
                 </label>
                 <Input
                   className={`bg-white ${!isINRValid ? "border-red-500" : ""}`}
-                  value={formData.invoice_i_value_inr}
+                  value={formData.invoice_i_value_inr || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_i_value_inr")
                   }
@@ -506,12 +505,12 @@ const InvoiceDocumentEdit = () => {
                   className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 flex items-center justify-between font-medium `}
                 >
                   <span> FOB USD</span>
-                  <span>{formData.invoice_fob_usd}</span>
+                  <span>{formData.invoice_fob_usd || ""}</span>
                 </label>
                 <Input
-                  read-only
+                  readOnly={true}
                   className="bg-white cursor-not-allowed"
-                  value={formData.invoice_fob_usd}
+                  value={formData.invoice_fob_usd || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_fob_usd")
                   }
@@ -523,12 +522,12 @@ const InvoiceDocumentEdit = () => {
                   className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 flex items-center justify-between font-medium `}
                 >
                   <span> FOB INR</span>
-                  <span>{formData.invoice_fob_inr}</span>
+                  <span>{formData.invoice_fob_inr || ""}</span>
                 </label>
                 <Input
-                  read-only
+                  readOnly={true}
                   className="bg-white cursor-not-allowed"
-                  value={formData.invoice_fob_inr}
+                  value={formData.invoice_fob_inr || ""}
                   onChange={(e) =>
                     handleDecimalInputChange(e, "invoice_fob_inr")
                   }
@@ -545,7 +544,7 @@ const InvoiceDocumentEdit = () => {
                 <Input
                   type="date"
                   className="bg-white"
-                  value={formData.invoice_let_exports_date}
+                  value={formData.invoice_let_exports_date || ""}
                   onChange={(e) =>
                     handleInputChange(e, "invoice_let_exports_date")
                   }
@@ -562,7 +561,7 @@ const InvoiceDocumentEdit = () => {
                 <Input
                   type="date"
                   className="bg-white"
-                  value={formData.invoice_etd_date}
+                  value={formData.invoice_etd_date || ""}
                   onChange={(e) => handleInputChange(e, "invoice_etd_date")}
                   placeholder="Enter  Etd Date"
                 />
@@ -577,7 +576,7 @@ const InvoiceDocumentEdit = () => {
                 <Input
                   type="date"
                   className="bg-white"
-                  value={formData.invoice_eta_date}
+                  value={formData.invoice_eta_date || ""}
                   onChange={(e) => handleInputChange(e, "invoice_eta_date")}
                   placeholder="Enter  Eta Date"
                 />

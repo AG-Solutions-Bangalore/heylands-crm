@@ -172,13 +172,10 @@ const PortofLoadingForm = ({ portId = null }) => {
                 className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
               />
             </div>
-          ) : pathname === "/create-contract" ||
-            pathname === "/create-invoice" ||
+          ) : pathname === "/create-contract/new" ||
+            pathname === "/create-invoice/new" ||
             pathname === "/costing-create" ? (
-            <p
-              onClick={() => setOpen(true)}
-              className="text-xs text-blue-600 hover:text-red-800 cursor-pointer"
-            >
+            <p className="text-xs text-blue-600 hover:text-red-800 cursor-pointer">
               <span className="flex items-center flex-row gap-1">
                 <SquarePlus className="w-4 h-4" /> <span>Add</span>
               </span>

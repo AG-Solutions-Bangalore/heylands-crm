@@ -17,14 +17,14 @@ import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
 
 const Buyer = () => {
   const containerRef = useRef();
-
+  const token = useApiToken();
   const { toast } = useToast();
 
   const fetchBuyerData = async () => {
-    const token = localStorage.getItem("token");
     const response = await axios.post(
       `${BASE_URL}/api/panel-fetch-buyer-details-report`,
       {},
@@ -41,6 +41,7 @@ const Buyer = () => {
     data: buyerData,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["buyerData"],
     queryFn: fetchBuyerData,
@@ -55,7 +56,7 @@ const Buyer = () => {
       url: BASE_URL + "/api/panel-download-buyer-details-report",
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => {

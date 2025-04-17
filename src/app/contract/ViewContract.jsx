@@ -129,8 +129,8 @@ const ViewContract = () => {
           <>
             <div className="hidden print:block">
               <img
-                src={`${LetterHead}/${branchData?.branch_letter_head}`}
-                // src={getImageUrl(branchData?.branch_letter_head)}
+                // src={`${LetterHead}/${branchData?.branch_letter_head}`}
+                src={getImageUrl(branchData?.branch_letter_head)}
                 alt="logo"
                 className="w-full max-h-[120px] object-contain"
               />

@@ -23,6 +23,7 @@ import {
   ErrorComponent,
   LoaderComponent,
 } from "@/components/LoaderComponent/LoaderComponent";
+import useApiToken from "@/components/common/useApiToken";
 
 const StatCard = ({ title, value, icon: Icon, className }) => (
   <Card className="relative overflow-hidden">
@@ -77,10 +78,10 @@ const EnquiryTable = ({ enquiries }) => (
 );
 
 const Home = () => {
+  const token = useApiToken();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/api/panel-fetch-dashboard`, {
         headers: {
           Authorization: `Bearer ${token}`,
