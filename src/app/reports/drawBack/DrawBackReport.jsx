@@ -47,7 +47,7 @@ const DrawBackReport = () => {
 
   const handlPrintPdf = useReactToPrint({
     content: () => containerRef.current,
-    documentTitle: "apta",
+    documentTitle: "drawback_report",
     pageStyle: `
               @page {
                  size: A4 landscape;

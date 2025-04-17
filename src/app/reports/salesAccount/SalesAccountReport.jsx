@@ -46,7 +46,7 @@ const SalesAccountReport = () => {
 
   const handlPrintPdf = useReactToPrint({
     content: () => containerRef.current,
-    documentTitle: "apta",
+    documentTitle: "sales_account",
     pageStyle: `
               @page {
                  size: A4 landscape;
@@ -143,7 +143,7 @@ const SalesAccountReport = () => {
                 className="grid bg-white"
                 style={{
                   gridTemplateColumns:
-                    "1fr 1fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                    "1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr",
                 }}
               >
                 {[
@@ -161,7 +161,7 @@ const SalesAccountReport = () => {
                 ].map((header, idx) => (
                   <div
                     key={idx}
-                    className="p-2 font-bold border-b border-r border-t border-black text-gray-900 text-center"
+                    className="p-2 font-bold border-b border-t border-black text-gray-900 text-center"
                   >
                     {header}
                   </div>
@@ -203,15 +203,15 @@ const SalesAccountReport = () => {
                   </React.Fragment>
                 ))}
                 {/* Branch Wise Total */}
-                <div className="p-2 border-b  border-black font-bold"></div>
-                <div className="p-2 border-b border-black"></div>
-                <div className="p-2 border-b border-black"></div>
-                <div className="p-2 border-b  border-black"></div>
-                <div className="p-2 border-b  border-black"></div>
-                <div className="p-2 border-b border-r border-black font-bold">
+                <div className="p-2   border-black font-bold"></div>
+                <div className="p-2  border-black"></div>
+                <div className="p-2  border-black"></div>
+                <div className="p-2   border-black"></div>
+                <div className="p-2  border-black"></div>
+                <div className="p-2  border-r border-black font-bold">
                   Sub Total
                 </div>
-                <div className="p-2 border-b border-r font-bold border-black text-right">
+                <div className="p-2 border-r font-bold border-black text-right">
                   {invoices
                     .reduce(
                       (sum, item) =>
@@ -220,7 +220,7 @@ const SalesAccountReport = () => {
                     )
                     .toFixed(2)}
                 </div>
-                <div className="p-2 border-b border-r font-bold border-black text-right">
+                <div className="p-2  border-r font-bold border-black text-right">
                   {invoices
                     .reduce(
                       (sum, item) =>
@@ -229,7 +229,7 @@ const SalesAccountReport = () => {
                     )
                     .toFixed(2)}
                 </div>
-                <div className="p-2 border-b border-r font-bold border-black text-right">
+                <div className="p-2  border-r font-bold border-black text-right">
                   {invoices
                     .reduce(
                       (sum, item) => sum + Number(item.invoice_fob_usd || 0),
@@ -237,7 +237,7 @@ const SalesAccountReport = () => {
                     )
                     .toFixed(2)}
                 </div>
-                <div className="p-2 border-b font-bold border-black text-right">
+                <div className="p-2 font-bold text-right">
                   {invoices
                     .reduce(
                       (sum, item) => sum + Number(item.invoice_fob_inr || 0),
@@ -251,10 +251,7 @@ const SalesAccountReport = () => {
           {/* Overall Grand Total */}
           <div
             className="grid bg-gray-100 border-t border-l border-r border-black font-bold text-[10px]"
-            // style={{
-            //   gridTemplateColumns:
-            //     "minmax(110px, auto) minmax(150px, auto) minmax(150px, auto) minmax(90px, auto) minmax(60px, auto) minmax(100px, auto) minmax(110px, auto) minmax(110px, auto) minmax(70px, auto) minmax(80px, auto) ",
-            // }}
+         
 
             style={{
               gridTemplateColumns:
