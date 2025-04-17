@@ -95,10 +95,13 @@ import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTim
 import BASE_URL from "./config/BaseUrl";
 import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
 import InvoiceTabs from "./app/invoice/InvoiceView/InvoiceTabs";
+import { useSelector } from "react-redux";
+import VersionCheck from "./components/common/VersionCheck";
 
 function App() {
   const navigate = useNavigate();
-  const time = localStorage.getItem("token-expire-time");
+  const time = useSelector((state) => state.auth.token_expire_time);
+
   const handleLogout = async () => {
     try {
       const response = await fetch(`${BASE_URL}/api/panel-logout`, {
@@ -121,6 +124,7 @@ function App() {
   return (
     <>
       <Toaster />
+      <VersionCheck />
       {/* <DisableRightClick /> */}
       <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <ValidationWrapper>

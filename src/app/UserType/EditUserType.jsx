@@ -25,12 +25,15 @@ const EditUserType = () => {
   const [userData, setUserData] = useState(null);
   const [selectedButtons, setSelectedButtons] = useState([]);
   const [selectedPages, setSelectedPages] = useState([]);
-  const buttonControl = useSelector((state) =>
-    JSON.parse(state.permissions.buttonPermissions)
-  );
-  const pageControl = useSelector((state) =>
-    JSON.parse(state.permissions.pagePermissions)
-  );
+  const buttonControl = useSelector((state) => {
+    const buttonPermissions = state.permissions.buttonPermissions;
+    return buttonPermissions ? JSON.parse(buttonPermissions) : [];
+  });
+
+  const pageControl = useSelector((state) => {
+    const pagePermissions = state.permissions.pagePermissions;
+    return pagePermissions ? JSON.parse(pagePermissions) : [];
+  });
 
   const buttonOptions = buttonControl.map((btn) => ({
     value: btn.button,

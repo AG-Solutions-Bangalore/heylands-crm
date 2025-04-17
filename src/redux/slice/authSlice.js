@@ -11,6 +11,7 @@ const initialState = {
   company_name: null,
   email: null,
   token_expire_time: null,
+  version: null,
 };
 
 const authSlice = createSlice({
@@ -28,6 +29,7 @@ const authSlice = createSlice({
       state.company_name = action.payload.company_name;
       state.email = action.payload.email;
       state.token_expire_time = action.payload.token_expire_time;
+      state.version = action.payload.version;
     },
     logout: (state) => {
       return initialState;

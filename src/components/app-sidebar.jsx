@@ -71,6 +71,13 @@ export function AppSidebar({ ...props }) {
   const emailL = useSelector((state) => state.auth.email);
   const companyName = useSelector((state) => state.auth.company_name);
   const userId = String(useSelector((state) => state.auth.id));
+  const version = String(useSelector((state) => state.auth.version));
+  const [sidebar, setSidebar] = React.useState(false);
+
+  React.useEffect(() => {
+    const sidebarState = localStorage.getItem("sidebar:state") === "true";
+    setSidebar(sidebarState);
+  }, []);
   const pageControlRaw = useSelector(
     (state) => state.permissions?.pagePermissions
   );
@@ -409,10 +416,24 @@ export function AppSidebar({ ...props }) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent className="sidebar-content">
-        {/* <NavProjects projects={data.projects} /> */}
         <NavMain items={data.navMain} />
         <NavMainUser projects={data.userManagement} />
       </SidebarContent>
+      {sidebar && (
+        <div className="rounded-lg bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black p-2">
+          <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
+            <p className="font-semibold text-gray-800 dark:text-gray-200">
+              {version && <>V-{version || ""}</>}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Updated on{" "}
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                Apr 16, 2025
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
