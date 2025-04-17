@@ -57,10 +57,8 @@ const filterMenuItems = (items, pageControl, userId) => {
         });
       }
     } else if (isItemAllowed(item, pageControl, userId)) {
-      // console.log("✅ Allowed Item:", item.title, "URL:", item.url);
       acc.push(item);
     } else {
-      // console.log("❌ Not Allowed:", item.title, "URL:", item.url);
     }
     return acc;
   }, []);
@@ -72,12 +70,8 @@ export function AppSidebar({ ...props }) {
   const companyName = useSelector((state) => state.auth.company_name);
   const userId = String(useSelector((state) => state.auth.id));
   const version = String(useSelector((state) => state.auth.version));
-  const [sidebar, setSidebar] = React.useState(false);
-
-  React.useEffect(() => {
-    const sidebarState = localStorage.getItem("sidebar:state") === "true";
-    setSidebar(sidebarState);
-  }, []);
+  const sidebarOpen = useSelector((state) => state.sidebar.open);
+  console.log(sidebarOpen);
   const pageControlRaw = useSelector(
     (state) => state.permissions?.pagePermissions
   );
@@ -419,7 +413,7 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
         <NavMainUser projects={data.userManagement} />
       </SidebarContent>
-      {sidebar && (
+      {sidebarOpen && (
         <div className="rounded-lg bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black p-2">
           <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
             <p className="font-semibold text-gray-800 dark:text-gray-200">
