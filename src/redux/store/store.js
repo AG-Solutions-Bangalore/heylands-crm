@@ -2,14 +2,18 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../slice/authSlice";
 import pagePermissionReducer from "../slice/permissionSlice";
 import sidebarReducer from "../slice/sidebarSlice";
-// import uiReducer from "./uiSlice";
 import storage from "redux-persist/lib/storage";
+import { encryptTransform } from "redux-persist-transform-encrypt";
 import { persistReducer, persistStore } from "redux-persist";
-
+const encryptor = encryptTransform({
+  secretKey: import.meta.env.VITE_SECRET_KEY || "",
+  onError: (error) => console.error("Encryption Error:", error),
+});
 const persistConfig = {
   key: "root",
   storage,
   whitelist: ["auth"],
+  transforms: [encryptor],
 };
 
 // Root reducer
@@ -28,11 +32,10 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
         ignoredActions: [
           "persist/PERSIST",
           "persist/REHYDRATE",
-          "persist/PURGE", // Ignore PURGE to prevent the warning
+          "persist/PURGE", 
           "persist/FLUSH",
           "persist/PAUSE",
           "persist/REGISTER",
