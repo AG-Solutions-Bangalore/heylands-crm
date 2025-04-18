@@ -184,35 +184,37 @@ const TaxInvoice = () => {
                         <p className="font-semibold">
                           Buyer's Order No. & Date
                         </p>
-                        <p>NEL/06/2025/08.01.2025</p>
+                        <p>
+                          {" "}
+                          {invoiceData?.invoice_ref}/
+                          {invoiceData?.invoice_date
+                            ? moment(invoiceData?.invoice_date).format(
+                                "DD-MM-YYYY"
+                              )
+                            : ""}
+                        </p>
                       </div>
 
                       <div className="px-1 pt-1">
                         <p className="font-semibold">Other Reference(s)</p>
-                        <p>NEL/06/2025/08.01.2025</p>
 
                         <div className="grid grid-cols-12 mt-1">
                           <div className="col-span-7">
                             <p className="font-semibold">
-                              IEC NO. : 0489011098
+                              IEC NO. : {branchData?.branch_iec}
                             </p>
-                            <p className="font-semibold mt-1">RBI NO.:000598</p>
+                            <p className="font-semibold mt-1">
+                              RBI NO.: {branchData?.branch_rbi_no}
+                            </p>
                           </div>
-                          {/* <div className="col-span-5 flex items-center space-x-2">
-                            <img
-                              src={fssai}
-                              alt="fssai"
-                              className="w-10 h-auto object-contain"
-                            />
-                            <p>No: 0127623763</p>
-                          </div> */}
+
                           <div className="col-span-5 flex items-center space-x-2 mt-auto">
                             <img
                               src={fssai}
                               alt="fssai"
                               className="w-10 h-auto object-contain"
                             />
-                            <p>No: 0127623763</p>
+                            <p>No: {branchData?.branch_fssai_no}</p>
                           </div>
                         </div>
                       </div>
@@ -262,11 +264,17 @@ const TaxInvoice = () => {
                     <div className="grid grid-cols-2">
                       <div className="border-r border-black p-1 ">
                         <p className="font-bold">Pre-Carriage by</p>
-                        <p className="font-bold text-center mt-1"></p>
+                        <p className="font-bold text-center mt-1">
+                          {" "}
+                          {invoiceData?.invoice_precarriage}
+                        </p>
                       </div>
                       <div className="border-r border-black p-1 ">
                         <p>Place of Receipt by Pre-Carrier</p>
-                        <p className="font-bold text-center mt-1">CHENNAI</p>
+                        <p className="font-bold text-center mt-1">
+                          {" "}
+                          {invoiceData?.invoice_prereceipts}
+                        </p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2">
@@ -274,13 +282,16 @@ const TaxInvoice = () => {
                         <p className="font-bold">Country of Origin of Goods</p>
                         <p className="font-bold text-center mt-2">
                           {" "}
-                          <p className="font-bold text-center mt-1">INDIA</p>
+                          <p className="font-bold text-center mt-1">
+                            {" "}
+                            {invoiceData?.invoice_loading_country}
+                          </p>
                         </p>
                       </div>
                       <div className=" p-1 ">
                         <p>Country of Final Destination</p>
                         <p className="font-bold text-center mt-1">
-                          UNITED KINGDOM
+                          {invoiceData?.invoice_destination_country}{" "}
                         </p>
                       </div>
                     </div>
@@ -299,11 +310,17 @@ const TaxInvoice = () => {
                       <div className="grid grid-cols-2 border-b border-black">
                         <div className="border-r border-black p-1 ">
                           <p className="font-bold">Vessel / Flight No.</p>
-                          <p className="font-bold text-center mt-1"></p>
+                          <p className="font-bold text-center mt-1">
+                            {" "}
+                            {invoiceData?.invoice_vessel}
+                          </p>
                         </div>
                         <div className="border-r border-black p-1 ">
                           <p>Port of Loading</p>
-                          <p className="font-bold text-center mt-1">CHENNAI</p>
+                          <p className="font-bold text-center mt-1">
+                            {" "}
+                            {invoiceData?.invoice_loading_port}
+                          </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2">
@@ -324,6 +341,10 @@ const TaxInvoice = () => {
                         </p>
                       </div>
                       <div>
+                        <p className="font-bold text-center mt-1">
+                          {" "}
+                          {invoiceData?.invoice_delivery_terms}
+                        </p>
                         <p className="font-bold text-center mt-1">C & I</p>
                         <p className="font-bold text-center mt-1">
                           D/P TERMS ON SIGHT{" "}
@@ -491,7 +512,7 @@ const TaxInvoice = () => {
                           </td>
                         </tr>
                       ))}
-                      
+
                       <tr className="font-semibold ">
                         <td
                           colSpan={2}
@@ -566,7 +587,7 @@ const TaxInvoice = () => {
                   </table>
                 </td>
               </tr>
-              
+
               <tr className="print-section">
                 <td
                   colSpan="100%"
@@ -606,11 +627,11 @@ const TaxInvoice = () => {
                     <div className="col-span-4">
                       <div className="border-t border-l border-black pt-4  px-4 h-full">
                         <p className="font-bold leading-none mb-6">
-                          For HEYLANDS EXPORTS PRIVATE LIMITED
+                          For {invoiceData?.branch_name}
                         </p>
                         <div className="flex flex-col items-center justify-center font-bold mt-16">
-                          <p>A.RAJENDRAN</p>
-                          <p>PURCHASE MANAGER</p>
+                          <p>{invoiceData?.invoice_sign} </p>
+                          <p>{invoiceData?.invoice_position} </p>
                         </div>
                       </div>
                     </div>

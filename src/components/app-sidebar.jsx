@@ -422,7 +422,7 @@ export function AppSidebar({ ...props }) {
             <p className="text-sm text-gray-700 dark:text-gray-300">
               Updated on{" "}
               <span className="font-medium text-gray-900 dark:text-gray-100">
-                Apr 16, 2025
+                Apr 18, 2025
               </span>
             </p>
           </div>
