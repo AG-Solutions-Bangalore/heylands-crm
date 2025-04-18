@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Select from "react-select";
@@ -25,29 +25,53 @@ const EditUserType = () => {
   const [userData, setUserData] = useState(null);
   const [selectedButtons, setSelectedButtons] = useState([]);
   const [selectedPages, setSelectedPages] = useState([]);
-  const buttonControl = useSelector((state) => {
-    const buttonPermissions = state.permissions.buttonPermissions;
-    return buttonPermissions ? JSON.parse(buttonPermissions) : [];
-  });
+  const rawButtonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+  const rawPagePermissions = useSelector(
+    (state) => state.permissions.pagePermissions
+  );
 
-  const pageControl = useSelector((state) => {
-    const pagePermissions = state.permissions.pagePermissions;
-    return pagePermissions ? JSON.parse(pagePermissions) : [];
-  });
+  const buttonControl = useMemo(() => {
+    try {
+      return typeof rawButtonPermissions === "string" &&
+        rawButtonPermissions.trim()
+        ? JSON.parse(rawButtonPermissions)
+        : Array.isArray(rawButtonPermissions)
+        ? rawButtonPermissions
+        : [];
+    } catch (err) {
+      console.error("Failed to parse buttonPermissions:", err);
+      return [];
+    }
+  }, [rawButtonPermissions]);
 
-  const buttonOptions = buttonControl.map((btn) => ({
+  const pageControl = useMemo(() => {
+    try {
+      return typeof rawPagePermissions === "string" && rawPagePermissions.trim()
+        ? JSON.parse(rawPagePermissions)
+        : Array.isArray(rawPagePermissions)
+        ? rawPagePermissions
+        : [];
+    } catch (err) {
+      console.error("Failed to parse pagePermissions:", err);
+      return [];
+    }
+  }, [rawPagePermissions]);
+
+  const buttonOptions = buttonControl?.map((btn) => ({
     value: btn.button,
     label: btn.button,
     pages: btn.pages,
   }));
 
-  const pageOptions = pageControl.map((page) => ({
+  const pageOptions = pageControl?.map((page) => ({
     value: page.url,
     label: page.page,
     url: page.url,
   }));
 
-  const groupedButtonOptions = buttonControl.reduce((acc, curr) => {
+  const groupedButtonOptions = buttonControl?.reduce((acc, curr) => {
     if (!acc[curr.pages]) {
       acc[curr.pages] = [];
     }
@@ -100,7 +124,7 @@ const EditUserType = () => {
     };
 
     fetchUserData();
-  }, [decryptedId]);
+  }, [rawPagePermissions, rawButtonPermissions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,7 +165,7 @@ const EditUserType = () => {
   };
 
   if (loading) {
-    return <LoaderComponent name="UserType Data" />; // ✅ Correct prop usage
+    return <LoaderComponent name="UserType Data" />;
   }
 
   return (
@@ -209,20 +233,7 @@ const EditUserType = () => {
               />
             </div>
 
-            {/* Submit Button */}
             <div className="flex justify-end">
-              {/* <button
-                type="submit"
-                disabled={saving}
-                className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-              >
-                {saving ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                ) : (
-                  <Save className="h-5 w-5 mr-2" />
-                )}
-                {saving ? "Saving..." : "Save Changes"}
-              </button> */}
               <Button
                 type="submit"
                 disabled={saving}

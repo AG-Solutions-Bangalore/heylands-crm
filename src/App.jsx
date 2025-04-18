@@ -20,7 +20,6 @@ import PaymentTermCList from "./app/master/paymentTermC/PaymentTermCList";
 import PortOfLoadingList from "./app/master/portofLoading/PortofLoadingList";
 import PreReceiptList from "./app/master/preReceipt/PreReceiptList";
 import ProductList from "./app/master/product/ProductList";
-import QualityList from "./app/master/quality/QualityList";
 import SchemeList from "./app/master/scheme/SchemeList";
 import ShipperList from "./app/master/shipper/ShipperList";
 import StateList from "./app/master/state/StateList";
@@ -52,17 +51,19 @@ import ValidationWrapper from "./utils/encyrption/ValidationWrapper";
 import InvoiceTabs from "./app/invoice/InvoiceView/InvoiceTabs";
 import { useSelector } from "react-redux";
 import VersionCheck from "./components/common/VersionCheck";
+import useApiToken from "./components/common/useApiToken";
+import DisableRightClick from "./components/DisableRightClick/DisableRightClick";
 
 function App() {
   const navigate = useNavigate();
   const time = useSelector((state) => state.auth.token_expire_time);
-
+  const token = useApiToken();
   const handleLogout = async () => {
     try {
       const response = await fetch(`${BASE_URL}/api/panel-logout`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -132,8 +133,6 @@ function App() {
           {/* Master -marking */}
           <Route path="/master/marking" element={<MarkingList />} />
 
-          {/* Master -Quality  */}
-          <Route path="/master/quality" element={<QualityList />} />
           {/* Master -port of  loading   */}
           <Route path="/master/portofloading" element={<PortOfLoadingList />} />
           {/* Master -gr code */}
@@ -176,7 +175,6 @@ function App() {
             path="/report/duty-drawback/view"
             element={<DrawBackReport />}
           />
-
 
           {/* //management */}
           <Route path="/userManagement" element={<UserPage />} />

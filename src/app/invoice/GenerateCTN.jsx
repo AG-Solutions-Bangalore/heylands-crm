@@ -80,7 +80,7 @@ export default function CTNDialogComponent({ invoiceData, setInvoiceData }) {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Confirmation</DialogTitle>
             <DialogDescription>
@@ -103,7 +103,7 @@ export default function CTNDialogComponent({ invoiceData, setInvoiceData }) {
 
       {/* Table Dialog */}
       <Dialog open={tableDialogOpen} onOpenChange={setTableDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Generate CTN</DialogTitle>
           </DialogHeader>

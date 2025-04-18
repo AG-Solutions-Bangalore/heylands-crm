@@ -129,7 +129,6 @@ const CreateTeam = () => {
     }
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
 
       const response = await axios.post(
         `${BASE_URL}/api/panel-create-team`,

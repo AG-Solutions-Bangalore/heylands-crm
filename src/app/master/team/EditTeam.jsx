@@ -108,7 +108,7 @@ const EditTeam = ({ teamId }) => {
 
     setIsLoading(true);
     try {
-     const response = await axios.put(
+      const response = await axios.put(
         `${BASE_URL}/api/panel-update-team/${teamId}`,
         formData,
         {
@@ -179,7 +179,7 @@ const EditTeam = ({ teamId }) => {
         </Tooltip>
       </TooltipProvider>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
             Edit Team - <span className="text-2xl">{formData.name}</span>

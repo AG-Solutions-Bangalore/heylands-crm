@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../slice/authSlice";
 import pagePermissionReducer from "../slice/permissionSlice";
 import sidebarReducer from "../slice/sidebarSlice";
+import versionReducer from "../slice/versionSlice";
 import storage from "redux-persist/lib/storage";
 import { encryptTransform } from "redux-persist-transform-encrypt";
 import { persistReducer, persistStore } from "redux-persist";
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   permissions: pagePermissionReducer,
   sidebar: sidebarReducer,
+  version: versionReducer,
 });
 
 // Persisted reducer
@@ -35,7 +37,7 @@ const store = configureStore({
         ignoredActions: [
           "persist/PERSIST",
           "persist/REHYDRATE",
-          "persist/PURGE", 
+          "persist/PURGE",
           "persist/FLUSH",
           "persist/PAUSE",
           "persist/REGISTER",

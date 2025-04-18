@@ -164,7 +164,7 @@ const PackingInvoice = () => {
                         </div>
                         <div className="col-span-7 p-1">
                           <p className="font-semibold">Exporter's Ref.</p>
-                          <p>EX/LON/123/2025</p>
+                          <p> {invoiceData?.contract_pono} </p>
                         </div>
                       </div>
 
@@ -224,7 +224,21 @@ const PackingInvoice = () => {
                     <div>
                       <p className=" p-1">Buyer (if other than consignee)</p>
                       <p className="flex justify-center items-center min-h-16">
-                        SAME AS CONSIGNEE
+                        {invoiceData?.invoice_buyer ==
+                        invoiceData?.invoice_consignee ? (
+                          <>SAME AS CONSIGNEE</>
+                        ) : (
+                          <div className="space-y-2">
+                            <p> {invoiceData?.invoice_consignee}</p>
+                            {invoiceData?.invoice_consignee_add
+                              ?.split("\n")
+                              .map((line, index) => (
+                                <div key={index}>
+                                  <span>{line}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -302,11 +316,17 @@ const PackingInvoice = () => {
                       <div className="grid grid-cols-2">
                         <div className="border-r border-black p-1 ">
                           <p className="font-bold">Port of Discharge</p>
-                          <p className="font-bold text-center mt-1"></p>
+                          <p className="font-bold text-center mt-1">
+                            {" "}
+                            {invoiceData?.invoice_destination_port}
+                          </p>
                         </div>
                         <div className="border-r border-black p-1 ">
                           <p>Final Destination</p>
-                          <p className="font-bold text-center mt-1">LONDON</p>
+                          <p className="font-bold text-center mt-1">
+                            {" "}
+                            {invoiceData?.invoice_destination_country}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -318,13 +338,16 @@ const PackingInvoice = () => {
                       </div>
                       <div>
                         <p className="font-bold text-center mt-1">
+                          {invoiceData?.invoice_payment_terms}
+                        </p>
+                        <p className="font-bold text-center mt-1">
                           {" "}
                           {invoiceData?.invoice_delivery_terms}
                         </p>
-                        <p className="font-bold text-center mt-1">C & I</p>
+                        {/* <p className="font-bold text-center mt-1">C & I</p>
                         <p className="font-bold text-center mt-1">
                           D/P TERMS ON SIGHT{" "}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   </div>

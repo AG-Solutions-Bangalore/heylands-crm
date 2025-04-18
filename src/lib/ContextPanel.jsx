@@ -19,17 +19,19 @@ const AppProvider = ({ children }) => {
 
   const fetchPagePermission = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-usercontrol-new`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      dispatch(
-        fetchPagePermissionSuccess(
-          JSON.stringify(response?.data?.pagePermissions)
-        )
-      );
+      if (token) {
+        const response = await axios.get(
+          `${BASE_URL}/api/panel-fetch-usercontrol-new`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        dispatch(
+          fetchPagePermissionSuccess(
+            JSON.stringify(response?.data?.pagePermissions)
+          )
+        );
+      }
     } catch (error) {
       dispatch(fetchFailure());
     }
@@ -37,17 +39,19 @@ const AppProvider = ({ children }) => {
 
   const fetchPermissions = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-usercontrol`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      dispatch(
-        fetchButtonPermissionSuccess(
-          JSON.stringify(response?.data?.buttonPermissions)
-        )
-      );
+      if (token) {
+        const response = await axios.get(
+          `${BASE_URL}/api/panel-fetch-usercontrol`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        dispatch(
+          fetchButtonPermissionSuccess(
+            JSON.stringify(response?.data?.buttonPermissions)
+          )
+        );
+      }
     } catch (error) {
       dispatch(fetchFailure());
     }
@@ -67,7 +71,7 @@ const AppProvider = ({ children }) => {
       const users = allUsers;
       return users ? JSON.parse(users) : [];
     } catch (error) {
-      console.error("Error parsing allUsers from localStorage", error);
+      console.error("Error parsing allUsers from Database", error);
       return [];
     }
   };

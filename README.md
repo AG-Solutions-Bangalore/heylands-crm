@@ -1,21 +1,34 @@
-# Ace-Exports Invoice/Contract Documentation
+# 💼 Hayland Invoice/Contract Documentation
 
-## Overview
+Welcome to **Hayland**, a streamlined system to **manage invoices and contracts** tailored for export businesses. Built for efficiency and clarity, Hayland simplifies document creation, management, and export.
 
-Ace-Exports Invoice/Contract Documentation is a system designed to manage invoices and contracts efficiently. It provides features for creating, updating, and storing invoices and contracts for export businesses.
+---
 
-## Features
+## 🚀 Overview
 
-- **Invoice Management**: Create, update, and store invoices.
-- **Contract Management**: Manage contracts with export clients.
-- **User Authentication**: Secure login and user access.
-- **Database Storage**: Store invoice and contract details in a structured database.
-- **Export & Download**: Generate and download invoices in PDF format.
+Hayland empowers export businesses with a centralized solution to:
 
-## Directory Structure
+- Create and manage professional invoices & contracts
+- Securely store documents
+- Download records in PDF format
+- Ensure smooth business operations with modern UI & features
+
+---
+
+## ✨ Features
+
+- 🧾 **Invoice Management** — Create, update, and organize export invoices
+- 🤝 **Contract Management** — Maintain contracts with export clients
+- 🔐 **User Authentication** — Secure access with login system
+- 💾 **Database Storage** — Structured storage using MySQL
+- 📄 **PDF Export** — Download invoice files in professional PDF format
+
+---
+
+## 📁 Project Structure
 
 ```
-Ace-Exports/
+Hayland/
 │-- src/
 │   ├── components/         # Reusable UI components
 │   ├── pages/              # Main application pages
@@ -31,7 +44,7 @@ Ace-Exports/
 │-- README.md               # Documentation file
 ```
 
-## Installation
+## ⚙️ Installation & Setup
 
 To set up and run the project locally, follow these steps:
 
@@ -41,7 +54,7 @@ To set up and run the project locally, follow these steps:
    ```
 2. Navigate to the project directory:
    ```bash
-   cd ace-exports
+   cd hayland
    ```
 3. Install dependencies:
    ```bash
@@ -61,12 +74,15 @@ REACT_APP_API_BASE_URL=your_api_base_url
 REACT_APP_AUTH_TOKEN=your_auth_token
 ```
 
-## Usage
+## 🧭 How to Use
 
-- Login to access the dashboard.
-- Navigate to the invoices section to create and manage invoices.
-- Go to the contracts section to add new contracts.
-- Download invoices as PDF files for record-keeping.
+🔓 Login to access your secure dashboard
+
+📋 Navigate to the Invoices tab to manage invoice data
+
+📝 Use the Contracts tab to handle client agreements
+
+📥 Download your records as PDFs with one click
 
 ## Technologies Used
 
@@ -75,7 +91,9 @@ REACT_APP_AUTH_TOKEN=your_auth_token
 - **Backend**: Laravel
 - **Database**: MySQL
 
-## Contributing
+## 🤝 Contributing
+
+We 💖 contributions!
 
 Contributions are welcome! To contribute:
 
@@ -94,13 +112,18 @@ Contributions are welcome! To contribute:
    ```
 5. Submit a pull request.
 
-## License
+🪪 License
 
-This project is licensed under the MIT License.
+Licensed under the MIT License.
 
-## Contact
+## 📬 Contact
+
+Organization: AG Solution
+GitHub: AG-Solutions-Bangalore/heylands-crm
 
 For any issues or inquiries, please contact:
 
 - **Organization Name**: AG Solution
-- **GitHub**:https://github.com/AG-Solutions-Bangalore/ace-crm
+- **GitHub**:https://github.com/AG-Solutions-Bangalore/heylands-crm
+
+Made with 💡 by AG Solution Team.
