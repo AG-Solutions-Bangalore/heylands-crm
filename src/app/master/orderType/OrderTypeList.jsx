@@ -156,14 +156,14 @@ const OrderTypeList = () => {
     <Page>
       <div className="w-full p-4">
         <div className="flex text-left text-2xl text-gray-800 font-[400]">
-          State List
+          Order List
         </div>
 
         <div className="flex items-center py-4">
           <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search state..."
+              placeholder="Search order..."
               value={table.getState().globalFilter || ""}
               onChange={(event) => table.setGlobalFilter(event.target.value)}
               className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200"
@@ -255,7 +255,7 @@ const OrderTypeList = () => {
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            Total State : &nbsp;
+            Total order : &nbsp;
             {table.getFilteredRowModel().rows.length}
           </div>
           <div className="space-x-2">

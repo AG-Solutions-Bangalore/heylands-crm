@@ -1260,7 +1260,7 @@ const ContractAdd = () => {
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                     >
-                      Validatity
+                      Validity
                     </label>
                     <Input
                       type="date"
@@ -1273,7 +1273,7 @@ const ContractAdd = () => {
                   </div>
                   <div>
                     <label
-                      className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-[2px] font-medium flex items-center justify-between`}
                     >
                       <span>Marking</span>
                       <span>

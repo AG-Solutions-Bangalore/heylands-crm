@@ -97,8 +97,13 @@ const BankForm = ({ mode = "create", bankId = null }) => {
   const handleInputChange = (e, key = null, val = null) => {
     if (e?.target) {
       const { name, value } = e.target;
+
+      if (name === "bank_acc_no" && /\D/.test(value)) return;
+
       setFormData((prev) => ({ ...prev, [name]: value }));
     } else if (key) {
+      if (key === "bank_acc_no" && /\D/.test(val)) return;
+
       setFormData((prev) => ({ ...prev, [key]: val }));
     }
   };

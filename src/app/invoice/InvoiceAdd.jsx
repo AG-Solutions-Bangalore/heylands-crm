@@ -1562,7 +1562,7 @@ const InvoiceAdd = () => {
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                     >
-                      Validatity
+                      Validity
                     </label>
                     <Input
                       type="date"
