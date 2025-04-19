@@ -53,11 +53,13 @@ import { useSelector } from "react-redux";
 import VersionCheck from "./components/common/VersionCheck";
 import useApiToken from "./components/common/useApiToken";
 import DisableRightClick from "./components/DisableRightClick/DisableRightClick";
+import { useEffect } from "react";
 
 function App() {
   const navigate = useNavigate();
   const time = useSelector((state) => state.auth.token_expire_time);
   const token = useApiToken();
+
   const handleLogout = async () => {
     try {
       const response = await fetch(`${BASE_URL}/api/panel-logout`, {
@@ -81,7 +83,7 @@ function App() {
     <>
       <Toaster />
       <VersionCheck />
-      {/* <DisableRightClick /> */}
+      <DisableRightClick />
       <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <ValidationWrapper>
         <Routes>
