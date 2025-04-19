@@ -172,7 +172,7 @@ export function NavUser({ user }) {
 
                 <DropdownMenuItem>
                   <CreditCard />
-                  Updated on: Apr 18, 2025
+                  Updated on: Apr 19, 2025
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
