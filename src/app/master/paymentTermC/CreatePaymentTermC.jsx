@@ -188,6 +188,7 @@ const PaymentTermForm = ({ paymentId = null }) => {
       if (response?.data.code === 200) {
         toast({ title: "Success", description: response.data.msg });
         await queryClient.invalidateQueries(["paymentterm"]);
+        setOpen(false);
         if (
           !isEditMode &&
           setFormData({
@@ -198,8 +199,7 @@ const PaymentTermForm = ({ paymentId = null }) => {
             paymentTerms_lc: "",
             paymentTerms_advance: "",
           })
-        )
-          setOpen(false);
+        );
       } else {
         toast({
           title: "Error",
@@ -213,6 +213,7 @@ const PaymentTermForm = ({ paymentId = null }) => {
         description: error.response?.data?.message || "Operation failed",
         variant: "destructive",
       });
+      console.log(error);
     } finally {
       setIsLoading(false);
     }

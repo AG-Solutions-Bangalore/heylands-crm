@@ -164,7 +164,8 @@ const CreateProductForm = ({ productId = null }) => {
 
       if (response?.data.code === 200) {
         toast({ title: "Success", description: response.data.msg });
-        await queryClient.invalidateQueries(["banks"]);
+        await queryClient.invalidateQueries(["product"]);
+        setOpen(false);
 
         if (
           !isEditMode &&
@@ -174,8 +175,7 @@ const CreateProductForm = ({ productId = null }) => {
             product_drawback_per: "",
             product_default_statement: "",
           })
-        )
-          setOpen(false);
+        );
       } else {
         toast({
           title: "Error",

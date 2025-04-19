@@ -208,7 +208,7 @@ const BankList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <BankForm mode="create" />
+          {/* <BankForm mode="create" /> */}
         </div>
         {/* table  */}
         <div className="rounded-md border">

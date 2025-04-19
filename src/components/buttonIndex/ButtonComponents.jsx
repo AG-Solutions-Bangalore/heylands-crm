@@ -959,7 +959,7 @@ export const PreRecepitsCreate = ({ onClick, className }) => {
 
   return (
     <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Pre Recepits
+      <SquarePlus className="h-4 w-4" /> Pre Receipt
     </Button>
   );
 };
