@@ -22,25 +22,27 @@ const ValidationWrapper = ({ children }) => {
   const { toast } = useToast();
   const handleLogout = async () => {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/panel-logout`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      if (token) {
+        const res = await axios.post(
+          `${BASE_URL}/api/panel-logout`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (res.data?.code === 200) {
+          toast({
+            title: "Sucess",
+            description: res.data.msg || "You have been logged out.",
+          });
+
+          await persistor.flush();
+          localStorage.clear();
+          dispatch(logout());
+          navigate("/");
+          setTimeout(() => persistor.purge(), 1000);
         }
-      );
-
-      if (res.data?.code === 200) {
-        toast({
-          title: "Sucess",
-          description: res.data.msg || "You have been logged out.",
-        });
-
-        await persistor.flush();
-        localStorage.clear();
-        dispatch(logout());
-        navigate("/");
-        setTimeout(() => persistor.purge(), 1000);
       } else {
         toast({
           title: "Logout Failed",
@@ -89,9 +91,9 @@ const ValidationWrapper = ({ children }) => {
         }
       } catch (error) {
         console.error("❌ Validation Error:", error.message);
-        // if (token) {
+        if (status != "valid") {
           handleLogout();
-        // }
+        }
         toast({
           title: "Environment Error",
           description: "Environment validation failed. Redirecting...",

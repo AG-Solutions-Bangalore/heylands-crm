@@ -1399,9 +1399,7 @@ const InvoiceAdd = () => {
                     <label
                       className={`block  ${ButtonConfig.cardLabel} text-xs mb-[2px] font-medium flex items-center justify-between`}
                     >
-                      <span>
-                        Payment Terms
-                      </span>
+                      <span>Payment Terms</span>
                       <span>
                         <PaymentTermForm />
                       </span>
@@ -2003,7 +2001,7 @@ const InvoiceAdd = () => {
       </form>
       {!isEditMode && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Duplicate Entry</DialogTitle>
               <DialogDescription>{dialogMessage}</DialogDescription>

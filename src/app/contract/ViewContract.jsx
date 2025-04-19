@@ -13,10 +13,10 @@ import { useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import white from "../../../public/letterHead/white.png";
 import Page from "../dashboard/page";
+import LetterImage from "../../../public/letterHead/NEL.png";
 const ViewContract = () => {
   const containerRef = useRef();
   const [includeHeader, setIncludeHeader] = useState(false);
-  const [includeSign, setIncludeSign] = useState(false);
   const { id } = useParams();
   const decryptedId = decryptId(id);
   const token = useApiToken();
@@ -25,7 +25,6 @@ const ViewContract = () => {
   const [branchData, setBranchData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const fetchPurchaseData = async () => {
       try {
@@ -43,6 +42,7 @@ const ViewContract = () => {
         }
 
         const data = await response.json();
+        console.log(data?.branch?.branch_letter_head);
         if (!data?.branch?.branch_letter_head) {
           setLoading(true);
           setError("Letter head data is missing");
@@ -129,8 +129,7 @@ const ViewContract = () => {
           <>
             <div className="hidden print:block">
               <img
-                // src={`${LetterHead}/${branchData?.branch_letter_head}`}
-                src={getImageUrl(branchData?.branch_letter_head)}
+                src={`${LetterHead}/${branchData?.branch_letter_head}`}
                 alt="logo"
                 className="w-full max-h-[120px] object-contain"
               />
@@ -187,7 +186,10 @@ const ViewContract = () => {
                         {includeHeader && (
                           <>
                             <img
-                              src={getImageUrl(branchData?.branch_letter_head)}
+                              src={
+                                getImageUrl(branchData?.branch_letter_head) ||
+                                `${LetterImage}`
+                              }
                               alt="logo"
                             />
                             <h1 className="text-center text-[15px] font-bold ">
@@ -463,16 +465,6 @@ const ViewContract = () => {
                   />
                   <label className="font-semibold mr-2 text-sm">With LH</label>
                 </div>
-
-                {/* <div className="mb-2">
-                  <input
-                    type="checkbox"
-                    checked={includeSign}
-                    onChange={(e) => setIncludeSign(e.target.checked)}
-                    className="mr-2"
-                  />
-                  <label className="font-semibold mr-2 text-sm">Sign</label>
-                </div> */}
               </div>
             </TabsContent>
           </Tabs>

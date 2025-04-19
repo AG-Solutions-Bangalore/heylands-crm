@@ -27,32 +27,71 @@ const CreateButton = () => {
     (state) => state.permissions?.buttonPermissions
   );
   const navigate = useNavigate();
+  // useEffect(() => {
+  //   const existingControls = JSON.parse(pageControlRaw);
+
+  //   const existingPageButtonMap = new Map(
+  //     existingControls.map((control) => [
+  //       `${control.pages}-${control.button}`,
+  //       true,
+  //     ])
+  //   );
+  //   const allButtons = Object.entries(ButtonComponents).map(
+  //     ([key, component]) => ({
+  //       name: key,
+  //       page: component.page,
+  //     })
+  //   );
+
+  //   const filteredButtons = allButtons.filter(
+  //     (button) => !existingPageButtonMap.has(`${button.page}-${button.name}`)
+  //   );
+
+  //   const uniquePages = [
+  //     ...new Set(filteredButtons.map((button) => button.page)),
+  //   ];
+
+  //   setAvailablePages(uniquePages.length > 0 ? ["All", ...uniquePages] : []);
+  // }, []);
   useEffect(() => {
-    const existingControls = JSON.parse(pageControlRaw);
+    try {
+      if (typeof pageControlRaw == "string" && pageControlRaw.trim()) {
+        const existingControls = JSON.parse(pageControlRaw);
 
-    const existingPageButtonMap = new Map(
-      existingControls.map((control) => [
-        `${control.pages}-${control.button}`,
-        true,
-      ])
-    );
-    const allButtons = Object.entries(ButtonComponents).map(
-      ([key, component]) => ({
-        name: key,
-        page: component.page,
-      })
-    );
+        const existingPageButtonMap = new Map(
+          existingControls.map((control) => [
+            `${control.pages}-${control.button}`,
+            true,
+          ])
+        );
 
-    const filteredButtons = allButtons.filter(
-      (button) => !existingPageButtonMap.has(`${button.page}-${button.name}`)
-    );
+        const allButtons = Object.entries(ButtonComponents).map(
+          ([key, component]) => ({
+            name: key,
+            page: component.page,
+          })
+        );
 
-    const uniquePages = [
-      ...new Set(filteredButtons.map((button) => button.page)),
-    ];
+        const filteredButtons = allButtons.filter(
+          (button) =>
+            !existingPageButtonMap.has(`${button.page}-${button.name}`)
+        );
 
-    setAvailablePages(uniquePages.length > 0 ? ["All", ...uniquePages] : []);
-  }, []);
+        const uniquePages = [
+          ...new Set(filteredButtons.map((button) => button.page)),
+        ];
+
+        setAvailablePages(
+          uniquePages.length > 0 ? ["All", ...uniquePages] : []
+        );
+      } else {
+        setAvailablePages([]);
+      }
+    } catch (error) {
+      console.error("Failed to parse pageControlRaw:", error);
+      setAvailablePages([]);
+    }
+  }, [pageControlRaw]);
 
   const handlePageChange = (e) => {
     const page = e.target.value;

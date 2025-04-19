@@ -20,24 +20,38 @@ import { checkPermission } from "./checkPermission";
 import React, { forwardRef } from "react";
 import { useSelector } from "react-redux";
 
+// const getStaticPermissions = () => {
+//   const buttonPermissions = useSelector(
+//     (state) => state.permissions?.buttonPermissions
+//   );
+//   try {
+//     return buttonPermissions ? JSON.parse(buttonPermissions) : [];
+//   } catch (error) {
+//     console.error(
+//       "Error parsing StaticPermission data from localStorage",
+//       error
+//     );
+//     return [];
+//   }
+// };
 const getStaticPermissions = () => {
   const buttonPermissions = useSelector(
     (state) => state.permissions?.buttonPermissions
   );
+
   try {
-    return buttonPermissions ? JSON.parse(buttonPermissions) : [];
+    if (typeof buttonPermissions === "string" && buttonPermissions.trim()) {
+      return JSON.parse(buttonPermissions);
+    }
+    return [];
   } catch (error) {
-    console.error(
-      "Error parsing StaticPermission data from localStorage",
-      error
-    );
+    console.error("Error parsing StaticPermission data from Database", error);
     return [];
   }
 };
+
 ////////invoice
 export const InvoiceCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  // const userId = useSelector((state) => state.auth.id);
   const userId = useSelector((state) => state.auth.id);
   const staticPermissions = getStaticPermissions();
   if (!checkPermission(userId, "InvoiceCreate", staticPermissions)) {
@@ -528,37 +542,7 @@ export const PaymentTermsCEdit = ({ onClick, className, ref }) => {
   );
 };
 PaymentTermsCEdit.page = "Payment TermsC";
-////////MASTER-Description of Goods
-export const DescriptionofGoodsCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "DescriptionofGoodsCreate", staticPermissions)) {
-    return null;
-  }
 
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Description of Goods
-    </Button>
-  );
-};
-DescriptionofGoodsCreate.page = "Description of Goods";
-
-export const DescriptionofGoodsEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "DescriptionofGoodsEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-DescriptionofGoodsEdit.page = "Description of Goods";
 ////////MASTER-Bag Type
 export const BagTypeCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
@@ -590,99 +574,6 @@ export const BagTypeEdit = ({ onClick, className }) => {
   );
 };
 BagTypeEdit.page = "Bag Type";
-////////MASTER-CustomDescription
-export const CustomDescriptionCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "CustomDescriptionCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Custom Description
-    </Button>
-  );
-};
-CustomDescriptionCreate.page = "Custom Description";
-
-export const CustomDescriptionEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "CustomDescriptionEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-CustomDescriptionEdit.page = "Custom Description";
-////////MASTER-TypeCreate
-export const TypeCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "TypeCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Type
-    </Button>
-  );
-};
-TypeCreate.page = "Type";
-
-export const TypeEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "TypeEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-TypeEdit.page = "Type";
-////////MASTER-Quality
-export const QualityCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "QualityCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Quality
-    </Button>
-  );
-};
-QualityCreate.page = "Quality";
-
-export const QualityEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "QualityEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-QualityEdit.page = "Quality";
 ////////MASTER-Item
 export const ItemCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
@@ -994,37 +885,7 @@ export const ItemBoxEdit = ({ onClick, className, ref }) => {
   );
 };
 ItemBoxEdit.page = "Item Box";
-////////MASTER-Product Description
-export const ProductDescriptionCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductDescriptionCreate", staticPermissions)) {
-    return null;
-  }
 
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Custom Description
-    </Button>
-  );
-};
-ProductDescriptionCreate.page = "Product Description";
-
-export const ProductDescriptionEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductDescriptionEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-ProductDescriptionEdit.page = "Product Description";
 ////////MASTER-Shipper
 export const ShipperCreate = ({ onClick, className }) => {
   const navigate = useNavigate();
@@ -1149,38 +1010,6 @@ export const BuyerRPrint = ({ onClick, className }) => {
   );
 };
 BuyerRPrint.page = "BuyerR";
-////////REPORT-"ContractR"
-
-export const ContractRDownload = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ContractRDownload", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <Download className="h-4 w-4" /> Download
-    </Button>
-  );
-};
-ContractRDownload.page = "ContractR";
-export const ContractRView = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ContractRView", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      Open Report
-    </Button>
-  );
-};
-ContractRView.page = "ContractR";
 ////////REPORT-"SalesAccount"
 
 export const SalesAccountDownload = ({ onClick, className }) => {
@@ -1246,513 +1075,6 @@ export const DutyDrawBackView = ({ onClick, className }) => {
   );
 };
 DutyDrawBackView.page = "DutyDrawBack";
-////////REPORT-"Sales Data"
-
-export const SalesDataDownload = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "SalesDataDownload", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <Download className="h-4 w-4" /> Download
-    </Button>
-  );
-};
-SalesDataDownload.page = "Sales Summary";
-export const SalesDataView = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "SalesDataView", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      Open Report
-    </Button>
-  );
-};
-SalesDataView.page = "Sales Summary";
-//PAYMENT
-////////REPORT-"PurchaseSummary"
-
-export const PurchaseSummaryDownload = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PurchaseSummaryDownload", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <Download className="h-4 w-4" /> Download
-    </Button>
-  );
-};
-PurchaseSummaryDownload.page = "Purchase Summary";
-export const PurchaseSummaryVendorView = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (
-    !checkPermission(userId, "PurchaseSummaryVendorView", staticPermissions)
-  ) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      Vendor Wise
-    </Button>
-  );
-};
-PurchaseSummaryVendorView.page = "Purchase Summary";
-export const PurchaseSummaryCompanyView = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (
-    !checkPermission(userId, "PurchaseSummaryCompanyView", staticPermissions)
-  ) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      Company Wise
-    </Button>
-  );
-};
-PurchaseSummaryCompanyView.page = "Purchase Summary";
-export const ProductStockView = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductStockView", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      Stock Report
-    </Button>
-  );
-};
-ProductStockView.page = "Product Stock";
-//PAYMENT
-////////Payment
-export const PaymentCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PaymentCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Payment
-    </Button>
-  );
-};
-PaymentCreate.page = "Payment";
-
-//Purchase page
-//Purchase Order List
-export const PurchaseOrderCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PurchaseOrderCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Purchase Order
-    </Button>
-  );
-};
-PurchaseOrderCreate.page = "Purchase Order";
-
-// export const PurchaseOrderEdit = ({ onClick, className }) => {
-//   const userId = useSelector((state) => state.auth.id);
-//   const staticPermissions = getStaticPermissions();
-//   if (!checkPermission(userId, "PurchaseOrderEdit", staticPermissions)) {
-//     return null;
-//   }
-
-//   return (
-//     <Tooltip>
-//       <TooltipTrigger asChild>
-//         <Button
-//           onClick={onClick}
-//           className={className}
-//           variant="ghost"
-//           size="icon"
-//         >
-//           <Edit className="h-4 w-4 text-black" />
-//         </Button>
-//       </TooltipTrigger>
-//       <TooltipContent>Edit Purchase Order</TooltipContent>
-//     </Tooltip>
-//   );
-// };
-// PurchaseOrderEdit.page = "Purchase Order";
-export const PurchaseOrderEdit = forwardRef(({ onClick, className }, ref) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-
-  if (!checkPermission(userId, "PurchaseOrderEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          ref={ref}
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Edit className="h-4 w-4 text-black" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Edit Purchase Order</TooltipContent>
-    </Tooltip>
-  );
-});
-PurchaseOrderEdit.page = "Purchase Order";
-export const PurchaseOrderView = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PurchaseOrderView", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={onClick}
-            className={className}
-            variant="ghost"
-            size="icon"
-          >
-            <Eye className="h-4 w-4 text-black" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>View Purchase Order</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-PurchaseOrderView.page = "Purchase Order";
-//Purchase  List
-export const PurchaseCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PurchaseCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Market Purchase
-    </Button>
-  );
-};
-PurchaseCreate.page = "Purchase";
-
-export const PurchaseEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "PurchaseEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Edit className="h-4 w-4 text-black" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Edit Purchase</TooltipContent>
-    </Tooltip>
-  );
-};
-PurchaseEdit.page = "Purchase";
-//Production  List
-export const ProductionCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductionCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Market Purchase
-    </Button>
-  );
-};
-ProductionCreate.page = "Production";
-
-export const ProductionEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductionEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Edit className="h-4 w-4 text-black" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Edit Production</TooltipContent>
-    </Tooltip>
-  );
-};
-ProductionEdit.page = "Production";
-export const ProductionDelete = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductionDelete", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Trash className="h-4 w-4  text-red-500 " />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Delete Production</TooltipContent>
-    </Tooltip>
-  );
-};
-ProductionDelete.page = "Production";
-
-export const ProductionremoveRow = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProductionremoveRow", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <MinusCircle className="h-4 w-4  text-red-500 " />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Delete Production</TooltipContent>
-    </Tooltip>
-  );
-};
-ProductionremoveRow.page = "Production";
-
-//Processing  List
-export const ProcessingCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProcessingCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Processing
-    </Button>
-  );
-};
-ProcessingCreate.page = "Processing";
-
-export const ProcessingEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProcessingEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Edit className="h-4 w-4 text-black" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Edit Processing</TooltipContent>
-    </Tooltip>
-  );
-};
-ProcessingEdit.page = "Processing";
-export const ProcessingDelete = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "ProcessingDelete", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Trash className="h-4 w-4  text-red-500 " />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Delete Processing</TooltipContent>
-    </Tooltip>
-  );
-};
-ProcessingDelete.page = "Processing";
-//DutyDrawBackPending
-export const DutyDrawBackPendingEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "DutyDrawBackPendingEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-DutyDrawBackPendingEdit.page = "Pending";
-//DutyDrawBackReceived
-export const DutyDrawBackReceivedEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "DutyDrawBackReceivedEdit", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
-      <Edit className="h-4 w-4 text-black" />
-    </Button>
-  );
-};
-DutyDrawBackReceivedEdit.page = "Received";
-// -------------------------Costing------------------------------
-//Costing  List
-export const CostingCreate = ({ onClick, className }) => {
-  const navigate = useNavigate();
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "CostingCreate", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <Button variant="default" className={className} onClick={onClick}>
-      <SquarePlus className="h-4 w-4" /> Costing
-    </Button>
-  );
-};
-CostingCreate.page = "Costing";
-
-export const CostingEdit = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "CostingEdit", staticPermissions)) {
-    return null;
-  }
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          className={className}
-          variant="ghost"
-          size="icon"
-        >
-          <Edit className="h-4 w-4 text-black" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Edit Costing</TooltipContent>
-    </Tooltip>
-  );
-};
-CostingEdit.page = "Costing";
-
-export const CostingView = ({ onClick, className }) => {
-  const userId = useSelector((state) => state.auth.id);
-  const staticPermissions = getStaticPermissions();
-  if (!checkPermission(userId, "CostingView", staticPermissions)) {
-    return null;
-  }
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={onClick}
-            className={className}
-            variant="ghost"
-            size="icon"
-          >
-            <Eye className="h-4 w-4 text-black" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>View Costing</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-CostingView.page = "Costing";
-
 export default {
   InvoiceCreate,
   InvoiceEdit,
@@ -1763,7 +1085,6 @@ export default {
   ContractEdit,
   ContractView,
   ContractDelete,
-  // BranchCreate,
   CompanyEdit,
   StateCreate,
   StateEdit,
@@ -1773,23 +1094,14 @@ export default {
   BuyerEdit,
   SchemeCreate,
   SchemeEdit,
-
   CountryCreate,
   CountryEdit,
   ContainerSizeCreate,
   ContainerSizeEdit,
   PaymentTermsCCreate,
   PaymentTermsCEdit,
-  DescriptionofGoodsCreate,
-  DescriptionofGoodsEdit,
   BagTypeCreate,
   BagTypeEdit,
-  CustomDescriptionCreate,
-  CustomDescriptionEdit,
-  TypeCreate,
-  TypeEdit,
-  QualityCreate,
-  QualityEdit,
   ItemCreate,
   ItemEdit,
   MarkingCreate,
@@ -1808,8 +1120,6 @@ export default {
   ItemBoxCreate,
   ItemBoxEdit,
   ItemPackingEdit,
-  ProductDescriptionCreate,
-  ProductDescriptionEdit,
   ShipperCreate,
   ShipperEdit,
   VesselCreate,
@@ -1818,35 +1128,7 @@ export default {
   PreRecepitsEdit,
   BuyerRDownload,
   BuyerRPrint,
-  ContractRDownload,
-  ContractRView,
   SalesAccountDownload,
-
   SalesAccountView,
   DutyDrawBackDownload,
-  DutyDrawBackView,
-  SalesDataDownload,
-  SalesDataView,
-  PurchaseSummaryDownload,
-  PurchaseSummaryVendorView,
-  PurchaseSummaryCompanyView,
-  ProductStockView,
-  PaymentCreate,
-  PurchaseOrderCreate,
-  PurchaseOrderEdit,
-  PurchaseOrderView,
-  PurchaseCreate,
-  PurchaseEdit,
-  ProductionCreate,
-  ProductionEdit,
-  ProductionDelete,
-  ProductionremoveRow,
-  ProcessingCreate,
-  ProcessingEdit,
-  ProcessingDelete,
-  DutyDrawBackPendingEdit,
-  DutyDrawBackReceivedEdit,
-  CostingCreate,
-  CostingEdit,
-  CostingView,
 };

@@ -56,22 +56,16 @@ const CreatePage = () => {
             { title: "Country", url: "/master/country" },
             { title: "Container Size", url: "/master/containersize" },
             { title: "Payment TermsC", url: "/master/paymentTermC" },
-            { title: "Description of Goods", url: "/master/descriptionGoods" },
             { title: "Bag Type", url: "/master/bagType" },
-            { title: "Custom Description", url: "/master/customdescription" },
-            { title: "Type", url: "/master/type" },
-            { title: "Quality", url: "/master/quality" },
+        
             { title: "Item", url: "/master/item" },
             { title: "Marking", url: "/master/marking" },
             { title: "Port of Loading", url: "/master/portofloading" },
             { title: "GR Code", url: "/master/grcode" },
             { title: "Product", url: "/master/product" },
-            { title: "Product Description", url: "/master/productdescription" },
             { title: "Shipper", url: "/master/shipper" },
             { title: "Vessel", url: "/master/vessel" },
             { title: "Pre Recepits", url: "/master/prerecepits" },
-            { title: "Purchase Product", url: "/master/purchase-product" },
-            { title: "Vendor", url: "/master/vendor" },
             { title: "Order Type", url: "/master/order-type" },
             { title: "Item Category", url: "/master/item-category" },
             { title: "Item Packing", url: "/master/item-packing" },
@@ -83,59 +77,17 @@ const CreatePage = () => {
           url: "#",
           items: [
             { title: "BuyerR", url: "/report/buyer-report" },
-            { title: "ContractR", url: "/report/contract-form" },
             { title: "Sales Accounts", url: "/report/sales-account-form" },
             { title: "DutyDrawBack", url: "/report/duty-drawback" },
-            { title: "Sales Summary", url: "/report/sales-data-form" },
-            {
-              title: "Purchase Summary",
-              url: "/report/monthwise-purchase-form",
-            },
-            {
-              title: "Product Stock",
-              url: "/report/product-stock",
-            },
+            
           ],
         },
-        {
-          title: "Purchase",
-          url: "#",
-          items: [
-            { title: "Purchase Order", url: "/purchase-order" },
-            { title: "Purchase", url: "/purchase/market-purchase" },
-            { title: "Production", url: "/purchase/market-production" },
-            { title: "Processing", url: "/purchase/market-processing" },
-            { title: "Dispatch", url: "/purchase/market-dispatch" },
-            {
-              title: "Stock",
-              url: "/purchase/stock",
-            },
-          ],
-        },
-        {
-          title: "Payment",
-          url: "#",
-          items: [
-            { title: "PaymentList", url: "/payment-payment-list" },
-            { title: "PaymentPending", url: "/payment-payment-pending" },
-            { title: "PaymentClose", url: "/payment-payment-close" },
-          ],
-        },
-        {
-          title: "Duty Drawback",
-          url: "#",
-          items: [
-            { title: "Pending", url: "/dutydrawback/pending" },
-            { title: "Received", url: "/dutydrawback/received" },
-          ],
-        },
+     
       ],
       projects: [
         { name: "Dashboard", url: "/home" },
         { name: "Contract", url: "/contract" },
         { name: "Invoice", url: "/invoice" },
-        { name: "Purchase Order", url: "/purchase-order" },
-        { name: "Costing", url: "/costing" },
       ],
       userManagement: [
         { name: "User Management", url: "/userManagement" },
@@ -155,21 +107,48 @@ const CreatePage = () => {
     return pages;
   };
 
+  // useEffect(() => {
+  //   const existingControls = JSON.parse(pageControlRaw);
+  //   const allPages = getAllPages();
+
+  //   const filteredPages = allPages.filter(
+  //     (page) =>
+  //       !existingControls.some(
+  //         (control) =>
+  //           control.page === page.title ||
+  //           control.url === page.url.replace("/", "")
+  //       )
+  //   );
+
+  //   setAvailablePages(["All", ...filteredPages.map((page) => page.title)]);
+  // }, []);
   useEffect(() => {
-    const existingControls = JSON.parse(pageControlRaw);
-    const allPages = getAllPages();
+    try {
+      if (typeof pageControlRaw == "string" && pageControlRaw.trim()) {
+        const existingControls = JSON.parse(pageControlRaw);
 
-    const filteredPages = allPages.filter(
-      (page) =>
-        !existingControls.some(
-          (control) =>
-            control.page === page.title ||
-            control.url === page.url.replace("/", "")
-        )
-    );
+        const allPages = getAllPages();
 
-    setAvailablePages(["All", ...filteredPages.map((page) => page.title)]);
-  }, []);
+        const filteredPages = allPages.filter(
+          (page) =>
+            !existingControls.some(
+              (control) =>
+                control.page === page.title ||
+                control.url === page.url.replace("/", "")
+            )
+        );
+
+        setAvailablePages(["All", ...filteredPages.map((page) => page.title)]);
+      } else {
+        const allPages = getAllPages();
+        setAvailablePages(["All", ...allPages.map((page) => page.title)]);
+      }
+    } catch (error) {
+      console.error("Error parsing pageControlRaw:", error);
+      const allPages = getAllPages();
+      setAvailablePages(["All", ...allPages.map((page) => page.title)]);
+    }
+  }, [pageControlRaw]);
 
   const handlePageChange = (e) => {
     const page = e.target.value;

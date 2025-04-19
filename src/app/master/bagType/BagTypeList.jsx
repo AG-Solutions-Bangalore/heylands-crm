@@ -1,4 +1,5 @@
 import Page from "@/app/dashboard/page";
+import useApiToken from "@/components/common/useApiToken";
 import {
   ErrorComponent,
   LoaderComponent,
@@ -35,8 +36,6 @@ import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BagTypeForm from "./CreateBagType";
-import EditBagType from "./EditBagType";
-import useApiToken from "@/components/common/useApiToken";
 
 const BagTypeList = () => {
   const token = useApiToken();

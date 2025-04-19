@@ -19,8 +19,8 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginAuth() {
-  const [email, setEmail] = useState("superadmins");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
@@ -61,13 +61,9 @@ export default function LoginAuth() {
     formData.append("password", password);
 
     try {
-      console.log("Submitting login request...");
-
       const res = await axios.post(`${BASE_URL}/api/panel-login`, formData);
 
-      if (res.status === 200) {
-        console.log("Login Success ✅ Checking UserInfo...");
-
+      if (res.data.code == 200) {
         if (!res.data.UserInfo || !res.data.UserInfo.token) {
           console.warn("⚠️ Login failed: Token missing in response");
           toast.error("Login Failed: No token received.");
@@ -88,7 +84,7 @@ export default function LoginAuth() {
 
           company_name: company_detils?.company_name,
           email: UserInfo.user.email,
-          token_expires_at: UserInfo.token_expires_at,
+          token_expire_time: UserInfo.token_expires_at,
           version: version.version_panel,
         };
 
@@ -97,11 +93,22 @@ export default function LoginAuth() {
         await fetchPermissions();
         await fetchPagePermission();
 
-        console.log("✅ Login successful! Redirecting to /home...");
         navigate("/home");
+      } else if (res.data.code == 400) {
+        console.warn("⚠️ Unexpected API response:", res);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: res.data.msg || "Please check your credentials.",
+        });
       } else {
         console.warn("⚠️ Unexpected API response:", res);
-        toast.error("Login Failed: Unexpected response.");
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description:
+            error.response?.data?.message || "Please check your credentials.",
+        });
       }
     } catch (error) {
       console.error("❌ Login Error:", error.response?.data || error.message);
@@ -112,7 +119,7 @@ export default function LoginAuth() {
         description:
           error.response?.data?.message || "Please check your credentials.",
       });
-
+    } finally {
       setIsLoading(false);
     }
   };

@@ -69,9 +69,7 @@ export function AppSidebar({ ...props }) {
   const emailL = useSelector((state) => state.auth.email);
   const companyName = useSelector((state) => state.auth.company_name);
   const userId = String(useSelector((state) => state.auth.id));
-  const version = String(useSelector((state) => state.auth.version));
-  const sidebarOpen = useSelector((state) => state.sidebar.open);
-  console.log(sidebarOpen);
+
   const pageControlRaw = useSelector(
     (state) => state.permissions?.pagePermissions
   );
@@ -155,26 +153,12 @@ export function AppSidebar({ ...props }) {
             title: "Payment TermsC",
             url: "/master/paymentTermC",
           },
-          {
-            title: "Description of Goods",
-            url: "/master/descriptionGoods",
-          },
+
           {
             title: "Bag Type",
             url: "/master/bagType",
           },
-          {
-            title: "Custom Description",
-            url: "/master/customdescription",
-          },
-          {
-            title: "Type",
-            url: "/master/type",
-          },
-          {
-            title: "Quality",
-            url: "/master/quality",
-          },
+
           {
             title: "Item",
             url: "/master/item",
@@ -195,10 +179,7 @@ export function AppSidebar({ ...props }) {
             title: "Product",
             url: "/master/product",
           },
-          {
-            title: "Product Description",
-            url: "/master/productdescription",
-          },
+
           {
             title: "Shipper",
             url: "/master/shipper",
@@ -211,14 +192,7 @@ export function AppSidebar({ ...props }) {
             title: "Pre Recepits",
             url: "/master/prerecepits",
           },
-          {
-            title: "Vendor",
-            url: "/master/vendor",
-          },
-          {
-            title: "Purchase Product",
-            url: "/master/purchase-product",
-          },
+
           {
             title: "Order Type",
             url: "/master/order-type",
@@ -251,74 +225,6 @@ export function AppSidebar({ ...props }) {
       },
 
       {
-        title: "Purchase",
-        url: "#",
-        icon: TicketPlus,
-        isActive: false,
-        items: [
-          {
-            title: "Purchase Order",
-            url: "/purchase-order",
-          },
-          {
-            title: "Purchase",
-            url: "/purchase/market-purchase",
-          },
-          {
-            title: "Production",
-            url: "/purchase/market-production",
-          },
-          {
-            title: "Processing",
-            url: "/purchase/market-processing",
-          },
-          {
-            title: "Dispatch",
-            url: "/purchase/market-dispatch",
-          },
-          {
-            title: "Stock",
-            url: "/purchase/stock",
-          },
-        ],
-      },
-      {
-        title: "Payment",
-        url: "#",
-        icon: BadgeIndianRupee,
-        isActive: false,
-        items: [
-          {
-            title: "PaymentList",
-            url: "/payment-payment-list",
-          },
-          {
-            title: "PaymentPending",
-            url: "/payment-payment-pending",
-          },
-          {
-            title: "PaymentClose",
-            url: "/payment-payment-close",
-          },
-        ],
-      },
-      {
-        title: "Duty DrawBack",
-        url: "#",
-        icon: ReceiptText,
-        isActive: false,
-        items: [
-          {
-            title: "Pending",
-            url: "/dutydrawback/pending",
-          },
-          {
-            title: "Received",
-            url: "/dutydrawback/received",
-          },
-        ],
-      },
-      {
         title: "Reports",
         url: "#",
         icon: ReceiptText,
@@ -328,10 +234,7 @@ export function AppSidebar({ ...props }) {
             title: "BuyerR",
             url: "/report/buyer-report",
           },
-          {
-            title: "ContractR",
-            url: "/report/contract-form",
-          },
+
           {
             title: "Sales Accounts",
             url: "/report/sales-account-form",
@@ -340,25 +243,7 @@ export function AppSidebar({ ...props }) {
             title: "DutyDrawBack",
             url: "/report/duty-drawback",
           },
-          {
-            title: "Sales Summary",
-            url: "/report/sales-data-form",
-          },
-          {
-            title: "Purchase Summary",
-            url: "/report/monthwise-purchase-form",
-          },
-          {
-            title: "Product Stock",
-            url: "/report/product-stock",
-          },
         ],
-      },
-      {
-        title: "Costing",
-        url: "/costing",
-        icon: NotebookText,
-        isActive: false,
       },
     ],
 
@@ -400,7 +285,6 @@ export function AppSidebar({ ...props }) {
   const data = {
     ...initialData,
     navMain: filteredNavMain,
-    // projects: filteredProjects,
     userManagement: filteredUserManagement,
   };
 
@@ -413,21 +297,7 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
         <NavMainUser projects={data.userManagement} />
       </SidebarContent>
-      {sidebarOpen && (
-        <div className="rounded-lg bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black p-2">
-          <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
-            <p className="font-semibold text-gray-800 dark:text-gray-200">
-              {version && <>V-{version || ""}</>}
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              Updated on{" "}
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                Apr 18, 2025
-              </span>
-            </p>
-          </div>
-        </div>
-      )}
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

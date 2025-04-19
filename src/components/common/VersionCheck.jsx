@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,14 +6,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import useApiToken from "./useApiToken";
 import BASE_URL from "@/config/BaseUrl";
-import { logout } from "@/redux/slice/authSlice";
-import { useNavigate } from "react-router-dom";
-import { persistor } from "@/redux/store/store";
 import { useToast } from "@/hooks/use-toast";
-import { ButtonConfig } from "@/config/ButtonConfig";
+import { logout } from "@/redux/slice/authSlice";
+import { setShowUpdateDialog } from "@/redux/slice/versionSlice";
+import { persistor } from "@/redux/store/store";
+import axios from "axios";
+import { RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import useApiToken from "./useApiToken";
 
 const VersionCheck = () => {
   const token = useApiToken();
@@ -24,12 +25,24 @@ const VersionCheck = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [serverVersion, setServerVersion] = useState(null);
-  const [showDialog, setShowDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [retryPopup, setRetryPopup] = useState(false);
+  const isDialogOpen = useSelector((state) => state.version.showUpdateDialog);
+  const serverVersion = useSelector((state) => state?.version?.version);
+  // console.log(localVersion, "localVersion", serverVersion, "serverVersion");
+
+  const handleCloseDialog = () => {
+    dispatch(
+      setShowUpdateDialog({
+        showUpdateDialog: false,
+        version: serverVersion,
+      })
+    );
+  };
 
   const handleLogout = async () => {
     try {
+      setLoading(true);
       const res = await axios.post(
         `${BASE_URL}/api/panel-logout`,
         {},
@@ -48,6 +61,8 @@ const VersionCheck = () => {
         localStorage.clear();
         dispatch(logout());
         navigate("/");
+
+        handleCloseDialog();
         setTimeout(() => persistor.purge(), 1000);
       } else {
         toast({
@@ -65,6 +80,8 @@ const VersionCheck = () => {
           "Something went wrong. Please try again later.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,14 +89,23 @@ const VersionCheck = () => {
     const checkVersion = async () => {
       try {
         const statusRes = await axios.get(`${BASE_URL}/api/panel-check-status`);
-        const serverVer = statusRes.data?.version?.version_panel;
+        const serverVer = statusRes?.data?.version?.version_panel;
 
         if (token && statusRes.data?.success === "ok") {
-          setServerVersion(serverVer);
-          console.log(serverVer, "serverVer");
-          console.log(localVersion, "localVersion");
+          dispatch(
+            setShowUpdateDialog({
+              showUpdateDialog: false,
+              version: serverVer,
+            })
+          );
+
           if (localVersion !== serverVer) {
-            setShowDialog(true);
+            dispatch(
+              setShowUpdateDialog({
+                showUpdateDialog: true,
+                version: serverVer,
+              })
+            );
           }
         }
       } catch (error) {
@@ -93,7 +119,12 @@ const VersionCheck = () => {
   useEffect(() => {
     if (retryPopup) {
       const timeout = setTimeout(() => {
-        setShowDialog(true);
+        dispatch(
+          setShowUpdateDialog({
+            showUpdateDialog: true,
+            version: serverVersion,
+          })
+        );
         setRetryPopup(false);
       }, 5000);
       return () => clearTimeout(timeout);
@@ -103,36 +134,43 @@ const VersionCheck = () => {
   if (!token) return null;
 
   return (
-    <Dialog open={showDialog} onOpenChange={setShowDialog}>
+    <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
       <DialogContent
-        className="max-w-sm text-center [&>button.absolute]:hidden"
+        className="max-w-md p-6 rounded-2xl shadow-2xl border bg-gradient-to-br from-white to-gray-100 dark:from-zinc-900 dark:to-zinc-800 [&>button.absolute]:hidden"
         aria-describedby={undefined}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         hideClose={true}
       >
-        <DialogHeader>
-          <DialogTitle>Update Available</DialogTitle>
+        <DialogHeader className="flex flex-col items-center text-center">
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-600 mb-3">
+            <RefreshCw className="w-6 h-6 animate-spin-slow" />
+          </div>
+          <DialogTitle className="text-xl font-semibold">
+            Update Available
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            A new version of the panel is ready. Update now to version{" "}
+            <span className="font-medium text-blue-600">{serverVersion}</span>.
+          </p>
         </DialogHeader>
-        <p className="text-sm text-gray-600 mt-2">
-          A new version of the panel is available. Please update to version{" "}
-          <strong>{serverVersion}</strong>.
-        </p>
-        <DialogFooter className="mt-4 flex justify-center gap-2">
+
+        <DialogFooter className="mt-6 flex justify-center gap-4">
           <Button
+            variant="outline"
             onClick={() => {
-              setShowDialog(false);
+              handleCloseDialog();
               setRetryPopup(true);
             }}
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+            className="rounded-full px-6 py-2"
           >
             Do It Later
           </Button>
           <Button
             onClick={handleLogout}
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+            className="rounded-full px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
           >
-            Update
+            {loading ? "Updatting" : "Update Now"}
           </Button>
         </DialogFooter>
       </DialogContent>

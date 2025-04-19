@@ -26,6 +26,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useFetchCompanies, useFetchUserType } from "@/hooks/useApi";
+import useApiToken from "@/components/common/useApiToken";
+import { useSelector } from "react-redux";
 
 const CreateTeam = () => {
   const [open, setOpen] = useState(false);
@@ -35,8 +37,8 @@ const CreateTeam = () => {
   const { toast } = useToast();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const userId = localStorage.getItem("id");
-  const token = localStorage.getItem("token");
+  const userId = useSelector((state) => state.auth.id);
+  const token = useApiToken();
   const [formData, setFormData] = useState({
     company_id: "",
     name: "",
@@ -127,7 +129,6 @@ const CreateTeam = () => {
     }
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
 
       const response = await axios.post(
         `${BASE_URL}/api/panel-create-team`,
